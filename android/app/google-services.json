@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1013612055908",
+    "project_id": "urban-resilience-f875d",
+    "storage_bucket": "urban-resilience-f875d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1013612055908:android:25b166287ff02be7f27e71",
+        "android_client_info": {
+          "package_name": "com.namegmail.urban_resilience"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhht2LHUKSsdGt05bOS8XgeuViCyDgJ9A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
