@@ -18,16 +18,25 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Home'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => context.push('/map'),
-              child: const Text('View Risk Map'),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('Home'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => context.push('/map'),
+                child: const Text('View Risk Map'),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () => context.push('/risk/ai-test'),
+                icon: const Icon(Icons.auto_awesome_outlined),
+                label: const Text('Test AI Risk Analyst'),
+              ),
+            ],
+          ),
         ),
       ),
     );
