@@ -92,8 +92,17 @@ class ObservationsRepository {
       final metadata = SettableMetadata(
         contentType: _contentType(mediaType, extension),
       );
-      await reference.putFile(mediaFile, metadata);
-      mediaUrl = await reference.getDownloadURL();
+      if (!await mediaFile.exists()) {
+        throw StateError(
+          'Le fichier sélectionné est introuvable. Reprenez la photo.',
+        );
+      }
+
+      final snapshot = await reference.putFile(mediaFile, metadata);
+      if (snapshot.state != TaskState.success) {
+        throw StateError('Le téléversement du média a échoué.');
+      }
+      mediaUrl = await snapshot.ref.getDownloadURL();
     }
 
     await document.set({

@@ -66,5 +66,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>La caméra permet de joindre une photo à votre signalement.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>La galerie permet de joindre une photo à votre signalement.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Votre position est nécessaire pour localiser le signalement.</string>
 </dict>
 </plist>

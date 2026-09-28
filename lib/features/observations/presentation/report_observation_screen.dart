@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/utils/photo_stamper.dart';
 import '../domain/observation.dart';
 import 'providers/observations_providers.dart';
 
@@ -53,6 +54,76 @@ class _ReportObservationScreenState
           ? ObservationMediaType.video
           : ObservationMediaType.image;
     });
+  }
+
+  Future<void> _chooseMediaSource() async {
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: const Text('Prendre une photo'),
+              subtitle: const Text('Les coordonnées GPS seront ajoutées'),
+              onTap: () => Navigator.of(sheetContext).pop('camera'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Choisir dans la galerie'),
+              onTap: () => Navigator.of(sheetContext).pop('gallery'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (choice == 'camera') {
+      await _takePhoto();
+    } else if (choice == 'gallery') {
+      await _pickMedia();
+    }
+  }
+
+  Future<void> _takePhoto() async {
+    // Les coordonnées sont nécessaires pour les incruster sur la photo.
+    if (_position == null) {
+      await _getLocation();
+    }
+    if (_position == null) {
+      if (mounted) {
+        _showMessage(
+          'Position GPS requise pour prendre une photo.',
+        );
+      }
+      return;
+    }
+
+    try {
+      final captured = await _picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1600,
+        imageQuality: 85,
+      );
+      if (captured == null) return;
+
+      final stamped = await PhotoStamper.stampCoordinates(
+        source: File(captured.path),
+        latitude: _position!.latitude,
+        longitude: _position!.longitude,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _mediaFile = stamped;
+        _mediaType = ObservationMediaType.image;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      _showMessage('Impossible de prendre la photo : $error');
+    }
   }
 
   Future<void> _getLocation() async {
@@ -363,7 +434,7 @@ class _ReportObservationScreenState
               const SizedBox(height: 12),
 
               GestureDetector(
-                onTap: _pickMedia,
+                onTap: _chooseMediaSource,
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
@@ -414,7 +485,7 @@ class _ReportObservationScreenState
                             const SizedBox(height: 5),
                             Text(
                               _mediaFile == null
-                                  ? 'JPG ou PNG • 10 Mo maximum'
+                                  ? 'JPG ou PNG • coordonnées GPS ajoutées'
                                   : _mediaFile!.path
                                       .split(Platform.pathSeparator)
                                       .last,
