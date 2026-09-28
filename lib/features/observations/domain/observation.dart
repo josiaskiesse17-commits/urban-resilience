@@ -3,6 +3,7 @@ enum ObservationType {
   blockedRoad,
   landslide,
   other,
+  custom,
 }
 
 enum ObservationStatus {
@@ -25,6 +26,7 @@ class Observation {
   final String? mediaUrl;
   final ObservationMediaType? mediaType;
   final String? description;
+  final String? customTypeLabel;
   final ObservationStatus status;
   final DateTime createdAt;
   final DateTime? verifiedAt;
@@ -40,6 +42,7 @@ class Observation {
     this.mediaUrl,
     this.mediaType,
     this.description,
+    this.customTypeLabel,
     required this.status,
     required this.createdAt,
     this.verifiedAt,
@@ -60,6 +63,7 @@ class Observation {
       mediaUrl: map['mediaUrl'] as String?,
       mediaType: _mediaTypeFromValue(map['mediaType']),
       description: map['description'] as String?,
+      customTypeLabel: map['customTypeLabel'] as String?,
       status: ObservationStatus.values.firstWhere(
         (value) => value.name == map['status'],
         orElse: () => ObservationStatus.pending,
@@ -90,6 +94,12 @@ class Observation {
   }
 
   String get typeLabel {
+    if (type == ObservationType.custom &&
+        customTypeLabel != null &&
+        customTypeLabel!.trim().isNotEmpty) {
+      return customTypeLabel!.trim();
+    }
+
     switch (type) {
       case ObservationType.flooding:
         return 'Inondation';
@@ -98,6 +108,8 @@ class Observation {
       case ObservationType.landslide:
         return 'Glissement de terrain';
       case ObservationType.other:
+        return 'Autre';
+      case ObservationType.custom:
         return 'Autre';
     }
   }

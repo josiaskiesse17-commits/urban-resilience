@@ -74,6 +74,7 @@ class ObservationsRepository {
     required double latitude,
     required double longitude,
     String? description,
+    String? customTypeLabel,
     File? mediaFile,
     ObservationMediaType? mediaType,
   }) async {
@@ -113,6 +114,9 @@ class ObservationsRepository {
       'mediaUrl': mediaUrl,
       'mediaType': mediaType?.name,
       'description': description?.trim(),
+      'customTypeLabel': type == ObservationType.custom
+          ? customTypeLabel?.trim()
+          : null,
       'status': ObservationStatus.pending.name,
       'createdAt': FieldValue.serverTimestamp(),
       'verifiedAt': null,

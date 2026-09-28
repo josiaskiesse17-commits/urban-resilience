@@ -22,6 +22,7 @@ class ReportObservationScreen extends ConsumerStatefulWidget {
 class _ReportObservationScreenState
     extends ConsumerState<ReportObservationScreen> {
   final _descriptionController = TextEditingController();
+  final _customTypeController = TextEditingController();
   final _picker = ImagePicker();
 
   ObservationType _type = ObservationType.flooding;
@@ -35,6 +36,7 @@ class _ReportObservationScreenState
   @override
   void dispose() {
     _descriptionController.dispose();
+    _customTypeController.dispose();
     super.dispose();
   }
 
@@ -223,6 +225,16 @@ class _ReportObservationScreenState
       return;
     }
 
+    final customType = _customTypeController.text.trim();
+    final customTypeError = ReportValidation.customTypeError(
+      isCustomType: _type == ObservationType.custom,
+      customType: customType,
+    );
+    if (customTypeError != null) {
+      _showMessage(customTypeError);
+      return;
+    }
+
     final positionError = ReportValidation.positionError(
       hasPosition: _position != null,
     );
@@ -241,6 +253,8 @@ class _ReportObservationScreenState
             latitude: _position!.latitude,
             longitude: _position!.longitude,
             description: description,
+            customTypeLabel:
+                _type == ObservationType.custom ? customType : null,
             mediaFile: _mediaFile,
             mediaType: _mediaType,
           );
@@ -389,22 +403,112 @@ class _ReportObservationScreenState
                 ],
               ),
 
+              const SizedBox(height: 12),
+
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _type = ObservationType.custom;
+                  });
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _type == ObservationType.custom
+                        ? const Color(0xFFDDEFF1)
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: _type == ObservationType.custom
+                          ? const Color(0xFF197A83)
+                          : const Color(0xFFD3E1E3),
+                      width: _type == ObservationType.custom ? 2 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.edit_outlined,
+                        color: _type == ObservationType.custom
+                            ? const Color(0xFF147782)
+                            : const Color(0xFF60777B),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Autre type de risque (à préciser)',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: _type == ObservationType.custom
+                                ? FontWeight.w800
+                                : FontWeight.w500,
+                            color: _type == ObservationType.custom
+                                ? const Color(0xFF147782)
+                                : const Color(0xFF60777B),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              if (_type == ObservationType.custom) ...[
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _customTypeController,
+                  maxLength: ReportValidation.maxCustomTypeLength,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF17353B),
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'Titre du risque constaté',
+                    hintText: 'Ex : Effondrement de mur, fuite de gaz...',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(18),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(18),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(18),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF197A83),
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+
               const SizedBox(height: 28),
 
               // ---------------------------------------------------------
               // DESCRIPTION
               // ---------------------------------------------------------
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Décrivez la situation',
-                    style: TextStyle(
-                      fontSize: 21,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF123C43),
+                  const Expanded(
+                    child: Text(
+                      'Décrivez la situation',
+                      style: TextStyle(
+                        fontSize: 21,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF123C43),
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 8),
                   ValueListenableBuilder(
                     valueListenable: _descriptionController,
                     builder: (_, value, _) {

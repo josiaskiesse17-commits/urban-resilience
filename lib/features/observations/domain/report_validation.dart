@@ -8,6 +8,8 @@ class ReportValidation {
 
   static const int minDescriptionLength = 10;
   static const int maxDescriptionLength = 300;
+  static const int minCustomTypeLength = 3;
+  static const int maxCustomTypeLength = 60;
 
   /// Retourne un message d'erreur si la description est invalide,
   /// ou `null` si elle est acceptable.
@@ -33,6 +35,31 @@ class ReportValidation {
     if (!hasPosition) {
       return 'Récupérez votre position avant l’envoi.';
     }
+    return null;
+  }
+
+  /// Retourne un message d'erreur si l'utilisateur a choisi de saisir
+  /// lui-même le type de risque (« Autre ») mais n'a pas donné de titre
+  /// valide. Retourne `null` si un type prédéfini est utilisé, ou si le
+  /// titre personnalisé est valide.
+  static String? customTypeError({
+    required bool isCustomType,
+    required String customType,
+  }) {
+    if (!isCustomType) return null;
+
+    final trimmed = customType.trim();
+
+    if (trimmed.length < minCustomTypeLength) {
+      return 'Précisez le type de risque '
+          '(au moins $minCustomTypeLength caractères).';
+    }
+
+    if (trimmed.length > maxCustomTypeLength) {
+      return 'Le titre du risque ne doit pas dépasser '
+          '$maxCustomTypeLength caractères.';
+    }
+
     return null;
   }
 }

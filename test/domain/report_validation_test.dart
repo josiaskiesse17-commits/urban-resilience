@@ -56,4 +56,58 @@ void main() {
       );
     });
   });
+
+  group('ReportValidation.customTypeError', () {
+    test('returns null when a predefined type is used, whatever the text',
+        () {
+      expect(
+        ReportValidation.customTypeError(
+          isCustomType: false,
+          customType: '',
+        ),
+        isNull,
+      );
+    });
+
+    test('rejects an empty custom title', () {
+      expect(
+        ReportValidation.customTypeError(
+          isCustomType: true,
+          customType: '   ',
+        ),
+        isNotNull,
+      );
+    });
+
+    test('rejects a custom title under the minimum length', () {
+      expect(
+        ReportValidation.customTypeError(
+          isCustomType: true,
+          customType: 'Ab',
+        ),
+        isNotNull,
+      );
+    });
+
+    test('accepts a valid custom title', () {
+      expect(
+        ReportValidation.customTypeError(
+          isCustomType: true,
+          customType: 'Fuite de gaz',
+        ),
+        isNull,
+      );
+    });
+
+    test('rejects a custom title over the maximum length', () {
+      final tooLong = 'a' * (ReportValidation.maxCustomTypeLength + 1);
+      expect(
+        ReportValidation.customTypeError(
+          isCustomType: true,
+          customType: tooLong,
+        ),
+        isNotNull,
+      );
+    });
+  });
 }

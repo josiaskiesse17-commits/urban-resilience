@@ -141,5 +141,26 @@ void main() {
         'Rejetée',
       );
     });
+
+    test('typeLabel uses the custom title for a custom type', () {
+      final observation = Observation.fromMap('e', {
+        'type': 'custom',
+        'status': 'pending',
+        'createdAt': DateTime.now(),
+        'customTypeLabel': 'Fuite de gaz',
+      });
+
+      expect(observation.typeLabel, 'Fuite de gaz');
+    });
+
+    test('typeLabel falls back to "Autre" for a custom type without title', () {
+      final observation = Observation.fromMap('f', {
+        'type': 'custom',
+        'status': 'pending',
+        'createdAt': DateTime.now(),
+      });
+
+      expect(observation.typeLabel, 'Autre');
+    });
   });
 }

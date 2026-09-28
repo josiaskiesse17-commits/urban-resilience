@@ -9,6 +9,15 @@ import 'package:urban_resilience/features/observations/presentation/report_obser
 /// and these tests deliberately stop before that point.
 void main() {
   Future<void> pumpScreen(WidgetTester tester) async {
+    // The form is taller than the default 800x600 test surface, which
+    // pushes the submit button and other controls off-screen and makes
+    // tester.tap() silently miss them. Use a tall phone-sized surface so
+    // every widget on this screen is reachable by taps.
+    tester.view.physicalSize = const Size(430, 2600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     await tester.pumpWidget(
       const ProviderScope(
         child: MaterialApp(
@@ -89,5 +98,43 @@ void main() {
       expect(find.text('Prendre une photo'), findsOneWidget);
       expect(find.text('Choisir dans la galerie'), findsOneWidget);
     });
+
+    testWidgets(
+      'reveals a text field when "Autre type de risque" is selected',
+      (tester) async {
+        await pumpScreen(tester);
+
+        expect(find.text('Titre du risque constaté'), findsNothing);
+
+        await tester.tap(find.text('Autre type de risque (à préciser)'));
+        await tester.pump();
+
+        expect(find.text('Titre du risque constaté'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'asks for a custom title when "Autre" is selected but left empty',
+      (tester) async {
+        await pumpScreen(tester);
+
+        await tester.enterText(
+          find.byType(TextField).first,
+          'Une route est bloquée par un arbre tombé après la tempête.',
+        );
+        await tester.tap(find.text('Autre type de risque (à préciser)'));
+        await tester.pump();
+
+        await tester.tap(find.byType(FilledButton));
+        await tester.pump();
+
+        expect(
+          find.text(
+            'Précisez le type de risque (au moins 3 caractères).',
+          ),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }
