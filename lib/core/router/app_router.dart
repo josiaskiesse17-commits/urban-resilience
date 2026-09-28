@@ -11,7 +11,12 @@ import '../../features/auth/presentation/screens/verify_email_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/map/presentation/map_screen.dart';
 import '../../features/observations/presentation/observations_screen.dart';
+import '../../features/observations/presentation/admin_observations_screen.dart';
+import '../../features/observations/presentation/report_observation_screen.dart';
 import '../../features/risk/presentation/risk_details_screen.dart';
+import '../../features/observations/presentation/observation_submitted_screen.dart';
+import '../../features/observations/presentation/observation_success_screen.dart';
+import '../../features/observations/presentation/observation_detail_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final firebaseAuth = ref.watch(firebaseAuthProvider);
@@ -52,10 +57,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
@@ -68,22 +70,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/verify-email',
         builder: (context, state) => const VerifyEmailScreen(),
       ),
-      GoRoute(
-        path: '/home',
-        builder: (context, state) => const HomeScreen(),
-      ),
-      GoRoute(
-        path: '/map',
-        builder: (context, state) => const MapScreen(),
-      ),
+      GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+      GoRoute(path: '/map', builder: (context, state) => const MapScreen()),
       GoRoute(
         path: '/risk/:id',
         builder: (context, state) {
           final riskId = state.pathParameters['id']!;
 
-          return RiskDetailsScreen(
-            riskId: riskId,
-          );
+          return RiskDetailsScreen(riskId: riskId);
         },
       ),
       GoRoute(
@@ -91,12 +85,45 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const AlertsScreen(),
       ),
       GoRoute(
+        path: '/observations/success',
+        builder: (context, state) {
+          final observationId = state.uri.queryParameters['id'] ?? '';
+
+          return ObservationSuccessScreen(observationId: observationId);
+        },
+      ),
+      GoRoute(
+        path: '/observations/detail/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+
+          return ObservationDetailScreen(observationId: id);
+        },
+      ),
+      GoRoute(
         path: '/observations',
         builder: (context, state) => const ObservationsScreen(),
       ),
       GoRoute(
+        path: '/observations/report',
+        builder: (context, state) => const ReportObservationScreen(),
+      ),
+      GoRoute(
+        path: '/admin/observations',
+        builder: (context, state) => const AdminObservationsScreen(),
+      ),
+
+      GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/observation-submitted',
+        builder: (context, state) {
+          final reference = state.extra as String?;
+
+          return ObservationSubmittedScreen(reference: reference);
+        },
       ),
     ],
   );

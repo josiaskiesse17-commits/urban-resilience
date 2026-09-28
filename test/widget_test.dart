@@ -10,21 +10,42 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:urban_resilience/main.dart';
 
+// void main() {
+//   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+//     // Build our app and trigger a frame.
+//     await tester.pumpWidget(const  UrbanResilienceApp());
+
+//     // Verify that our counter starts at 0.
+//     expect(find.text('0'), findsOneWidget);
+//     expect(find.text('1'), findsNothing);
+
+//     // Tap the '+' icon and trigger a frame.
+//     await tester.tap(find.byIcon(Icons.add));
+//     await tester.pump();
+
+//     // Verify that our counter has incremented.
+//     expect(find.text('0'), findsNothing);
+//     expect(find.text('1'), findsOneWidget);
+//   });
+// }
+
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:urban_resilience/main.dart';
+
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App starts without crashing', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: UrbanResilienceApp(),
+      ),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    // Laisse le temps aux premiers builds (ex: chargement position GPS)
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Vérifie juste que l'app s'affiche sans exception
+    expect(tester.takeException(), isNull);
   });
 }

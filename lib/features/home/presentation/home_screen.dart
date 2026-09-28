@@ -4,30 +4,202 @@ import 'package:go_router/go_router.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
+  static const Color primary = Color(0xFF147B83);
+  static const Color primaryLight = Color(0xFFDCEFF1);
+  static const Color textDark = Color(0xFF12343B);
+  static const Color textGrey = Color(0xFF64777C);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF7FBFC),
       appBar: AppBar(
-        title: const Text('Urban Resilience'),
+        backgroundColor: const Color(0xFFF7FBFC),
+        elevation: 0,
+        title: const Text(
+          'Urban Resilience',
+          style: TextStyle(
+            color: textDark,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
         actions: [
           IconButton(
-            tooltip: 'Account',
-            icon: const Icon(Icons.account_circle_outlined),
+            tooltip: 'Mon profil',
+            icon: const Icon(
+              Icons.account_circle_outlined,
+              color: textDark,
+            ),
             onPressed: () => context.push('/profile'),
           ),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Home'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => context.push('/map'),
-              child: const Text('View Risk Map'),
-            ),
-          ],
+body: Padding(
+  padding: const EdgeInsets.all(20),
+  child: Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      const Text(
+        'Urban Resilience',
+        style: TextStyle(
+          fontSize: 30,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+
+      const SizedBox(height: 10),
+
+      const Text(
+        'Surveillez les risques et signalez les situations dangereuses.',
+        textAlign: TextAlign.center,
+      ),
+
+      const SizedBox(height: 35),
+
+      SizedBox(
+        width: double.infinity,
+        height: 60,
+        child: ElevatedButton.icon(
+          onPressed: () {
+            context.push('/map');
+          },
+          icon: const Icon(Icons.map_outlined),
+          label: const Text(
+            'Voir la carte des risques',
+          ),
+        ),
+      ),
+
+      const SizedBox(height: 14),
+
+      SizedBox(
+        width: double.infinity,
+        height: 60,
+        child: ElevatedButton.icon(
+          onPressed: () {
+            context.push('/observations');
+          },
+          icon: const Icon(
+            Icons.article_outlined,
+          ),
+          label: const Text(
+            'Voir les publications',
+          ),
+        ),
+      ),
+
+      const SizedBox(height: 14),
+
+      SizedBox(
+        width: double.infinity,
+        height: 60,
+        child: FilledButton.icon(
+          onPressed: () {
+            context.push('/observations/report');
+          },
+          icon: const Icon(
+            Icons.add_a_photo_outlined,
+          ),
+          label: const Text(
+            'Signaler une situation',
+          ),
+        ),
+      ),
+    ],
+  ),
+),
+    );
+  }
+}
+
+class _ActionCard extends StatelessWidget {
+  const _ActionCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.highlighted = false,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  final bool highlighted;
+
+  static const Color primary = Color(0xFF147B83);
+  static const Color primaryLight = Color(0xFFDCEFF1);
+  static const Color textDark = Color(0xFF12343B);
+  static const Color textGrey = Color(0xFF64777C);
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: highlighted ? primary : Colors.white,
+      borderRadius: BorderRadius.circular(26),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(26),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(26),
+            border: highlighted
+                ? null
+                : Border.all(
+                    color: const Color(0xFFD5E0E2),
+                  ),
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 29,
+                backgroundColor:
+                    highlighted ? Colors.white : primaryLight,
+                child: Icon(
+                  icon,
+                  color: primary,
+                  size: 27,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: highlighted
+                            ? Colors.white
+                            : textDark,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: highlighted
+                            ? Colors.white.withOpacity(.85)
+                            : textGrey,
+                        fontSize: 13,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: highlighted
+                    ? Colors.white
+                    : primary,
+              ),
+            ],
+          ),
         ),
       ),
     );

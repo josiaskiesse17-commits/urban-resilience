@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../domain/app_user.dart';
@@ -57,6 +58,7 @@ class FirebaseAuthRepository implements AuthRepository {
     }
 
     await user.updateDisplayName(displayName);
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({'email': email, 'displayName': displayName, 'role': 'citizen', 'createdAt': FieldValue.serverTimestamp()});
     await user.sendEmailVerification();
     await user.reload();
 

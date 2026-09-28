@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.role == 'citizen';
+      allow update: if signedIn()
+        && request.auth.uid == userId
+        && resource.data.role == request.resource.data.role
+        && request.resource.data.role == 'citizen';
+      allow delete: if isAdmin();
+    }
+
+    match /observations/{observationId} {
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid)
+        || resource.data.status == 'verified';
+
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.verifiedBy == null
+        && request.resource.data.verifiedAt == null
+        && request.resource.data.rejectionReason == null;
+
+      allow update: if isAdmin()
+        && resource.data.status == 'pending'
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.status in ['verified', 'rejected']
+        && request.resource.data.verifiedBy == request.auth.uid
+        && request.resource.data.verifiedAt != null;
+
+      allow delete: if isAdmin();
+    }
+  }
+}
