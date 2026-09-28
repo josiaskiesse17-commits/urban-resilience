@@ -1,51 +1,30 @@
-// This is a basic Flutter widget test.
+// Tests de fumée de base pour l'application.
 //
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// UrbanResilienceApp construit son routeur à partir de FirebaseAuth.instance
+// (voir lib/core/router/app_router.dart), ce qui nécessite Firebase.initializeApp()
+// au préalable. Ce n'est pas disponible dans l'environnement de test par défaut.
+// On teste donc ici les écrans qui ne dépendent pas de Firebase pour s'afficher.
+// Les tests couvrant Firestore/Storage/Auth vivent dans leurs propres suites,
+// avec les dépendances mockées ou injectées.
 
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-
-import 'package:urban_resilience/main.dart';
-
-// void main() {
-//   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-//     // Build our app and trigger a frame.
-//     await tester.pumpWidget(const  UrbanResilienceApp());
-
-//     // Verify that our counter starts at 0.
-//     expect(find.text('0'), findsOneWidget);
-//     expect(find.text('1'), findsNothing);
-
-//     // Tap the '+' icon and trigger a frame.
-//     await tester.tap(find.byIcon(Icons.add));
-//     await tester.pump();
-
-//     // Verify that our counter has incremented.
-//     expect(find.text('0'), findsNothing);
-//     expect(find.text('1'), findsOneWidget);
-//   });
-// }
-
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:urban_resilience/main.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:urban_resilience/features/observations/presentation/report_observation_screen.dart';
 
 void main() {
-  testWidgets('App starts without crashing', (WidgetTester tester) async {
+  testWidgets('ReportObservationScreen builds without throwing', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       const ProviderScope(
-        child: UrbanResilienceApp(),
+        child: MaterialApp(
+          home: ReportObservationScreen(),
+        ),
       ),
     );
-
-    // Laisse le temps aux premiers builds (ex: chargement position GPS)
     await tester.pump();
 
-    // Vérifie juste que l'app s'affiche sans exception
     expect(tester.takeException(), isNull);
   });
 }

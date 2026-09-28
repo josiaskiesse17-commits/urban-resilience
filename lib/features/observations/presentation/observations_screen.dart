@@ -220,7 +220,7 @@ class _ObservationCard extends StatelessWidget {
                 width: double.infinity,
                 height: 190,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) {
+                errorBuilder: (_, _, _) {
                   return _MediaPlaceholder();
                 },
               )

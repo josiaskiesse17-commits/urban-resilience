@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../core/utils/photo_stamper.dart';
 import '../domain/observation.dart';
+import '../domain/report_validation.dart';
 import 'providers/observations_providers.dart';
 
 class ReportObservationScreen extends ConsumerStatefulWidget {
@@ -126,6 +127,52 @@ class _ReportObservationScreenState
     }
   }
 
+  void _removeMedia() {
+    setState(() {
+      _mediaFile = null;
+      _mediaType = null;
+    });
+  }
+
+  void _previewImage() {
+    final file = _mediaFile;
+    if (file == null || _mediaType != ObservationMediaType.image) return;
+
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black,
+      builder: (dialogContext) => Dialog.fullscreen(
+        backgroundColor: Colors.black,
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                minScale: 1,
+                maxScale: 4,
+                child: Image.file(file),
+              ),
+            ),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Align(
+                  alignment: Alignment.topRight,
+                  child: IconButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.black45,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _getLocation() async {
     setState(() => _loadingLocation = true);
 
@@ -170,17 +217,17 @@ class _ReportObservationScreenState
   Future<void> _submit() async {
     final description = _descriptionController.text.trim();
 
-    if (description.length < 10) {
-      _showMessage(
-        'La description doit contenir au moins 10 caractères.',
-      );
+    final descriptionError = ReportValidation.descriptionError(description);
+    if (descriptionError != null) {
+      _showMessage(descriptionError);
       return;
     }
 
-    if (_position == null) {
-      _showMessage(
-        'Récupérez votre position avant l’envoi.',
-      );
+    final positionError = ReportValidation.positionError(
+      hasPosition: _position != null,
+    );
+    if (positionError != null) {
+      _showMessage(positionError);
       return;
     }
 
@@ -226,8 +273,6 @@ class _ReportObservationScreenState
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFA),
       appBar: AppBar(
@@ -362,7 +407,7 @@ class _ReportObservationScreenState
                   ),
                   ValueListenableBuilder(
                     valueListenable: _descriptionController,
-                    builder: (_, value, __) {
+                    builder: (_, value, _) {
                       return Text(
                         '${value.text.length} / 300',
                         style: const TextStyle(
@@ -433,74 +478,91 @@ class _ReportObservationScreenState
 
               const SizedBox(height: 12),
 
-              GestureDetector(
-                onTap: _chooseMediaSource,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 24,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: const Color(0xFFD3E1E3),
-                      width: 1.5,
+              if (_mediaFile != null && _mediaType == ObservationMediaType.image)
+                _PhotoPreviewCard(
+                  file: _mediaFile!,
+                  onTapPreview: _previewImage,
+                  onChange: _chooseMediaSource,
+                  onRemove: _removeMedia,
+                )
+              else
+                GestureDetector(
+                  onTap: _chooseMediaSource,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 24,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: const Color(0xFFD3E1E3),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 72,
+                          height: 72,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDDEFF1),
+                            borderRadius: BorderRadius.circular(22),
+                          ),
+                          child: Icon(
+                            _mediaFile == null
+                                ? Icons.camera_alt_outlined
+                                : Icons.check_circle_outline,
+                            size: 34,
+                            color: const Color(0xFF147782),
+                          ),
+                        ),
+                        const SizedBox(width: 18),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _mediaFile == null
+                                    ? 'Prendre ou choisir une photo'
+                                    : 'Média sélectionné',
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF17353B),
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                _mediaFile == null
+                                    ? 'JPG ou PNG • coordonnées GPS ajoutées'
+                                    : _mediaFile!.path
+                                        .split(Platform.pathSeparator)
+                                        .last,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  color: Color(0xFF60777B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (_mediaFile != null)
+                          IconButton(
+                            onPressed: _removeMedia,
+                            icon: const Icon(
+                              Icons.close,
+                              color: Color(0xFF60777B),
+                            ),
+                            tooltip: 'Retirer le média',
+                          ),
+                      ],
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFDDEFF1),
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                        child: Icon(
-                          _mediaFile == null
-                              ? Icons.camera_alt_outlined
-                              : Icons.check_circle_outline,
-                          size: 34,
-                          color: const Color(0xFF147782),
-                        ),
-                      ),
-                      const SizedBox(width: 18),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _mediaFile == null
-                                  ? 'Prendre ou choisir une photo'
-                                  : 'Média sélectionné',
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF17353B),
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              _mediaFile == null
-                                  ? 'JPG ou PNG • coordonnées GPS ajoutées'
-                                  : _mediaFile!.path
-                                      .split(Platform.pathSeparator)
-                                      .last,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                color: Color(0xFF60777B),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
-              ),
 
               const SizedBox(height: 24),
 
@@ -641,6 +703,132 @@ class _ReportObservationScreenState
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _PhotoPreviewCard extends StatelessWidget {
+  final File file;
+  final VoidCallback onTapPreview;
+  final VoidCallback onChange;
+  final VoidCallback onRemove;
+
+  const _PhotoPreviewCard({
+    required this.file,
+    required this.onTapPreview,
+    required this.onChange,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: const Color(0xFFD3E1E3),
+          width: 1.5,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          GestureDetector(
+            onTap: onTapPreview,
+            child: Stack(
+              children: [
+                SizedBox(
+                  height: 220,
+                  width: double.infinity,
+                  child: Image.file(
+                    file,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => Container(
+                      color: const Color(0xFFDDEFF1),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.broken_image_outlined,
+                        size: 40,
+                        color: Color(0xFF147782),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: 10,
+                  bottom: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.zoom_in,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          'Agrandir',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 10,
+            ),
+            child: Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Coordonnées GPS incrustées sur la photo',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF60777B),
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: onChange,
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: const Text('Changer'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFF147782),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                ),
+                IconButton(
+                  onPressed: onRemove,
+                  icon: const Icon(Icons.delete_outline),
+                  color: const Color(0xFFB3261E),
+                  tooltip: 'Retirer la photo',
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
