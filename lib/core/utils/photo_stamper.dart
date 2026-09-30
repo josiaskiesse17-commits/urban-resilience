@@ -2,11 +2,22 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:image/image.dart' as img;
 
 /// Incruste les coordonnées GPS et la date directement dans les pixels
-/// de la photo, puis retourne un nouveau fichier PNG.
+/// de la photo, puis retourne un nouveau fichier JPEG compressé.
+///
+/// Le texte est dessiné avec `dart:ui` (rendu de police net, anti-crénelé),
+/// puis le résultat est ré-encodé en JPEG via `package:image` : un PNG de
+/// photo réelle pèse souvent plusieurs Mo de plus qu'un JPEG équivalent,
+/// ce qui allonge l'envoi et augmente le risque d'échec sur une connexion
+/// faible (voir StorageException ERROR_CANCELED côté Firebase Storage).
 class PhotoStamper {
   const PhotoStamper._();
+
+  /// 0-100. 82 offre un bon compromis netteté/poids pour une photo de
+  /// signalement (le texte incrusté reste lisible même compressé).
+  static const int _jpegQuality = 82;
 
   static Future<File> stampCoordinates({
     required File source,
@@ -64,6 +75,9 @@ class PhotoStamper {
 
     final picture = recorder.endRecording();
     final stamped = await picture.toImage(image.width, image.height);
+    // dart:ui can only encode to PNG or raw pixels, not JPEG: go through
+    // PNG first (lossless, keeps the crisp text), then re-encode that as
+    // a compressed JPEG below.
     final data = await stamped.toByteData(format: ui.ImageByteFormat.png);
 
     image.dispose();
@@ -74,11 +88,20 @@ class PhotoStamper {
       throw StateError('Impossible de générer la photo avec les coordonnées.');
     }
 
-    final output = File('${source.path}.gps.png');
-    await output.writeAsBytes(
-      data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
-      flush: true,
+    final pngBytes = data.buffer.asUint8List(
+      data.offsetInBytes,
+      data.lengthInBytes,
     );
+
+    final decoded = img.decodePng(pngBytes);
+    if (decoded == null) {
+      throw StateError('Impossible de compresser la photo.');
+    }
+
+    final jpegBytes = img.encodeJpg(decoded, quality: _jpegQuality);
+
+    final output = File('${source.path}.gps.jpg');
+    await output.writeAsBytes(jpegBytes, flush: true);
     return output;
   }
 

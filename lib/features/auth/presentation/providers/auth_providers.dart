@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/notifications/push_notifications_service.dart';
 import '../../data/auth_remote_data_source.dart';
 import '../../data/auth_repository.dart';
 import '../../domain/app_user.dart';
@@ -91,6 +92,9 @@ class AuthNotifier extends AsyncNotifier<AppUser?> {
 
     state = await AsyncValue.guard(
       () async {
+        // Must run before signing out: Firestore rules only allow a
+        // user to edit their own fcmTokens while still authenticated.
+        await PushNotificationsService.clearTokenForCurrentUser();
         await _repository.logout();
         return null;
       },

@@ -44,7 +44,7 @@ void main() {
     }
   });
 
-  test('produces a PNG file next to the source image', () async {
+  test('produces a compressed JPEG file next to the source image', () async {
     final source = await _createTestImage(tempDir);
 
     final result = await PhotoStamper.stampCoordinates(
@@ -55,12 +55,12 @@ void main() {
     );
 
     expect(await result.exists(), isTrue);
-    expect(result.path, endsWith('.gps.png'));
+    expect(result.path, endsWith('.gps.jpg'));
 
-    // A valid PNG file starts with the standard PNG signature bytes.
+    // A valid JPEG file starts with the standard JPEG signature bytes.
     final bytes = await result.readAsBytes();
-    const pngSignature = [0x89, 0x50, 0x4E, 0x47];
-    expect(bytes.sublist(0, 4), pngSignature);
+    const jpegSignature = [0xFF, 0xD8, 0xFF];
+    expect(bytes.sublist(0, 3), jpegSignature);
   });
 
   test('keeps the original image dimensions', () async {

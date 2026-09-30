@@ -18,8 +18,19 @@ service cloud.firestore {
         && request.resource.data.role == 'citizen';
       allow update: if signedIn()
         && request.auth.uid == userId
-        && resource.data.role == request.resource.data.role
-        && request.resource.data.role == 'citizen';
+        && (
+          // A citizen may freely edit their own profile (role unchanged).
+          (resource.data.role == 'citizen'
+            && request.resource.data.role == 'citizen')
+          ||
+          // Any signed-in owner (citizen or admin) may sync only their
+          // push-notification tokens, without touching any other field
+          // or changing their role. Needed so admin devices can register
+          // for new-observation alerts.
+          (request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['fcmTokens'])
+            && request.resource.data.role == resource.data.role)
+        );
       allow delete: if isAdmin();
     }
 

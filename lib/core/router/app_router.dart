@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -18,10 +19,16 @@ import '../../features/observations/presentation/observation_submitted_screen.da
 import '../../features/observations/presentation/observation_success_screen.dart';
 import '../../features/observations/presentation/observation_detail_screen.dart';
 
+/// Lets code outside the widget tree (namely [PushNotificationsService],
+/// which reacts to a notification tap) navigate using the same [GoRouter]
+/// instance the app is using.
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   final firebaseAuth = ref.watch(firebaseAuthProvider);
 
   final router = GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/home',
     redirect: (context, state) {
       final user = firebaseAuth.currentUser;
