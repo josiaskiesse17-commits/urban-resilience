@@ -1,137 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'app_palette.dart';
 
 class AppTheme {
-  AppTheme._();
-
-  static ThemeData get light {
-    return ThemeData(
+  static ThemeData get lightTheme {
+    final base = ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
-      fontFamily: 'Roboto',
-
+      scaffoldBackgroundColor: AppPalette.background,
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppPalette.primary,
-        brightness: Brightness.light,
-      ).copyWith(
         primary: AppPalette.primary,
-        secondary: AppPalette.accent,
-        surface: AppPalette.lightSurface,
+        surface: AppPalette.cardBackground,
+        error: AppPalette.error,
       ),
+    );
 
-      scaffoldBackgroundColor: AppPalette.lightBackground,
+    final textTheme = GoogleFonts.interTextTheme(base.textTheme);
 
-      appBarTheme: const AppBarTheme(
-        centerTitle: false,
-        backgroundColor: AppPalette.lightSurface,
-        foregroundColor: AppPalette.lightText,
-        elevation: 0,
-      ),
-
-      cardTheme: CardThemeData(
-        color: AppPalette.lightSurface,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(
-            color: AppPalette.lightBorder,
-          ),
-        ),
-      ),
-
+    return base.copyWith(
+      textTheme: textTheme,
+      primaryTextTheme: GoogleFonts.interTextTheme(base.primaryTextTheme),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppPalette.lightSurface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppPalette.lightBorder,
-          ),
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        hintStyle: textTheme.bodyMedium?.copyWith(
+          fontSize: 15,
+          color: AppPalette.textMuted,
+          fontWeight: FontWeight.w400,
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppPalette.lightBorder,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppPalette.primary,
-            width: 2,
-          ),
-        ),
-      ),
-
-      navigationBarTheme: const NavigationBarThemeData(
-        backgroundColor: AppPalette.lightSurface,
+        border: _border(AppPalette.inputBorder),
+        enabledBorder: _border(AppPalette.inputBorder),
+        focusedBorder: _border(AppPalette.primary, width: 1.5),
+        errorBorder: _border(AppPalette.error),
+        focusedErrorBorder: _border(AppPalette.error),
       ),
     );
   }
 
-  static ThemeData get dark {
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.dark,
-      fontFamily: 'Roboto',
-
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppPalette.primaryLight,
-        brightness: Brightness.dark,
-      ).copyWith(
-        primary: AppPalette.primaryLight,
-        secondary: AppPalette.accent,
-        surface: AppPalette.darkSurface,
-      ),
-
-      scaffoldBackgroundColor: AppPalette.darkBackground,
-
-      appBarTheme: const AppBarTheme(
-        centerTitle: false,
-        backgroundColor: AppPalette.darkSurface,
-        foregroundColor: AppPalette.darkText,
-        elevation: 0,
-      ),
-
-      cardTheme: CardThemeData(
-        color: AppPalette.darkSurface,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(
-            color: AppPalette.darkBorder,
-          ),
-        ),
-      ),
-
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: AppPalette.darkSurface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppPalette.darkBorder,
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppPalette.darkBorder,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: AppPalette.primaryLight,
-            width: 2,
-          ),
-        ),
-      ),
-
-      navigationBarTheme: const NavigationBarThemeData(
-        backgroundColor: AppPalette.darkSurface,
-      ),
+  static OutlineInputBorder _border(Color color, {double width = 1}) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide(color: color, width: width),
     );
   }
+
+  static ThemeData get light => lightTheme;
+  static ThemeData get dark => lightTheme;
 }

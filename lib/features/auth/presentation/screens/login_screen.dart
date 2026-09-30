@@ -1,13 +1,14 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
-import '../providers/auth_providers.dart';
-import '../widgets/auth_button.dart';
-import '../widgets/auth_field.dart';
-import '../widgets/auth_scaffold.dart';
-import '../widgets/password_field.dart';
+import 'package:urban_resilience/core/theme/app_palette.dart';
+import 'package:urban_resilience/features/auth/presentation/auth_error_message.dart';
+import 'package:urban_resilience/features/auth/presentation/providers/auth_providers.dart';
+import 'package:urban_resilience/features/auth/presentation/widgets/auth_button.dart';
+import 'package:urban_resilience/features/auth/presentation/widgets/auth_field.dart';
+import 'package:urban_resilience/features/auth/presentation/widgets/auth_icon.dart';
+import 'package:urban_resilience/features/auth/presentation/widgets/auth_scaffold.dart';
+import 'package:urban_resilience/features/auth/presentation/widgets/password_field.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -17,10 +18,11 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
-
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -29,12 +31,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) {
+  Future<void> _onLogin() async {
+    if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
 
-    FocusScope.of(context).unfocus();
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
 
     await ref.read(authNotifierProvider.notifier).login(
           email: _emailController.text.trim(),
@@ -46,144 +51,105 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
 
     final authState = ref.read(authNotifierProvider);
-
     if (authState.hasError) {
-      _showError(authState.error);
+      setState(() {
+        _isLoading = false;
+        _error = authErrorMessage(authState.error);
+      });
       return;
     }
 
-    if (authState.hasValue && authState.value != null) {
-      context.go('/home');
-    }
-  }
-
-  void _showError(Object? error) {
-    final message = _getAuthErrorMessage(error);
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-  }
-
-  String _getAuthErrorMessage(Object? error) {
-    switch (error) {
-      case FirebaseAuthException e:
-        switch (e.code) {
-          case 'invalid-credential':
-          case 'wrong-password':
-          case 'user-not-found':
-            return 'Invalid email or password.';
-          case 'invalid-email':
-            return 'Please enter a valid email address.';
-          case 'user-disabled':
-            return 'This account has been disabled.';
-          case 'too-many-requests':
-            return 'Too many attempts. Please try again later.';
-          case 'network-request-failed':
-            return 'Network error. Check your internet connection.';
-          default:
-            return e.message ?? 'Unable to sign in.';
-        }
-      default:
-        return 'Something went wrong. Please try again.';
-    }
+    context.go('/location');
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authNotifierProvider);
-    final isLoading = authState.isLoading;
-
     return AuthScaffold(
-      title: 'Welcome back',
-      subtitle: 'Sign in to access your urban resilience dashboard.',
-      footer: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      title: 'Heureux de vous revoir',
+      subtitle: 'Connectez-vous pour retrouver vos alertes locales et vos préférences.',
+      footer: Column(
         children: [
-          Text(
-            "Don't have an account?",
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          TextButton(
-            onPressed: isLoading
-                ? null
-                : () => context.push('/register'),
-            child: const Text('Create account'),
+          const AuthPrivacyNote(),
+          const SizedBox(height: 12),
+          AuthTextLink(
+            leading: 'Pas encore de compte ?',
+            action: 'Créer un compte',
+            onPressed: () => context.push('/register'),
           ),
         ],
       ),
-      child: Form(
-        key: _formKey,
-        child: AutofillGroup(
+      child: AuthCard(
+        child: Form(
+          key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AuthField(
+                label: 'Adresse e-mail',
                 controller: _emailController,
-                label: 'Email',
-                hint: 'you@example.com',
-                prefixIcon: Icons.email_outlined,
+                hintText: 'votreemail@gmail.com',
+                prefix: const AuthIcon(
+                  asset: 'assets/icons/mail.svg',
+                  color: AppPalette.primary,
+                  size: 18,
+                ),
                 keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.next,
-                autofillHint: AutofillHints.email,
-                enabled: !isLoading,
                 validator: (value) {
-                  final email = value?.trim() ?? '';
-
-                  if (email.isEmpty) {
-                    return 'Email is required.';
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Veuillez saisir votre email';
                   }
-
-                  final emailRegex = RegExp(
-                    r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
-                  );
-
-                  if (!emailRegex.hasMatch(email)) {
-                    return 'Enter a valid email address.';
+                  if (!value.contains('@') || !value.contains('.')) {
+                    return 'Adresse e-mail invalide';
                   }
-
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               PasswordField(
                 controller: _passwordController,
-                label: 'Password',
-                hint: 'Enter your password',
-                textInputAction: TextInputAction.done,
-                autofillHint: AutofillHints.password,
-                enabled: !isLoading,
-                onFieldSubmitted: (_) => _login(),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Password is required.';
+                    return 'Veuillez saisir votre mot de passe';
                   }
-
                   return null;
                 },
               ),
               const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: isLoading
-                      ? null
-                      : () => context.push('/forgot-password'),
-                  child: const Text('Forgot password?'),
+                child: GestureDetector(
+                  onTap: () => context.push('/forgot-password'),
+                  child: const Text(
+                    'Mot de passe oublié ?',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppPalette.primary,
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               AuthButton(
-                label: 'Sign in',
-                icon: Icons.login,
-                isLoading: isLoading,
-                onPressed: _login,
+                text: 'Se connecter',
+                isLoading: _isLoading,
+                icon: const AuthIcon(
+                  asset: 'assets/icons/log-in.svg',
+                  color: Colors.white,
+                ),
+                onPressed: _onLogin,
               ),
+              if (_error != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  _error!,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppPalette.error,
+                    height: 1.3,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
