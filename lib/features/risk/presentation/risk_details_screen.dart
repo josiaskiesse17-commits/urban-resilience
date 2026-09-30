@@ -6,7 +6,12 @@ import 'package:urban_resilience/core/theme/app_palette.dart';
 import 'package:urban_resilience/features/location/presentation/selected_place_provider.dart';
 
 class RiskDetailsScreen extends ConsumerWidget {
-  const RiskDetailsScreen({super.key});
+  final String? riskId;
+
+  const RiskDetailsScreen({
+    super.key,
+    this.riskId,
+  });
 
   static const _cardShadow = BoxShadow(
     color: Color.fromRGBO(16, 42, 49, 0.08),

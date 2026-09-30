@@ -34,6 +34,12 @@ final appRouterProvider = Provider((ref) {
         builder: (context, state) => const RiskDetailsScreen(),
       ),
       GoRoute(
+        path: '/risk/:id',
+        builder: (context, state) => RiskDetailsScreen(
+          riskId: state.pathParameters['id'],
+        ),
+      ),
+      GoRoute(
         path: '/map',
         builder: (context, state) => const MapScreen(),
       ),
