@@ -377,7 +377,7 @@ class _RiskPreview extends StatelessWidget {
           Divider(height: 1, thickness: 1, color: AppPalette.inputBorder),
           SizedBox(height: 12),
           GestureDetector(
-            onTap: () => context.push('/risk'),
+            onTap: () => context.push('/risk/zone-masina'),
             child: Row(
             children: [
               _FloodIcon(),

@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 
 import '../domain/flood_environmental_data.dart';
 import '../domain/flood_environmental_data_source.dart';
+import '../domain/hazard_series_utils.dart';
 
 class OpenMeteoRiskDataSource
     implements FloodEnvironmentalDataSource {
@@ -80,18 +81,35 @@ class OpenMeteoRiskDataSource
 
     final rainfall = _parseRainfall(weatherJson);
 
-    final riverDischarge =
-        _parseLatestRiverDischarge(floodJson);
+    final river = _parseLatestRiverDischarge(floodJson);
+
+    final today = DateTime.now().toUtc();
+
+    final notes = <String>[...rainfall.notes];
+
+    if (river.date.year != today.year ||
+        river.date.month != today.month ||
+        river.date.day != today.day) {
+      notes.add(
+        'The daily GloFAS river discharge available for this location is '
+        'dated ${_formatDate(river.date)}; no value for today was returned.',
+      );
+    }
 
     return FloodEnvironmentalData(
       rainfallLastHourMm: rainfall.lastHourMm,
       rainfallAccumulation6hMm:
-          rainfall.accumulation6hMm,
-      riverDischargeM3s: riverDischarge,
-      observedAt: DateTime.now().toUtc(),
+          rainfall.accumulationMm,
+      riverDischargeM3s: river.value,
+      observedAt: rainfall.observedAt,
       rainfallSource: 'Open-Meteo Weather API',
       riverSource:
           'Open-Meteo Global Flood API / GloFAS',
+      rainfallObservedAt: rainfall.observedAt,
+      riverObservedAt: river.date,
+      rainfallAccumulationWindowHours:
+          rainfall.windowHours,
+      dataNotes: notes,
     );
   }
 
@@ -116,7 +134,14 @@ class OpenMeteoRiskDataSource
     return decoded;
   }
 
-  _RainfallValues _parseRainfall(
+  ({
+    double lastHourMm,
+    double accumulationMm,
+    int windowHours,
+    DateTime observedAt,
+    List<String> notes,
+  })
+      _parseRainfall(
     Map<String, dynamic> json,
   ) {
     final hourly = json['hourly'];
@@ -128,40 +153,76 @@ class OpenMeteoRiskDataSource
     }
 
     final rain = hourly['rain'];
+    final times = hourly['time'];
 
-    if (rain is! List) {
+    if (rain is! List || times is! List) {
       throw const FormatException(
         'Weather API did not return rain data.',
       );
     }
 
-    final values = rain
-        .whereType<num>()
-        .map((value) => value.toDouble())
-        .toList();
+    // The provider timestamps are kept: a missing hour must not shift the
+    // following hours of the accumulation window.
+    final samples = HazardSeriesUtils.align(
+      times: times,
+      values: rain,
+    );
 
-    if (values.isEmpty) {
+    if (samples.isEmpty) {
       throw const FormatException(
         'No rainfall values returned.',
       );
     }
 
-    final lastSixHours = values.length >= 6
-        ? values.sublist(values.length - 6)
-        : values;
+    final last = samples.last;
 
-    final sixHourTotal = lastSixHours.fold<double>(
-      0,
-      (sum, value) => sum + value,
+    final notes = <String>[];
+
+    // Largest contiguous run of hourly samples ending at the last sample.
+    var windowHours = 1;
+
+    for (var index = samples.length - 1; index > 0; index--) {
+      final gap = samples[index].time.difference(
+        samples[index - 1].time,
+      );
+
+      if (gap != const Duration(hours: 1)) {
+        break;
+      }
+
+      windowHours++;
+    }
+
+    if (windowHours > 6) {
+      windowHours = 6;
+    }
+
+    final accumulation = HazardSeriesUtils.trailingSums(
+      hourly: samples,
+      window: windowHours,
     );
 
-    return _RainfallValues(
-      lastHourMm: values.last,
-      accumulation6hMm: sixHourTotal,
+    if (windowHours < 6) {
+      notes.add(
+        'The hourly rainfall series of this location is not contiguous: '
+        'the accumulation covers the last $windowHours hour(s) ending at '
+        '${last.time.toIso8601String()} instead of the nominal 6 hours.',
+      );
+    }
+
+    return (
+      lastHourMm: last.value,
+      accumulationMm: accumulation.isEmpty
+          ? last.value
+          : accumulation.last.value,
+      windowHours: windowHours,
+      observedAt: last.time,
+      notes: notes,
     );
   }
 
-  double _parseLatestRiverDischarge(
+  ({DateTime date, double value})
+      _parseLatestRiverDischarge(
     Map<String, dynamic> json,
   ) {
     final daily = json['daily'];
@@ -213,36 +274,37 @@ class OpenMeteoRiskDataSource
       );
     }
 
+    values.sort(
+      (a, b) => a.date.compareTo(b.date),
+    );
+
     final today = DateTime.now().toUtc();
 
+    // Newest day that is not in the future: a future day must not be
+    // presented as the current state of the river.
+    ({DateTime date, double value})? latest;
+
     for (final item in values) {
-      if (item.date.year == today.year &&
-          item.date.month == today.month &&
-          item.date.day == today.day) {
-        return item.value;
+      if (item.date.isAfter(today)) {
+        continue;
+      }
+
+      if (latest == null ||
+          item.date.isAfter(latest.date)) {
+        latest = item;
       }
     }
 
-    final pastValues = values
-        .where(
-          (item) => !item.date.isAfter(today),
-        )
-        .toList();
-
-    if (pastValues.isNotEmpty) {
-      return pastValues.last.value;
-    }
-
-    return values.first.value;
+    return latest ?? values.first;
   }
-}
 
-class _RainfallValues {
-  final double lastHourMm;
-  final double accumulation6hMm;
+  String _formatDate(DateTime date) {
+    final month = date.month.toString().padLeft(
+      2,
+      '0',
+    );
+    final day = date.day.toString().padLeft(2, '0');
 
-  const _RainfallValues({
-    required this.lastHourMm,
-    required this.accumulation6hMm,
-  });
+    return '${date.year}-$month-$day';
+  }
 }
