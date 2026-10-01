@@ -1,24 +1,54 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:urban_resilience/core/theme/app_palette.dart';
 import 'package:urban_resilience/features/location/presentation/city_picker_sheet.dart';
 import 'package:urban_resilience/features/location/presentation/selected_place_provider.dart';
+import 'package:urban_resilience/features/map/presentation/providers/map_provider.dart' as map_feature;
 
-class MapScreen extends ConsumerWidget {
-  const MapScreen({super.key});
-
+class MapScreen extends ConsumerStatefulWidget {
   static const _shadow = BoxShadow(
     color: Color.fromRGBO(16, 42, 49, 0.14),
     blurRadius: 24,
     offset: Offset(0, 8),
   );
 
+  const MapScreen({super.key});
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MapScreen> createState() => _MapScreenState();
+}
+
+class _MapScreenState extends ConsumerState<MapScreen> {
+  final _mapKey = GlobalKey<_LiveRiskMapState>();
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(_openProvidedMap);
+  }
+
+  Future<void> _openProvidedMap() async {
+    final place = ref.read(selectedPlaceProvider);
+    final map = ref.read(map_feature.mapControllerProvider.notifier);
+
+    if (place == null) {
+      await map.initialize();
+      return;
+    }
+
+    await map.loadRisks(
+      LatLng(place.latitude, place.longitude),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final place = ref.watch(selectedPlaceProvider);
-    final placeLabel = place?.label ?? 'Marseille';
+    final placeLabel = place?.label ?? 'Gombe';
 
     return Scaffold(
       backgroundColor: AppPalette.background,
@@ -32,10 +62,7 @@ class MapScreen extends ConsumerWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.asset(
-                      'assets/icons/map-background.png',
-                      fit: BoxFit.cover,
-                    ),
+                    _LiveRiskMap(key: _mapKey),
                     SafeArea(
                       bottom: false,
                       child: Stack(
@@ -57,6 +84,18 @@ class MapScreen extends ConsumerWidget {
                                       await ref
                                           .read(selectedPlaceProvider.notifier)
                                           .select(city);
+                                      await ref
+                                          .read(
+                                            map_feature
+                                                .mapControllerProvider
+                                                .notifier,
+                                          )
+                                          .loadRisks(
+                                            LatLng(
+                                              city.latitude,
+                                              city.longitude,
+                                            ),
+                                          );
                                     },
                                   ),
                                 ),
@@ -65,54 +104,20 @@ class MapScreen extends ConsumerWidget {
                                   size: 52,
                                   asset: 'assets/icons/map-layers.svg',
                                   iconSize: 21,
-                                  shadow: _shadow,
+                                  shadow: MapScreen._shadow,
                                 ),
                               ],
                             ),
                           ),
-                          const Positioned(
-                            left: 78,
-                            top: 168,
-                            child: _RiskMarker(
-                              color: Color(0xFFE8A629),
-                              asset: 'assets/icons/map-waves.svg',
-                            ),
-                          ),
-                          const Positioned(
-                            right: 88,
-                            top: 238,
-                            child: _RiskMarker(
-                              color: Color(0xFFD64A45),
-                              asset: 'assets/icons/map-alert.svg',
-                              label: '78 %',
-                            ),
-                          ),
-                          const Positioned(
-                            left: 146,
-                            bottom: 194,
-                            child: _RiskMarker(
-                              color: Color(0xFFE8A629),
-                              asset: 'assets/icons/map-waves.svg',
-                              label: '52 %',
-                            ),
-                          ),
                           Positioned(
-                            left: 164,
-                            top: 286,
-                            child: SvgPicture.asset(
-                              'assets/icons/map-position.svg',
-                              width: 70,
-                              height: 70,
-                            ),
-                          ),
-                          const Positioned(
                             right: 16,
                             bottom: 168,
                             child: _RoundIconButton(
                               size: 46,
                               asset: 'assets/icons/map-crosshair.svg',
                               iconSize: 21,
-                              shadow: BoxShadow(
+                              onPressed: () => _mapKey.currentState?.recenter(),
+                              shadow: const BoxShadow(
                                 color: Color.fromRGBO(16, 42, 49, 0.08),
                                 blurRadius: 20,
                                 offset: Offset(0, 6),
@@ -220,71 +225,109 @@ class _RoundIconButton extends StatelessWidget {
   final String asset;
   final double iconSize;
   final BoxShadow shadow;
+  final VoidCallback? onPressed;
 
   const _RoundIconButton({
     required this.size,
     required this.asset,
     required this.iconSize,
     required this.shadow,
+    this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      elevation: 0,
+      child: InkWell(
+        onTap: onPressed,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [shadow],
+        child: Container(
+          width: size,
+          height: size,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [shadow],
+          ),
+          child: SvgPicture.asset(asset, width: iconSize, height: iconSize),
+        ),
       ),
-      child: SvgPicture.asset(asset, width: iconSize, height: iconSize),
     );
   }
 }
 
-class _RiskMarker extends StatelessWidget {
-  final Color color;
-  final String asset;
-  final String? label;
+class _LiveRiskMap extends ConsumerStatefulWidget {
+  const _LiveRiskMap({super.key});
 
-  const _RiskMarker({
-    required this.color,
-    required this.asset,
-    this.label,
-  });
+  @override
+  ConsumerState<_LiveRiskMap> createState() => _LiveRiskMapState();
+}
+
+class _LiveRiskMapState extends ConsumerState<_LiveRiskMap> {
+  final MapController _controller = MapController();
+  static const double _zoom = 14;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: label == null ? 38 : 78,
-      height: 38,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white, width: 3),
-        boxShadow: const [MapScreen._shadow],
+    final state = ref.watch(map_feature.mapControllerProvider);
+
+    ref.listen(map_feature.mapControllerProvider, (previous, next) {
+      if (previous?.selectedLocation != next.selectedLocation) {
+        _controller.move(next.selectedLocation, _zoom);
+      }
+    });
+
+    return FlutterMap(
+      mapController: _controller,
+      options: MapOptions(
+        initialCenter: state.selectedLocation,
+        initialZoom: _zoom,
+        minZoom: 4,
+        maxZoom: 19,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SvgPicture.asset(asset, width: 17, height: 17),
-          if (label != null) ...[
-            const SizedBox(width: 5),
-            Text(
-              label!,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
+      children: [
+        TileLayer(
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          userAgentPackageName: 'com.namegmail.urban_resilience',
+        ),
+        if (state.currentLocation != null)
+          MarkerLayer(
+            markers: [
+              Marker(
+                point: state.currentLocation!,
+                width: 45,
+                height: 45,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 3),
+                  ),
+                  child: const Icon(
+                    Icons.my_location,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                ),
               ),
-            ),
+            ],
+          ),
+        const RichAttributionWidget(
+          attributions: [
+            TextSourceAttribution('OpenStreetMap'),
           ],
-        ],
-      ),
+        ),
+      ],
     );
+  }
+
+  void recenter() {
+    final state = ref.read(map_feature.mapControllerProvider);
+    final location = state.currentLocation ?? state.selectedLocation;
+    _controller.move(location, _zoom);
   }
 }
 
@@ -460,13 +503,15 @@ class _MapNavigation extends StatelessWidget {
             asset: 'assets/icons/map-nav-map.svg',
             selected: true,
           ),
-          const _NavItem(
+          _NavItem(
             label: 'Signaler',
             asset: 'assets/icons/map-nav-plus.svg',
+            onTap: () => context.push('/report'),
           ),
-          const _NavItem(
+          _NavItem(
             label: 'Alertes',
             asset: 'assets/icons/map-nav-bell.svg',
+            onTap: () => context.go('/alerts'),
           ),
           _NavItem(
             label: 'Profil',

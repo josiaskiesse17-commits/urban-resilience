@@ -533,13 +533,15 @@ class _RiskNavigation extends StatelessWidget {
             selected: true,
             onTap: () => context.go('/map'),
           ),
-          const _NavItem(
+          _NavItem(
             label: 'Signaler',
             asset: 'assets/icons/map-nav-plus.svg',
+            onTap: () => context.push('/report'),
           ),
-          const _NavItem(
+          _NavItem(
             label: 'Alertes',
             asset: 'assets/icons/map-nav-bell.svg',
+            onTap: () => context.go('/alerts'),
           ),
           _NavItem(
             label: 'Profil',
