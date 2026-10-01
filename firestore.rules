@@ -1,0 +1,47 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isActiveAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.active == true;
+    }
+
+    // Admin roles. The app reads admins/{uid} to decide routing, so a user
+    // may read their own document and active admins may read the roster.
+    // Active admins manage the roster; documents are provisioned out of band
+    // (Firebase console / functions) for the first admin.
+    match /admins/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isActiveAdmin());
+      allow write: if isActiveAdmin();
+    }
+
+    // Zone exposure / vulnerability profiles (reference data behind the risk
+    // pipeline). Readable by signed-in users; only active admins maintain them.
+    match /risk_zones/{zoneId} {
+      allow read: if isSignedIn();
+      allow write: if isActiveAdmin();
+    }
+
+    // Risk Intelligence output. Generated and persisted by the shared
+    // pipeline for signed-in users (citizen flow) and active admins (admin
+    // flow) alike, so both surfaces read and write the same documents.
+    // Only active admins may delete results.
+    match /risk_results/{riskId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if isActiveAdmin();
+    }
+
+    // Everything else stays closed: the database is never public.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

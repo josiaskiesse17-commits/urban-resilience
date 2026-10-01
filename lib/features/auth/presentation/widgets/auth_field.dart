@@ -1,45 +1,86 @@
 import 'package:flutter/material.dart';
+import 'package:urban_resilience/core/theme/app_palette.dart';
 
 class AuthField extends StatelessWidget {
-  final TextEditingController controller;
   final String label;
-  final String hint;
-  final IconData prefixIcon;
-  final TextInputType? keyboardType;
-  final TextInputAction? textInputAction;
+  final TextEditingController controller;
+  final String? hintText;
+  final Widget? prefix;
+  final IconData? prefixIcon;
+  final TextInputType keyboardType;
+  final TextCapitalization textCapitalization;
   final String? Function(String?)? validator;
-  final void Function(String)? onFieldSubmitted;
-  final bool enabled;
-  final String? autofillHint;
 
   const AuthField({
     super.key,
-    required this.controller,
     required this.label,
-    required this.hint,
-    required this.prefixIcon,
-    this.keyboardType,
-    this.textInputAction,
+    required this.controller,
+    this.hintText,
+    this.prefix,
+    this.prefixIcon,
+    this.keyboardType = TextInputType.text,
+    this.textCapitalization = TextCapitalization.none,
     this.validator,
-    this.onFieldSubmitted,
-    this.enabled = true,
-    this.autofillHint,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      enabled: enabled,
-      keyboardType: keyboardType,
-      textInputAction: textInputAction,
-      validator: validator,
-      onFieldSubmitted: onFieldSubmitted,
-      autofillHints: autofillHint == null ? null : [autofillHint!],
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        prefixIcon: Icon(prefixIcon),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppPalette.textDark,
+            height: 1,
+          ),
+        ),
+        const SizedBox(height: 7),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          textCapitalization: textCapitalization,
+          validator: validator,
+          textAlignVertical: TextAlignVertical.center,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
+            color: AppPalette.textDark,
+          ),
+          decoration: InputDecoration(
+            hintText: hintText,
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+            prefixIcon: _prefix,
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 40,
+              maxWidth: 40,
+              minHeight: 52,
+              maxHeight: 52,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget? get _prefix {
+    final icon = prefix ??
+        (prefixIcon == null
+            ? null
+            : Icon(prefixIcon, size: 19, color: AppPalette.primary));
+
+    if (icon == null) {
+      return null;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 14),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: icon,
       ),
     );
   }
