@@ -1,6 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/admin/presentation/admin_shell.dart';
+import '../../features/admin/presentation/screens/admin_alerts_screen.dart';
+import '../../features/admin/presentation/screens/admin_dashboard_screen.dart';
+import '../../features/admin/presentation/screens/admin_observations_screen.dart';
+import '../../features/admin/presentation/screens/admin_risk_screen.dart';
 import '../../features/alerts/presentation/alerts_screen.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
@@ -13,43 +18,90 @@ import '../../features/map/presentation/map_screen.dart';
 import '../../features/observations/presentation/observations_screen.dart';
 import '../../features/risk/presentation/risk_details_screen.dart';
 
+/// Pure redirect decision used by [appRouterProvider].
+///
+/// Kept free of FirebaseAuth / Riverpod dependencies so the authorization
+/// matrix (guest → login, unverified → verify-email, active admin →
+/// `/admin/*`, ordinary user blocked from `/admin/*`) can be unit tested.
+String? appRouteRedirect({
+  required String location,
+  required bool isAuthenticated,
+  required bool isEmailVerified,
+  required bool isAdminStatusLoading,
+  required bool isAdmin,
+}) {
+  final isAuthRoute =
+      location == '/login' ||
+      location == '/register' ||
+      location == '/forgot-password';
+
+  final isVerificationRoute = location == '/verify-email';
+
+  final isAdminRoute = location.startsWith('/admin');
+
+  if (!isAuthenticated) {
+    if (isAuthRoute) {
+      return null;
+    }
+
+    return '/login';
+  }
+
+  if (!isEmailVerified) {
+    if (isVerificationRoute) {
+      return null;
+    }
+
+    return '/verify-email';
+  }
+
+  if (isAdminStatusLoading) {
+    return null;
+  }
+
+  if (isAdmin) {
+    if (isAuthRoute || isVerificationRoute) {
+      return '/admin/dashboard';
+    }
+
+    if (!isAdminRoute) {
+      return '/admin/dashboard';
+    }
+
+    return null;
+  }
+
+  if (isAdminRoute) {
+    return '/home';
+  }
+
+  if (isAuthRoute || isVerificationRoute) {
+    return '/home';
+  }
+
+  return null;
+}
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   final firebaseAuth = ref.watch(firebaseAuthProvider);
+  final adminStatus = ref.watch(adminStatusProvider);
 
   final router = GoRouter(
     initialLocation: '/home',
     redirect: (context, state) {
       final user = firebaseAuth.currentUser;
-      final location = state.matchedLocation;
 
-      final isAuthRoute =
-          location == '/login' ||
-          location == '/register' ||
-          location == '/forgot-password';
-
-      final isVerificationRoute = location == '/verify-email';
-
-      if (user == null) {
-        if (isAuthRoute) {
-          return null;
-        }
-
-        return '/login';
-      }
-
-      if (!user.emailVerified) {
-        if (isVerificationRoute) {
-          return null;
-        }
-
-        return '/verify-email';
-      }
-
-      if (isAuthRoute || isVerificationRoute) {
-        return '/home';
-      }
-
-      return null;
+      return appRouteRedirect(
+        location: state.matchedLocation,
+        isAuthenticated: user != null,
+        isEmailVerified: user?.emailVerified ?? false,
+        isAdminStatusLoading: adminStatus.isLoading,
+        isAdmin: adminStatus.when(
+          data: (value) => value,
+          loading: () => false,
+          error: (_, _) => false,
+        ),
+      );
     },
     routes: [
       GoRoute(
@@ -98,8 +150,44 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/profile',
         builder: (context, state) => const ProfileScreen(),
       ),
+
+      ShellRoute(
+        builder: (context, state, child) {
+          return AdminShell(child: child);
+        },
+        routes: [
+          GoRoute(
+            path: '/admin/dashboard',
+            builder: (context, state) {
+              return const AdminDashboardScreen();
+            },
+          ),
+          GoRoute(
+            path: '/admin/risk',
+            builder: (context, state) {
+              return const AdminRiskScreen();
+            },
+          ),
+          GoRoute(
+            path: '/admin/observations',
+            builder: (context, state) {
+              return const AdminObservationsScreen();
+            },
+          ),
+          GoRoute(
+            path: '/admin/alerts',
+            builder: (context, state) {
+              return const AdminAlertsScreen();
+            },
+          ),
+        ],
+      ),
     ],
   );
+
+  ref.listen(adminStatusProvider, (_, _) {
+    router.refresh();
+  });
 
   ref.listen(authStateChangesProvider, (_, _) {
     router.refresh();

@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/auth_remote_data_source.dart';
@@ -8,6 +10,10 @@ import '../../domain/auth_repository.dart';
 
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
   return FirebaseAuth.instance;
+});
+
+final firestoreProvider = Provider<FirebaseFirestore>((ref) {
+  return FirebaseFirestore.instance;
 });
 
 final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
@@ -35,6 +41,53 @@ final currentUserProvider = Provider<AppUser?>((ref) {
     data: (user) => user,
     loading: () => null,
     error: (_, _) => null,
+  );
+});
+
+final adminStatusProvider = StreamProvider<bool>((ref) {
+  ref.watch(authStateChangesProvider);
+
+  final firebaseAuth = ref.watch(firebaseAuthProvider);
+  final firestore = ref.watch(firestoreProvider);
+  final user = firebaseAuth.currentUser;
+
+  debugPrint('AUTH USER: ${user?.email}');
+  debugPrint('AUTH UID: ${user?.uid}');
+
+  if (user == null) {
+    debugPrint('ADMIN CHECK: no authenticated user');
+    return Stream.value(false);
+  }
+
+  return firestore
+      .collection('admins')
+      .doc(user.uid)
+      .snapshots()
+      .map((snapshot) {
+    debugPrint('ADMIN DOC EXISTS: ${snapshot.exists}');
+    debugPrint('ADMIN DOC DATA: ${snapshot.data()}');
+
+    if (!snapshot.exists) {
+      debugPrint('IS ADMIN: false');
+      return false;
+    }
+
+    final data = snapshot.data();
+    final isAdmin = data?['active'] == true;
+
+    debugPrint('IS ADMIN: $isAdmin');
+
+    return isAdmin;
+  });
+});
+
+final isAdminProvider = Provider<bool>((ref) {
+  final adminStatus = ref.watch(adminStatusProvider);
+
+  return adminStatus.when(
+    data: (isAdmin) => isAdmin,
+    loading: () => false,
+    error: (_, _) => false,
   );
 });
 
@@ -162,28 +215,6 @@ class AuthNotifier extends AsyncNotifier<AppUser?> {
       },
     );
   }
-//   Future<void> sendEmailVerification() async {
-//   state = const AsyncLoading();
-
-//   try {
-//     await _repository.sendEmailVerification();
-
-//     print('EMAIL VERIFICATION REQUEST SUCCEEDED');
-
-//     state = AsyncData(_repository.currentUser);
-//   } on FirebaseAuthException catch (e) {
-//     print('EMAIL VERIFICATION ERROR');
-//     print('CODE: ${e.code}');
-//     print('MESSAGE: ${e.message}');
-
-//     state = AsyncError(e, StackTrace.current);
-//   } catch (e, stackTrace) {
-//     print('EMAIL VERIFICATION UNKNOWN ERROR');
-//     print('ERROR: $e');
-
-//     state = AsyncError(e, stackTrace);
-//   }
-// }
 
   Future<void> reauthenticate({
     required String password,
