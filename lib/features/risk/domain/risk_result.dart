@@ -88,6 +88,14 @@ class RiskResult {
         historicalPercentile:
             (json['historicalPercentile'] as num?)
                 ?.toDouble(),
+        statisticalCriticalValue:
+            (json['statisticalCriticalValue'] as num?)
+                ?.toDouble(),
+        statisticalCriticalLabel:
+            json['statisticalCriticalLabel'] as String?,
+        isDerived: json['isDerived'] == true,
+        derivationNote:
+            json['derivationNote'] as String?,
         source: json['source'] as String?,
         observedAt: _parseDateTime(
           json['observedAt'],
@@ -111,19 +119,7 @@ class RiskResult {
       riskLevel: _parseRiskLevel(
         json['riskLevel'],
       ),
-      factors: RiskFactors(
-        rainfall:
-            (factorsJson['rainfall'] as num).toDouble(),
-        geographicVulnerability:
-            (factorsJson['geographicVulnerability'] as num)
-                .toDouble(),
-        historicalExposure:
-            (factorsJson['historicalExposure'] as num)
-                .toDouble(),
-        currentObservations:
-            (factorsJson['currentObservations'] as num)
-                .toDouble(),
-      ),
+      factors: RiskFactors.fromJson(factorsJson),
       evidence: RiskEvidence(
         measurements: measurements,
         qualitativeIndicators: qualitativeIndicators,

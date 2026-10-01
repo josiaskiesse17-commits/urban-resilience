@@ -215,28 +215,6 @@ class AuthNotifier extends AsyncNotifier<AppUser?> {
       },
     );
   }
-//   Future<void> sendEmailVerification() async {
-//   state = const AsyncLoading();
-
-//   try {
-//     await _repository.sendEmailVerification();
-
-//     print('EMAIL VERIFICATION REQUEST SUCCEEDED');
-
-//     state = AsyncData(_repository.currentUser);
-//   } on FirebaseAuthException catch (e) {
-//     print('EMAIL VERIFICATION ERROR');
-//     print('CODE: ${e.code}');
-//     print('MESSAGE: ${e.message}');
-
-//     state = AsyncError(e, StackTrace.current);
-//   } catch (e, stackTrace) {
-//     print('EMAIL VERIFICATION UNKNOWN ERROR');
-//     print('ERROR: $e');
-
-//     state = AsyncError(e, stackTrace);
-//   }
-// }
 
   Future<void> reauthenticate({
     required String password,
