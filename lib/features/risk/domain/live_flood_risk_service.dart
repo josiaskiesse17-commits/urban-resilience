@@ -2,10 +2,14 @@ import '../../observations/domain/observation.dart';
 import 'flood_environmental_data_source.dart';
 import 'flood_historical_baseline.dart';
 import 'flood_risk_context.dart';
+import 'flood_risk_input_factory.dart';
 import 'historical_flood_baseline_service.dart';
 import 'risk_intelligence_service.dart';
 import 'risk_result.dart';
 import 'risk_result_repository.dart';
+import 'risk_scenario.dart';
+import 'risk_scenario_result.dart';
+import 'risk_scenario_service.dart';
 
 class LiveFloodRiskService {
   final FloodEnvironmentalDataSource dataSource;
@@ -68,6 +72,7 @@ class LiveFloodRiskService {
       longitude: longitude,
       environmentalData: environmentalData,
       context: context,
+      baseline: baseline,
     );
   }
 
@@ -116,6 +121,7 @@ class LiveFloodRiskService {
       environmentalData: environmentalData,
       context: context,
       observations: observations,
+      baseline: baseline,
     );
   }
 
@@ -194,6 +200,95 @@ class LiveFloodRiskService {
       longitude: longitude,
       baseline: baseline,
       observations: observations,
+    );
+  }
+
+  /// Rebuilds the live environmental input of a zone and compares the
+  /// current assessment with a hypothetical scenario.
+  ///
+  /// The same historical baseline, live data source, and risk engine as
+  /// [calculateLiveRiskAndSave] are reused, so the scenario is derived from
+  /// real measurements instead of demo values. The vulnerability, historical
+  /// exposure, and observation scores are the ones already stored in the
+  /// current [RiskResult].
+  Future<RiskScenarioResult> simulateFloodScenario({
+    required String id,
+    required String locationName,
+    required double latitude,
+    required double longitude,
+    required DateTime startDate,
+    required DateTime endDate,
+    required RiskScenario scenario,
+    required double vulnerabilityScore,
+    required double historicalExposureScore,
+    required double observationScore,
+    required int observationCount,
+    required int confirmedObservationCount,
+  }) async {
+    final baselineService = historicalBaselineService;
+
+    if (baselineService == null) {
+      throw StateError(
+        'HistoricalFloodBaselineService is required '
+        'for simulateFloodScenario().',
+      );
+    }
+
+    final baseline =
+        await baselineService.generate(
+      latitude: latitude,
+      longitude: longitude,
+      startDate: startDate,
+      endDate: endDate,
+    );
+
+    final environmentalData = await dataSource.fetch(
+      latitude: latitude,
+      longitude: longitude,
+    );
+
+    final context = FloodRiskContext(
+      rainfallBaselineMmPerHour:
+          baseline.rainfallBaselineMmPerHour,
+      rainfallCriticalMmPerHour:
+          baseline.rainfallCriticalMmPerHour,
+      rainfallAccumulation6hBaselineMm:
+          baseline.rainfallAccumulation6hBaselineMm,
+      rainfallAccumulation6hCriticalMm:
+          baseline.rainfallAccumulation6hCriticalMm,
+      riverDischargeBaselineM3s:
+          baseline.riverDischargeBaselineM3s,
+      riverDischargeCriticalM3s:
+          baseline.riverDischargeCriticalM3s,
+      vulnerabilityScore: vulnerabilityScore,
+      historicalExposureScore:
+          historicalExposureScore,
+      observationScore: observationScore,
+      observationCount: observationCount,
+      confirmedObservationCount:
+          confirmedObservationCount,
+    );
+
+    const factory = FloodRiskInputFactory();
+
+    final input = factory.create(
+      environmentalData: environmentalData,
+      context: context,
+    );
+
+    return RiskScenarioService(
+      riskIntelligenceService: riskIntelligenceService,
+    ).simulateFloodRisk(
+      scenario: scenario,
+      id: id,
+      locationName: locationName,
+      latitude: latitude,
+      longitude: longitude,
+      baselineInput: input,
+      rainfallSource: environmentalData.rainfallSource,
+      riverSource: environmentalData.riverSource,
+      observedAt: environmentalData.observedAt,
+      baseline: baseline,
     );
   }
 }

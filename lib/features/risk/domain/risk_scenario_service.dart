@@ -1,3 +1,4 @@
+import 'flood_historical_baseline.dart';
 import 'flood_risk_input.dart';
 import 'risk_intelligence_service.dart';
 import 'risk_scenario.dart';
@@ -22,8 +23,9 @@ class RiskScenarioService {
     String? rainfallSource,
     String? riverSource,
     DateTime? observedAt,
+    FloodHistoricalBaseline? baseline,
   }) {
-    final baseline =
+    final baselineResult =
         _riskIntelligenceService.calculateFloodRisk(
       id: id,
       locationName: locationName,
@@ -33,6 +35,7 @@ class RiskScenarioService {
       rainfallSource: rainfallSource,
       riverSource: riverSource,
       observedAt: observedAt,
+      baseline: baseline,
     );
 
     final scenarioInput = baselineInput.copyWith(
@@ -69,17 +72,18 @@ class RiskScenarioService {
       rainfallSource: rainfallSource,
       riverSource: riverSource,
       observedAt: observedAt,
+      baseline: baseline,
     );
 
     return RiskScenarioResult(
-      baseline: baseline,
+      baseline: baselineResult,
       scenario: scenarioResult,
       scoreDifference:
           scenarioResult.riskScore -
-              baseline.riskScore,
+              baselineResult.riskScore,
       riskLevelChanged:
           scenarioResult.riskLevel !=
-              baseline.riskLevel,
+              baselineResult.riskLevel,
     );
   }
 }

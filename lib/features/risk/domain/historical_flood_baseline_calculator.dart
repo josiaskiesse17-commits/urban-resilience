@@ -1,4 +1,5 @@
 import 'flood_historical_baseline.dart';
+import 'historical_distribution.dart';
 import 'historical_statistics.dart';
 
 class HistoricalFloodBaselineCalculator {
@@ -68,6 +69,15 @@ class HistoricalFloodBaselineCalculator {
           hourlyRainfallValues.length,
       riverDischargeSampleCount:
           riverDischargeValues.length,
+      rainfallHourlyDistribution: HistoricalDistribution(
+        hourlyRainfallValues,
+      ),
+      rainfallSixHourDistribution: HistoricalDistribution(
+        sixHourRainfallValues,
+      ),
+      riverDischargeDistribution: HistoricalDistribution(
+        riverDischargeValues,
+      ),
     );
   }
 }

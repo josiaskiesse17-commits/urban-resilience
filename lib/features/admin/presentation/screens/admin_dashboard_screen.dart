@@ -1,11 +1,16 @@
-import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-class AdminDashboardScreen extends StatelessWidget {
+import '../../../risk/data/risk_repository.dart';
+import '../../../risk/domain/risk_zone.dart';
+import '../../../risk/presentation/providers/risk_live_providers.dart';
+
+class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Admin Dashboard'),
@@ -34,6 +39,7 @@ class AdminDashboardScreen extends StatelessWidget {
                     const SizedBox(height: 24),
                     _buildMetrics(
                       context,
+                      ref,
                       isWide,
                     ),
                     const SizedBox(height: 24),
@@ -43,7 +49,7 @@ class AdminDashboardScreen extends StatelessWidget {
                         children: [
                           Expanded(
                             flex: 3,
-                            child: _buildRiskOverview(context),
+                            child: _buildRiskOverview(context, ref),
                           ),
                           const SizedBox(width: 20),
                           Expanded(
@@ -53,7 +59,7 @@ class AdminDashboardScreen extends StatelessWidget {
                         ],
                       )
                     else ...[
-                      _buildRiskOverview(context),
+                      _buildRiskOverview(context, ref),
                       const SizedBox(height: 20),
                       _buildSystemStatus(context),
                     ],
@@ -94,13 +100,48 @@ class AdminDashboardScreen extends StatelessWidget {
 
   Widget _buildMetrics(
     BuildContext context,
+    WidgetRef ref,
     bool isWide,
   ) {
+    final zones = ref.watch(riskZoneCatalogProvider);
+
+    var assessed = 0;
+    var highRisk = 0;
+    var critical = 0;
+    var loading = 0;
+
+    for (final zone in zones) {
+      final riskAsync = ref.watch(riskResultProvider(zone.id));
+      final result = riskAsync.value;
+
+      if (result == null) {
+        if (riskAsync.isLoading) {
+          loading++;
+        }
+
+        continue;
+      }
+
+      assessed++;
+
+      if (result.riskLevel == RiskLevel.critical) {
+        critical++;
+        highRisk++;
+      } else if (result.riskLevel == RiskLevel.high) {
+        highRisk++;
+      }
+    }
+
     final cards = [
       _MetricData(
         title: 'High-risk zones',
-        value: '7',
-        subtitle: '2 critical',
+        value: loading > 0 && assessed == 0 ? '—' : '$highRisk',
+        subtitle: loading > 0
+            ? 'Loading zone assessments...'
+            : assessed == 0
+                ? 'No stored assessments'
+                : '$critical critical • '
+                    '$assessed of ${zones.length} assessed',
         icon: Icons.warning_amber_rounded,
       ),
       _MetricData(
@@ -142,9 +183,7 @@ class AdminDashboardScreen extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: cards.length,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: MediaQuery.sizeOf(context).width >= 600
-            ? 2
-            : 1,
+        crossAxisCount: MediaQuery.sizeOf(context).width >= 600 ? 2 : 1,
         mainAxisExtent: 125,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
@@ -155,7 +194,12 @@ class AdminDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRiskOverview(BuildContext context) {
+  Widget _buildRiskOverview(
+    BuildContext context,
+    WidgetRef ref,
+  ) {
+    final zones = ref.watch(riskZoneCatalogProvider);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -167,10 +211,9 @@ class AdminDashboardScreen extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'Current Risk Overview',
-                    style:
-                        Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                   ),
                 ),
                 TextButton(
@@ -182,33 +225,61 @@ class AdminDashboardScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            _RiskRow(
-              zone: 'Town',
-              risk: 'HIGH',
-              score: 77,
-              color: Colors.orange,
-            ),
-            _RiskRow(
-              zone: 'Town',
-              risk: 'CRITICAL',
-              score: 86,
-              color: Colors.red,
-            ),
-            _RiskRow(
-              zone: 'Town',
-              risk: 'MODERATE',
-              score: 48,
-              color: Colors.amber,
-            ),
-            _RiskRow(
-              zone: 'Town',
-              risk: 'LOW',
-              score: 22,
-              color: Colors.green,
-            ),
+            if (zones.isEmpty)
+              const ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text('No risk zones available'),
+                subtitle: Text(
+                  'No configured risk zones were found.',
+                ),
+              )
+            else
+              for (final zone in zones) ...[
+                _zoneRiskRow(context, ref, zone),
+              ],
           ],
         ),
       ),
+    );
+  }
+
+  Widget _zoneRiskRow(
+    BuildContext context,
+    WidgetRef ref,
+    RiskZoneTarget zone,
+  ) {
+    final theme = Theme.of(context);
+    final riskAsync = ref.watch(riskResultProvider(zone.id));
+    final result = riskAsync.value;
+
+    if (result == null) {
+      return ListTile(
+        contentPadding: EdgeInsets.zero,
+        title: Text(zone.name),
+        subtitle: Text(
+          riskAsync.isLoading
+              ? 'Loading the stored assessment...'
+              : 'No stored assessment. Open Risk Intelligence '
+                  'to generate it.',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        trailing: Text(
+          '—',
+          style: TextStyle(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      );
+    }
+
+    return _RiskRow(
+      zone: zone.name,
+      risk: result.riskLevel.name.toUpperCase(),
+      score: result.riskScore.round(),
+      color: _riskColor(context, result.riskLevel),
     );
   }
 
@@ -269,10 +340,9 @@ class AdminDashboardScreen extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'Recent Citizen Observations',
-                    style:
-                        Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                   ),
                 ),
                 TextButton(
@@ -298,7 +368,7 @@ class AdminDashboardScreen extends StatelessWidget {
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.block),
               title: Text('Road blocked by flooding'),
-              subtitle: Text('N\'Djili • 18 minutes ago'),
+              subtitle: Text("N'Djili • 18 minutes ago"),
               trailing: Chip(
                 label: Text('Confirmed'),
               ),
@@ -307,6 +377,25 @@ class AdminDashboardScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+Color _riskColor(
+  BuildContext context,
+  RiskLevel level,
+) {
+  switch (level) {
+    case RiskLevel.low:
+      return Colors.green;
+
+    case RiskLevel.medium:
+      return Colors.amber.shade800;
+
+    case RiskLevel.high:
+      return Colors.orange;
+
+    case RiskLevel.critical:
+      return Theme.of(context).colorScheme.error;
   }
 }
 

@@ -18,6 +18,75 @@ import '../../features/map/presentation/map_screen.dart';
 import '../../features/observations/presentation/observations_screen.dart';
 import '../../features/risk/presentation/risk_details_screen.dart';
 
+/// Pure redirect decision used by [appRouterProvider].
+///
+/// Kept free of FirebaseAuth / Riverpod dependencies so the authorization
+/// matrix can be unit tested.
+///
+/// Rules:
+/// - Guest users → `/login`
+/// - Signed-in users with unverified email → `/verify-email`
+/// - Active admins → `/admin/dashboard` for non-admin routes
+/// - Ordinary users are blocked from `/admin/*`
+String? appRouteRedirect({
+  required String location,
+  required bool isAuthenticated,
+  required bool isEmailVerified,
+  required bool isAdminStatusLoading,
+  required bool isAdmin,
+}) {
+  final isAuthRoute =
+      location == '/login' ||
+      location == '/register' ||
+      location == '/forgot-password';
+
+  final isVerificationRoute = location == '/verify-email';
+
+  final isAdminRoute = location.startsWith('/admin');
+
+  if (!isAuthenticated) {
+    if (isAuthRoute) {
+      return null;
+    }
+
+    return '/login';
+  }
+
+  if (!isEmailVerified) {
+    if (isVerificationRoute) {
+      return null;
+    }
+
+    return '/verify-email';
+  }
+
+  if (isAdminStatusLoading) {
+    return null;
+  }
+
+  if (isAdmin) {
+    if (isAuthRoute || isVerificationRoute) {
+      return '/admin/dashboard';
+    }
+
+    if (!isAdminRoute) {
+      return '/admin/dashboard';
+    }
+
+    return null;
+  }
+
+  if (isAdminRoute) {
+    return '/home';
+  }
+
+  if (isAuthRoute || isVerificationRoute) {
+    return '/home';
+  }
+
+  return null;
+}
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   final firebaseAuth = ref.watch(firebaseAuthProvider);
   final adminStatus = ref.watch(adminStatusProvider);
@@ -26,64 +95,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/home',
     redirect: (context, state) {
       final user = firebaseAuth.currentUser;
-      final location = state.matchedLocation;
 
-      final isAuthRoute =
-          location == '/login' ||
-          location == '/register' ||
-          location == '/forgot-password';
-
-      final isVerificationRoute = location == '/verify-email';
-
-      final isAdminRoute = location.startsWith('/admin');
-
-      if (user == null) {
-        if (isAuthRoute) {
-          return null;
-        }
-
-        return '/login';
-      }
-
-      if (!user.emailVerified) {
-        if (isVerificationRoute) {
-          return null;
-        }
-
-        return '/verify-email';
-      }
-
-      if (adminStatus.isLoading) {
-        return null;
-      }
-
-      final isAdmin = adminStatus.when(
-        data: (value) => value,
-        loading: () => false,
-        error: (_, _) => false,
+      return appRouteRedirect(
+        location: state.matchedLocation,
+        isAuthenticated: user != null,
+        isEmailVerified: user?.emailVerified ?? false,
+        isAdminStatusLoading: adminStatus.isLoading,
+        isAdmin: adminStatus.when(
+          data: (value) => value,
+          loading: () => false,
+          error: (_, _) => false,
+        ),
       );
-
-      if (isAdmin) {
-        if (isAuthRoute || isVerificationRoute) {
-          return '/admin/dashboard';
-        }
-
-        if (!isAdminRoute) {
-          return '/admin/dashboard';
-        }
-
-        return null;
-      }
-
-      if (isAdminRoute) {
-        return '/home';
-      }
-
-      if (isAuthRoute || isVerificationRoute) {
-        return '/home';
-      }
-
-      return null;
     },
     routes: [
       GoRoute(
@@ -132,7 +155,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/profile',
         builder: (context, state) => const ProfileScreen(),
       ),
-
       ShellRoute(
         builder: (context, state, child) {
           return AdminShell(child: child);

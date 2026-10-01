@@ -1,7 +1,7 @@
-const OPENROUTER_URL =
-  "https://openrouter.ai/api/v1/chat/completions";
+const RODIUM_URL =
+  "https://api.rodiumai.io/v1/chat/completions";
 
-const MODEL = "openrouter/free";
+const MODEL = "google/gemini-3.7-flash";
 
 const SYSTEM_PROMPT = `
 You are the Urban Resilience Risk Analyst.
@@ -123,9 +123,9 @@ export default {
       );
     }
 
-    if (!env.OPENROUTER_API_KEY) {
+    if (!env.RODIUMAI_API_KEY) {
       return jsonResponse(
-        { error: "OPENROUTER_API_KEY is not configured." },
+        { error: "RODIUMAI_API_KEY is not configured." },
         500,
       );
     }
@@ -167,16 +167,14 @@ Risk assessment:
 ${JSON.stringify(riskResult)}
 `;
 
-      const openRouterResponse = await fetch(
-        OPENROUTER_URL,
+      const rodiumResponse = await fetch(
+        RODIUM_URL,
         {
           method: "POST",
           headers: {
             Authorization:
-              `Bearer ${env.OPENROUTER_API_KEY}`,
+              `Bearer ${env.RODIUMAI_API_KEY}`,
             "Content-Type": "application/json",
-            "HTTP-Referer": "http://localhost:8787",
-            "X-Title": "Urban Resilience",
           },
           body: JSON.stringify({
             model: MODEL,
@@ -190,45 +188,45 @@ ${JSON.stringify(riskResult)}
                 content: prompt,
               },
             ],
-            max_tokens: 900,
-          }),
+            max_tokens: 2048,
+          })
         },
       );
 
-      const responseText = await openRouterResponse.text();
+      const responseText = await rodiumResponse.text();
 
       console.log(
-        "OPENROUTER RESPONSE:",
-        openRouterResponse.status,
+        "RODIUM RESPONSE:",
+        rodiumResponse.status,
         responseText,
       );
 
-      if (!openRouterResponse.ok) {
+      if (!rodiumResponse.ok) {
         return jsonResponse(
           {
-            error: "OpenRouter request failed.",
-            status: openRouterResponse.status,
+            error: "Rodium request failed.",
+            status: rodiumResponse.status,
             details: responseText,
           },
-          openRouterResponse.status,
+          rodiumResponse.status,
         );
       }
 
-      let openRouterData;
+      let rodiumData;
 
       try {
-        openRouterData = JSON.parse(responseText);
+        rodiumData = JSON.parse(responseText);
       } catch (_) {
         return jsonResponse(
           {
-            error: "OpenRouter returned invalid JSON.",
+            error: "Rodium returned invalid JSON.",
           },
           502,
         );
       }
 
       const content =
-        openRouterData?.choices?.[0]?.message?.content;
+        rodiumData?.choices?.[0]?.message?.content;
 
       if (
         typeof content !== "string" ||
@@ -236,7 +234,7 @@ ${JSON.stringify(riskResult)}
       ) {
         return jsonResponse(
           {
-            error: "OpenRouter returned an empty AI response.",
+            error: "Rodium returned an empty AI response.",
           },
           502,
         );
@@ -274,13 +272,13 @@ ${JSON.stringify(riskResult)}
           summary: analysis.summary.trim(),
           explanation: analysis.explanation.trim(),
           mainFactors: analysis.mainFactors
-              .map((item) => String(item).trim())
-              .filter((item) => item.length > 0)
-              .slice(0, 4),
+            .map((item) => String(item).trim())
+            .filter((item) => item.length > 0)
+            .slice(0, 4),
           recommendations: analysis.recommendations
-              .map((item) => String(item).trim())
-              .filter((item) => item.length > 0)
-              .slice(0, 4),
+            .map((item) => String(item).trim())
+            .filter((item) => item.length > 0)
+            .slice(0, 4),
         },
         200,
       );
