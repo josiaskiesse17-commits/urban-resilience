@@ -103,9 +103,6 @@ class AdminDashboardScreen extends ConsumerWidget {
     WidgetRef ref,
     bool isWide,
   ) {
-    // High-risk metric derived from the same stored RiskResult documents the
-    // citizen screens and the admin risk screen read. Zones whose result is
-    // still loading or missing are reported as such, never as "0 risk".
     final zones = ref.watch(riskZoneCatalogProvider);
 
     var assessed = 0;
@@ -186,9 +183,7 @@ class AdminDashboardScreen extends ConsumerWidget {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: cards.length,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: MediaQuery.sizeOf(context).width >= 600
-            ? 2
-            : 1,
+        crossAxisCount: MediaQuery.sizeOf(context).width >= 600 ? 2 : 1,
         mainAxisExtent: 125,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
@@ -199,11 +194,10 @@ class AdminDashboardScreen extends ConsumerWidget {
     );
   }
 
-  /// Risk overview built from the shared zone catalog and the stored
-  /// [RiskResult] of each zone — the exact same source of truth the citizen
-  /// risk details screen and the admin risk screen consume. Zones without a
-  /// stored result say so explicitly instead of showing demo scores.
-  Widget _buildRiskOverview(BuildContext context, WidgetRef ref) {
+  Widget _buildRiskOverview(
+    BuildContext context,
+    WidgetRef ref,
+  ) {
     final zones = ref.watch(riskZoneCatalogProvider);
 
     return Card(
@@ -217,10 +211,9 @@ class AdminDashboardScreen extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     'Current Risk Overview',
-                    style:
-                        Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                   ),
                 ),
                 TextButton(
@@ -232,9 +225,18 @@ class AdminDashboardScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 16),
-            for (final zone in zones) ...[
-              _zoneRiskRow(context, ref, zone),
-            ],
+            if (zones.isEmpty)
+              const ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text('No risk zones available'),
+                subtitle: Text(
+                  'No configured risk zones were found.',
+                ),
+              )
+            else
+              for (final zone in zones) ...[
+                _zoneRiskRow(context, ref, zone),
+              ],
           ],
         ),
       ),
@@ -338,10 +340,9 @@ class AdminDashboardScreen extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     'Recent Citizen Observations',
-                    style:
-                        Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                   ),
                 ),
                 TextButton(
@@ -367,7 +368,7 @@ class AdminDashboardScreen extends ConsumerWidget {
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.block),
               title: Text('Road blocked by flooding'),
-              subtitle: Text('N\'Djili • 18 minutes ago'),
+              subtitle: Text("N'Djili • 18 minutes ago"),
               trailing: Chip(
                 label: Text('Confirmed'),
               ),
@@ -379,7 +380,10 @@ class AdminDashboardScreen extends ConsumerWidget {
   }
 }
 
-Color _riskColor(BuildContext context, RiskLevel level) {
+Color _riskColor(
+  BuildContext context,
+  RiskLevel level,
+) {
   switch (level) {
     case RiskLevel.low:
       return Colors.green;

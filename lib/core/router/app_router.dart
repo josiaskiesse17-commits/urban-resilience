@@ -21,8 +21,13 @@ import '../../features/risk/presentation/risk_details_screen.dart';
 /// Pure redirect decision used by [appRouterProvider].
 ///
 /// Kept free of FirebaseAuth / Riverpod dependencies so the authorization
-/// matrix (guest → login, unverified → verify-email, active admin →
-/// `/admin/*`, ordinary user blocked from `/admin/*`) can be unit tested.
+/// matrix can be unit tested.
+///
+/// Rules:
+/// - Guest users → `/login`
+/// - Signed-in users with unverified email → `/verify-email`
+/// - Active admins → `/admin/dashboard` for non-admin routes
+/// - Ordinary users are blocked from `/admin/*`
 String? appRouteRedirect({
   required String location,
   required bool isAuthenticated,
@@ -150,7 +155,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/profile',
         builder: (context, state) => const ProfileScreen(),
       ),
-
       ShellRoute(
         builder: (context, state, child) {
           return AdminShell(child: child);
