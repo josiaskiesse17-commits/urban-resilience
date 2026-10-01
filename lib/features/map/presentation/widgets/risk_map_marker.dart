@@ -15,13 +15,12 @@ class RiskMapMarker extends StatelessWidget {
   Color get color {
     switch (risk.level) {
       case RiskLevel.low:
-        return Colors.green;
+        return const Color(0xFF6B8F71);
       case RiskLevel.medium:
-        return Colors.orange;
+        return const Color(0xFFE8A629);
       case RiskLevel.high:
-        return Colors.deepOrange;
       case RiskLevel.critical:
-        return Colors.red;
+        return const Color(0xFFD64A45);
     }
   }
 
