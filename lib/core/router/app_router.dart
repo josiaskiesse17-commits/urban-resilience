@@ -14,6 +14,7 @@ import '../../features/auth/presentation/screens/profile_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/verify_email_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/location/presentation/location_permission_screen.dart';
 import '../../features/map/presentation/map_screen.dart';
 import '../../features/observations/presentation/observations_screen.dart';
 import '../../features/risk/presentation/risk_details_screen.dart';
@@ -132,6 +133,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/map',
         builder: (context, state) => const MapScreen(),
+      ),
+      GoRoute(
+        path: '/location',
+        builder: (context, state) =>
+            const LocationPermissionScreen(),
       ),
       GoRoute(
         path: '/risk/:id',

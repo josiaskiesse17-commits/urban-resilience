@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
+import 'package:urban_resilience/core/theme/app_palette.dart';
+import 'package:urban_resilience/features/location/presentation/selected_place_provider.dart';
 
 import '../data/risk_repository.dart';
 import '../domain/hazard_risk_id.dart';
 import '../domain/hazard_type.dart';
 import '../domain/risk_analysis.dart';
-import '../domain/risk_factor_score.dart';
 import '../domain/risk_measurement.dart';
 import '../domain/risk_measurement_label.dart';
 import '../domain/risk_result.dart';
@@ -24,6 +27,12 @@ class RiskDetailsScreen extends ConsumerStatefulWidget {
     required this.riskId,
   });
 
+  static const _cardShadow = BoxShadow(
+    color: Color.fromRGBO(16, 42, 49, 0.08),
+    blurRadius: 20,
+    offset: Offset(0, 6),
+  );
+
   @override
   ConsumerState<RiskDetailsScreen> createState() =>
       _RiskDetailsScreenState();
@@ -35,39 +44,21 @@ class _RiskDetailsScreenState
   Object? _analysisError;
   bool _isAnalyzing = false;
 
-  /// Version of the result that was already sent to the AI analyst.
-  ///
-  /// It is set *before* the request starts and is deliberately not reset when
-  /// the request fails, so neither a rebuild nor a failed request can trigger
-  /// another automatic analysis. Retrying is an explicit user action.
   String? _analyzedRiskVersion;
 
   bool _isUpdatingRisk = false;
   Object? _updateError;
 
-  /// Risk id that already went through the automatic
-  /// "load the stored result or generate it" step, so a rebuild never starts
-  /// another run.
   String? _updateAttemptedForId;
 
-  /// Hazard inspected on this screen. It starts from the hazard carried by
-  /// the route id (bare ids are flooding) and can be switched with the
-  /// selector, which loads the document of that hazard for the same zone.
   late HazardType _selectedHazard;
 
-  /// Hypothetical values of the What-If section, keyed by measurement name.
-  ///
-  /// They live only in this widget: a simulation never replaces a risk
-  /// result, never triggers a request and is dropped as soon as the hazard or
-  /// the zone changes.
-  final Map<String, double> _simulatedValues = <String, double>{};
+  final Map<String, double> _simulatedValues =
+      <String, double>{};
 
-  /// What-If engine. It is pure computation, so running a simulation cannot
-  /// touch the network, Firestore or the AI analyst.
   static const RiskSimulationService _simulationService =
       RiskSimulationService();
 
-  /// `risk_results` document of the zone and the selected hazard.
   String get _riskId => HazardRiskId.forZone(
         zoneId: HazardRiskId.zoneIdOf(widget.riskId),
         hazard: _selectedHazard,
@@ -76,7 +67,8 @@ class _RiskDetailsScreenState
   @override
   void initState() {
     super.initState();
-    _selectedHazard = HazardRiskId.hazardOf(widget.riskId);
+    _selectedHazard =
+        HazardRiskId.hazardOf(widget.riskId);
   }
 
   String _riskVersion(RiskResult riskResult) {
@@ -84,14 +76,12 @@ class _RiskDetailsScreenState
         '${riskResult.updatedAt.toUtc().toIso8601String()}';
   }
 
-  /// Target used to rerun the pipeline: the zone catalog when the zone is
-  /// known, otherwise the coordinates already stored in the result.
-  ///
-  /// The hazard suffix of the risk id (`zone-masina--heat`) is removed first
-  /// so the catalog entry and the generator always receive the bare zone id
-  /// and rebuild the very same document.
-  RiskZoneTarget _targetFor(RiskResult riskResult) {
-    final zoneId = HazardRiskId.zoneIdOf(riskResult.id);
+  RiskZoneTarget _targetFor(
+    RiskResult riskResult,
+  ) {
+    final zoneId = HazardRiskId.zoneIdOf(
+      riskResult.id,
+    );
 
     return RiskZoneCatalog.byId(zoneId) ??
         (
@@ -102,8 +92,9 @@ class _RiskDetailsScreenState
         );
   }
 
-  /// Runs the shared Risk Intelligence pipeline once and reloads the result.
-  Future<bool> _generate(RiskZoneTarget zone) async {
+  Future<bool> _generate(
+    RiskZoneTarget zone,
+  ) async {
     try {
       await ref.read(zoneHazardRiskGeneratorProvider)(
         zone,
@@ -138,12 +129,9 @@ class _RiskDetailsScreenState
     }
   }
 
-  /// Shows the stored result when it is usable, and generates it when it is
-  /// missing or older than [RiskResultFreshness.maxAge].
-  ///
-  /// The user never has to run a "generation" step: selecting a zone is
-  /// enough. It runs at most once per risk id for the lifetime of the screen.
-  Future<void> _ensureFreshRisk(RiskResult? stored) async {
+  Future<void> _ensureFreshRisk(
+    RiskResult? stored,
+  ) async {
     if (_isUpdatingRisk ||
         _updateAttemptedForId == _riskId) {
       return;
@@ -156,6 +144,10 @@ class _RiskDetailsScreenState
         : _targetFor(stored);
 
     if (zone == null) {
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
         _updateAttemptedForId = _riskId;
         _updateError = StateError(
@@ -176,10 +168,13 @@ class _RiskDetailsScreenState
     await _generate(zone);
   }
 
-  Future<void> _analyzeRisk(RiskResult riskResult) async {
+  Future<void> _analyzeRisk(
+    RiskResult riskResult,
+  ) async {
     final version = _riskVersion(riskResult);
 
-    if (_isAnalyzing || _analyzedRiskVersion == version) {
+    if (_isAnalyzing ||
+        _analyzedRiskVersion == version) {
       return;
     }
 
@@ -215,8 +210,9 @@ class _RiskDetailsScreenState
     }
   }
 
-  /// Explicit recalculation requested by the user (button, pull-to-refresh).
-  Future<void> _refreshLiveRisk(RiskResult stored) async {
+  Future<void> _refreshLiveRisk(
+    RiskResult stored,
+  ) async {
     if (_isUpdatingRisk) {
       return;
     }
@@ -230,7 +226,8 @@ class _RiskDetailsScreenState
       _analysisError = null;
     });
 
-    final generated = await _generate(_targetFor(stored));
+    final generated =
+        await _generate(_targetFor(stored));
 
     if (!mounted || !generated) {
       return;
@@ -245,52 +242,44 @@ class _RiskDetailsScreenState
     );
   }
 
-  Color _riskColor(
-    BuildContext context,
-    RiskLevel riskLevel,
-  ) {
-    switch (riskLevel) {
-      case RiskLevel.low:
-        return Colors.green;
-
-      case RiskLevel.medium:
-        return Colors.amber.shade700;
-
-      case RiskLevel.high:
-        return Colors.orange.shade800;
-
-      case RiskLevel.critical:
-        return Theme.of(context).colorScheme.error;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final place = ref.watch(
+      selectedPlaceProvider,
+    );
+
     final riskAsync =
         ref.watch(riskResultProvider(_riskId));
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Risk Analysis'),
-      ),
+      backgroundColor: AppPalette.background,
       body: riskAsync.when(
         loading: () => _buildPreparing(context),
         error: (error, stackTrace) =>
-            _buildLoadError(context, error),
+            _buildLoadError(
+          context,
+          error,
+        ),
         data: (riskResult) {
-          if (RiskResultFreshness.needsUpdate(riskResult) &&
+          if (RiskResultFreshness.needsUpdate(
+                riskResult,
+              ) &&
               !_isUpdatingRisk &&
               _updateAttemptedForId != _riskId) {
             WidgetsBinding.instance
                 .addPostFrameCallback((_) {
               if (mounted) {
-                _ensureFreshRisk(riskResult);
+                _ensureFreshRisk(
+                  riskResult,
+                );
               }
             });
           }
 
           if (riskResult == null) {
-            return _buildPreparing(context);
+            return _buildPreparing(
+              context,
+            );
           }
 
           if (!_isAnalyzing &&
@@ -300,57 +289,23 @@ class _RiskDetailsScreenState
             WidgetsBinding.instance
                 .addPostFrameCallback((_) {
               if (mounted) {
-                _analyzeRisk(riskResult);
+                _analyzeRisk(
+                  riskResult,
+                );
               }
             });
           }
 
+          final locationLabel =
+              place?.label ??
+                  riskResult.locationName;
+
           return _buildRiskContent(
             context,
             riskResult,
+            locationLabel,
           );
         },
-      ),
-    );
-  }
-
-  /// Hazard selector of the zone: every hazard reads and writes its own
-  /// `risk_results` document, so switching never overwrites the assessment
-  /// of another hazard.
-  Widget _buildHazardSelector(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: HazardType.values
-              .map(
-                (hazard) => ChoiceChip(
-                  label: Text(hazard.label),
-                  selected: hazard == _selectedHazard,
-                  onSelected: (selected) {
-                    if (!selected ||
-                        hazard == _selectedHazard) {
-                      return;
-                    }
-
-                    setState(() {
-                      _selectedHazard = hazard;
-                      _updateAttemptedForId = null;
-                      _updateError = null;
-                      _isUpdatingRisk = false;
-                      _isAnalyzing = false;
-                      _analyzedRiskVersion = null;
-                      _analysis = null;
-                      _analysisError = null;
-                      _simulatedValues.clear();
-                    });
-                  },
-                ),
-              )
-              .toList(growable: false),
-        ),
       ),
     );
   }
@@ -358,416 +313,407 @@ class _RiskDetailsScreenState
   Widget _buildRiskContent(
     BuildContext context,
     RiskResult riskResult,
+    String locationLabel,
   ) {
-    return RefreshIndicator(
-      onRefresh: () => _refreshLiveRisk(riskResult),
-      child: SingleChildScrollView(
-        physics:
-            const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(20),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 900,
-            ),
-            child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.stretch,
-              children: [
-                _buildHazardSelector(context),
-                const SizedBox(height: 16),
-                _buildUpdateStatus(
-                  context,
-                  riskResult,
+    return SafeArea(
+      bottom: false,
+      child: Column(
+        children: [
+          _buildHeader(
+            context,
+            riskResult,
+            locationLabel,
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () =>
+                  _refreshLiveRisk(
+                riskResult,
+              ),
+              child: ListView(
+                padding:
+                    const EdgeInsets.fromLTRB(
+                  16,
+                  8,
+                  16,
+                  24,
                 ),
-                _buildRiskSummary(
-                  context,
-                  riskResult,
-                ),
-                const SizedBox(height: 16),
-                RiskExposureCard(
-                  zoneId: HazardRiskId.zoneIdOf(
-                    widget.riskId,
+                children: [
+                  _buildSummaryCard(
+                    context,
+                    riskResult,
                   ),
-                ),
-                const SizedBox(height: 16),
-                _buildFactorsCard(
-                  context,
-                  riskResult,
-                ),
-                const SizedBox(height: 16),
-                _buildEvidenceCard(
-                  context,
-                  riskResult,
-                ),
-                const SizedBox(height: 16),
-                _buildRefreshCard(
-                  context,
-                  riskResult,
-                ),
-                const SizedBox(height: 16),
-                _buildAiCard(
-                  context,
-                  riskResult,
-                ),
-                const SizedBox(height: 16),
-                _buildWhatIfCard(
-                  context,
-                  riskResult,
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  _buildWhyCard(
+                    context,
+                    riskResult,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildFactorsCard(
+                    context,
+                    riskResult,
+                  ),
+                  const SizedBox(height: 12),
+                  RiskExposureCard(
+                    zoneId: HazardRiskId.zoneIdOf(
+                      widget.riskId,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildEvidenceCard(
+                    context,
+                    riskResult,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildAdviceCard(
+                    context,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildRefreshCard(
+                    context,
+                    riskResult,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildWhatIfCard(
+                    context,
+                    riskResult,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
+          const _RiskNavigation(),
+        ],
       ),
     );
   }
 
-  /// Reports what the screen is doing on its own (first generation or stale
-  /// refresh) and surfaces failures that need a user decision.
-  Widget _buildUpdateStatus(
+  Widget _buildHeader(
     BuildContext context,
     RiskResult riskResult,
+    String locationLabel,
   ) {
-    if (_isUpdatingRisk) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: Card(
-          child: ListTile(
-            leading: const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-              ),
-            ),
-            title: const Text(
-              'Refreshing the live assessment...',
-            ),
-            subtitle: Text(
-              'Recalculating with the latest rainfall, river and '
-              'exposure data. The stored result stays visible until '
-              'the new one is saved.',
-            ),
-          ),
-        ),
-      );
-    }
-
-    final updateError = _updateError;
-
-    if (updateError == null) {
-      return const SizedBox.shrink();
-    }
-
-    final theme = Theme.of(context);
-
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Card(
-        color: theme.colorScheme.errorContainer,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            children: [
-              Text(
-                'The live assessment could not be updated.',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: theme.colorScheme.onErrorContainer,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                '$updateError',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onErrorContainer,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'The values below are the last successfully stored '
-                'result for this zone.',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onErrorContainer,
-                ),
-              ),
-              const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed: () =>
-                    _refreshLiveRisk(riskResult),
-                icon: const Icon(Icons.refresh),
-                label: const Text('Try again'),
-              ),
-            ],
-          ),
-        ),
+      padding:
+          const EdgeInsets.fromLTRB(
+        20,
+        12,
+        20,
+        12,
       ),
-    );
-  }
-
-  /// Shown while the stored result is read, and while the first assessment of
-  /// a zone is generated. Nothing has to be pressed for this to happen.
-  Widget _buildPreparing(BuildContext context) {
-    final theme = Theme.of(context);
-    final zone = RiskZoneCatalog.byId(
-      HazardRiskId.zoneIdOf(widget.riskId),
-    );
-    final updateError = _updateError;
-
-    if (updateError != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 520,
-            ),
+      child: Row(
+        children: [
+          _HeaderButton(
+            asset:
+                'assets/icons/risk-arrow-left.svg',
+            onTap: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/map');
+              }
+            },
+          ),
+          const SizedBox(width: 12),
+          Expanded(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment:
-                  CrossAxisAlignment.stretch,
+                  CrossAxisAlignment.start,
               children: [
-                const Icon(
-                  Icons.cloud_off,
-                  size: 48,
-                ),
-                const SizedBox(height: 16),
                 Text(
-                  'No risk assessment could be loaded for this zone.',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.titleMedium?.copyWith(
+                  riskResult.locationName,
+                  style: const TextStyle(
+                    fontSize: 20,
                     fontWeight: FontWeight.w700,
+                    color: AppPalette.textDark,
                   ),
+                  overflow:
+                      TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 3),
                 Text(
-                  '$updateError',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.error,
+                  'Zone à risque • $locationLabel',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppPalette.textMuted,
                   ),
-                ),
-                const SizedBox(height: 20),
-                FilledButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _updateAttemptedForId = null;
-                      _updateError = null;
-                    });
-
-                    _ensureFreshRisk(null);
-                  },
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Try again'),
+                  overflow:
+                      TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-        ),
-      );
-    }
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 20),
-            Text(
-              zone == null
-                  ? 'Preparing the assessment for '
-                      '"$_riskId"...'
-                  : 'Preparing the assessment for '
-                      '${zone.name}...',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Historical rainfall and river baseline, then the '
-              'current environmental data. The first run of a zone '
-              'can take a few seconds.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color:
-                    theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
+          const SizedBox(width: 12),
+          _HeaderButton(
+            asset:
+                'assets/icons/risk-share.svg',
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildRiskSummary(
+  Widget _buildSummaryCard(
     BuildContext context,
     RiskResult riskResult,
   ) {
-    final theme = Theme.of(context);
-    final riskColor = _riskColor(
+    final color = _riskColor(
       context,
       riskResult.riskLevel,
     );
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-          children: [
-            Text(
-              riskResult.locationName,
-              style:
-                  theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+            BorderRadius.circular(20),
+        border: Border(
+          left: BorderSide(
+            color: color,
+            width: 4,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 92,
+            height: 92,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: color.withAlpha(25),
+              shape: BoxShape.circle,
             ),
-            const SizedBox(height: 6),
-            Text(
-              riskResult.hazardType,
-              style: theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 18),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              crossAxisAlignment:
-                  WrapCrossAlignment.center,
+            child: Column(
+              mainAxisAlignment:
+                  MainAxisAlignment.center,
               children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: riskColor.withAlpha(30),
-                    borderRadius:
-                        BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    riskResult.riskLevel.name
-                        .toUpperCase(),
-                    style: TextStyle(
-                      color: riskColor,
-                      fontWeight: FontWeight.w700,
-                    ),
+                Text(
+                  riskResult.riskScore
+                      .toStringAsFixed(0),
+                  style: TextStyle(
+                    fontSize: 30,
+                    fontWeight:
+                        FontWeight.w700,
+                    color: color,
+                    height: 1,
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
-                  '${riskResult.riskScore.toStringAsFixed(0)}/100',
-                  style:
-                      theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
+                  'SCORE',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight:
+                        FontWeight.w600,
+                    color: color,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 18),
-            Text(
-              'Updated ${_formatDateTime(riskResult.updatedAt)}',
-              style:
-                  theme.textTheme.bodySmall?.copyWith(
-                color:
-                    theme.colorScheme.onSurfaceVariant,
-              ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                _RiskLevelChip(
+                  level:
+                      riskResult.riskLevel,
+                  color: color,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  riskResult.hazardType,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight:
+                        FontWeight.w700,
+                    color:
+                        AppPalette.textDark,
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Mis à jour • '
+                  '${_formatDateTime(
+                    riskResult.updatedAt,
+                  )}',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color:
+                        AppPalette.textMuted,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildRefreshCard(
+  Widget _buildWhyCard(
     BuildContext context,
     RiskResult riskResult,
   ) {
-    final theme = Theme.of(context);
+    final theme =
+        Theme.of(context);
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Live Risk',
-              style:
-                  theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'The assessment is loaded automatically when '
-              'the zone is opened and kept for '
-              '${RiskResultFreshness.maxAge.inHours} hours '
-              'before it is refreshed again. Recalculate it '
-              'now to use the latest environmental data.',
-              style:
-                  theme.textTheme.bodyMedium?.copyWith(
-                color:
-                    theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: _isUpdatingRisk
-                  ? null
-                  : () => _refreshLiveRisk(
-                        riskResult,
-                      ),
-              icon: _isUpdatingRisk
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child:
-                          CircularProgressIndicator(
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Icon(
-                      Icons.refresh,
-                    ),
-              label: Text(
-                _isUpdatingRisk
-                    ? 'Recalculating...'
-                    : 'Recalculate now',
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Historical reference: '
-              '${_formatDate(RiskZoneCatalog.historicalBaselineStart)}'
-              ' – '
-              '${_formatDate(RiskZoneCatalog.historicalBaselineEnd)}',
-              style:
-                  theme.textTheme.bodySmall?.copyWith(
-                color:
-                    theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Stored as risk_results/${riskResult.id}',
-              style:
-                  theme.textTheme.bodySmall?.copyWith(
-                color:
-                    theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+            BorderRadius.circular(20),
+        border: Border.all(
+          color: AppPalette.inputBorder,
         ),
+        boxShadow: const [
+          RiskDetailsScreen._cardShadow,
+        ],
       ),
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+        children: [
+          const _SectionTitle(
+            asset:
+                'assets/icons/risk-cloud-wind.svg',
+            title:
+                'Pourquoi ce niveau ?',
+          ),
+          const SizedBox(height: 12),
+          if (riskResult
+              .evidence
+              .qualitativeIndicators
+              .isNotEmpty)
+            ...riskResult
+                .evidence
+                .qualitativeIndicators
+                .map(
+                  (indicator) => Padding(
+                    padding:
+                        const EdgeInsets.only(
+                      bottom: 8,
+                    ),
+                    child: Text(
+                      indicator,
+                      style:
+                          const TextStyle(
+                        fontSize: 13,
+                        height: 1.45,
+                        color:
+                            AppPalette.textMuted,
+                      ),
+                    ),
+                  ),
+                )
+          else
+            Text(
+              'The current risk level is based on the measured '
+              'environmental data and the factors below.',
+              style:
+                  const TextStyle(
+                fontSize: 13,
+                height: 1.45,
+                color:
+                    AppPalette.textMuted,
+              ),
+            ),
+          const SizedBox(height: 14),
+          if (_isAnalyzing)
+            const Row(
+              children: [
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child:
+                      CircularProgressIndicator(
+                    strokeWidth: 2,
+                  ),
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'AI interpretation is being prepared...',
+                  ),
+                ),
+              ],
+            )
+          else if (_analysisError != null)
+            Text(
+              'AI interpretation unavailable: '
+              '$_analysisError',
+              style:
+                  theme.textTheme.bodySmall?.copyWith(
+                color:
+                    theme.colorScheme.error,
+              ),
+            )
+          else if (_analysis != null)
+            _buildAiInterpretation(
+              context,
+              _analysis!,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAiInterpretation(
+    BuildContext context,
+    RiskAnalysis analysis,
+  ) {
+    final theme =
+        Theme.of(context);
+
+    if (analysis.recommendations.isEmpty) {
+      return const Text(
+        'AI analysis completed for this risk result.',
+      );
+    }
+
+    return Column(
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
+      children: [
+        Text(
+          'AI interpretation',
+          style:
+              theme.textTheme.titleSmall?.copyWith(
+            fontWeight:
+                FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        ...analysis.recommendations.map(
+          (recommendation) => Padding(
+            padding:
+                const EdgeInsets.only(
+              bottom: 8,
+            ),
+            child: Row(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.auto_awesome,
+                  size: 17,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child:
+                      Text(recommendation),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -775,15 +721,19 @@ class _RiskDetailsScreenState
     BuildContext context,
     RiskResult riskResult,
   ) {
-    final theme = Theme.of(context);
-    final factors = riskResult.factors;
-    final entries = factors.entries;
+    final theme =
+        Theme.of(context);
+
+    final factors =
+        riskResult.factors;
+
+    final entries =
+        factors.entries;
+
     final rows = <Widget>[];
 
     if (entries.isEmpty) {
-      // Document written before the factor breakdown existed: only the four
-      // legacy scores are stored, so they are the only rows that can be shown.
-      rows.addAll(<Widget>[
+      rows.addAll([
         _buildFactorRow(
           context,
           factors.primaryFactorLabel,
@@ -811,55 +761,112 @@ class _RiskDetailsScreenState
 
         rows.add(
           score == null
-              ? _buildUnavailableFactorRow(context, entry)
-              : _buildFactorRow(context, entry.label, score),
+              ? _buildUnavailableFactorRow(
+                  context,
+                  entry,
+                )
+              : _buildFactorRow(
+                  context,
+                  entry.label,
+                  score,
+                ),
         );
       }
     }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Risk Factors',
-              style:
-                  theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Each bar is one input this assessment really used, scored '
-              'from 0 to 100 against the reference of the same location. '
-              'A factor that could not be measured is reported as '
-              'unavailable, never as zero.',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 16),
-            for (var index = 0; index < rows.length; index++) ...[
-              if (index > 0) const SizedBox(height: 12),
-              rows[index],
-            ],
-          ],
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+            BorderRadius.circular(20),
+        border: Border.all(
+          color: AppPalette.inputBorder,
         ),
+        boxShadow: const [
+          RiskDetailsScreen._cardShadow,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.stretch,
+        children: [
+          const _SectionTitle(
+            asset:
+                'assets/icons/risk-cloud-wind.svg',
+            title: 'Risk Factors',
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Normalized values of the factors actually available '
+            'for this hazard assessment.',
+            style:
+                theme.textTheme.bodySmall?.copyWith(
+              color:
+                  theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          for (var index = 0;
+              index < rows.length;
+              index++) ...[
+            if (index > 0)
+              const SizedBox(height: 12),
+            rows[index],
+          ],
+        ],
       ),
     );
   }
 
-  /// Factor the assessment could not score. It is shown as unavailable with
-  /// the reason, so a missing measurement is never read as a safe zero.
+  Widget _buildFactorRow(
+    BuildContext context,
+    String title,
+    double value,
+  ) {
+    final clamped =
+        value.clamp(0.0, 100.0);
+
+    return Column(
+      crossAxisAlignment:
+          CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style:
+                    const TextStyle(
+                  fontSize: 13,
+                  color:
+                      AppPalette.textDark,
+                ),
+              ),
+            ),
+            Text(
+              '${clamped.toStringAsFixed(0)}/100',
+              style:
+                  const TextStyle(
+                fontWeight:
+                    FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 7),
+        LinearProgressIndicator(
+          value:
+              clamped / 100,
+        ),
+      ],
+    );
+  }
+
   Widget _buildUnavailableFactorRow(
     BuildContext context,
-    RiskFactorScore entry,
+    dynamic entry,
   ) {
-    final theme = Theme.of(context);
-
     return Column(
       crossAxisAlignment:
           CrossAxisAlignment.start,
@@ -869,16 +876,13 @@ class _RiskDetailsScreenState
             Expanded(
               child: Text(
                 entry.label,
-                style: theme.textTheme.bodyMedium,
               ),
             ),
-            Text(
+            const Text(
               'Unavailable',
-              style:
-                  theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color:
-                    theme.colorScheme.onSurfaceVariant,
+              style: TextStyle(
+                fontWeight:
+                    FontWeight.w700,
               ),
             ),
           ],
@@ -886,55 +890,11 @@ class _RiskDetailsScreenState
         const SizedBox(height: 4),
         Text(
           entry.unavailableReason ??
-              'No measurement was available for this factor, so it is '
-                  'excluded from the score.',
+              'No measurement was available; this factor is excluded from the score.',
           style:
-              theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFactorRow(
-    BuildContext context,
-    String label,
-    double value,
-  ) {
-    final theme = Theme.of(context);
-    final normalized =
-        value.clamp(0.0, 100.0) / 100.0;
-
-    return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                label,
-                style:
-                    theme.textTheme.bodyMedium,
-              ),
-            ),
-            Text(
-              '${value.toStringAsFixed(0)}/100',
-              style:
-                  theme.textTheme.bodyMedium?.copyWith(
-                fontWeight:
-                    FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        LinearProgressIndicator(
-          value: normalized,
-          minHeight: 8,
-          borderRadius:
-              BorderRadius.circular(999),
+              Theme.of(context)
+                  .textTheme
+                  .bodySmall,
         ),
       ],
     );
@@ -944,90 +904,66 @@ class _RiskDetailsScreenState
     BuildContext context,
     RiskResult riskResult,
   ) {
-    final theme = Theme.of(context);
+    final theme =
+        Theme.of(context);
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Evidence',
-              style:
-                  theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+    final evidence =
+        riskResult.evidence;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+            BorderRadius.circular(20),
+        border: Border.all(
+          color: AppPalette.inputBorder,
+        ),
+        boxShadow: const [
+          RiskDetailsScreen._cardShadow,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.stretch,
+        children: [
+          const _SectionTitle(
+            asset:
+                'assets/icons/risk-cloud-rain.svg',
+            title: 'Evidence',
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '${evidence.observationCount} observations reçues • '
+            '${evidence.confirmedObservationCount} confirmées',
+            style:
+                theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Collected '
+            '${_formatDateTime(
+              evidence.collectedAt,
+            )}',
+            style:
+                theme.textTheme.bodySmall?.copyWith(
+              color:
+                  theme.colorScheme.onSurfaceVariant,
             ),
-            const SizedBox(height: 12),
-            Text(
-              '${riskResult.evidence.observationCount} '
-              'observations received • '
-              '${riskResult.evidence.confirmedObservationCount} '
-              'confirmed',
-              style: theme.textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Collected ${_formatDateTime(riskResult.evidence.collectedAt)}',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
+          ),
+          if (evidence
+              .measurements
+              .isNotEmpty) ...[
             const SizedBox(height: 16),
-            ...riskResult.evidence.measurements.map(
-              (measurement) => _buildMeasurement(
+            ...evidence.measurements.map(
+              (measurement) =>
+                  _buildMeasurement(
                 context,
                 measurement,
               ),
             ),
-            if (riskResult
-                .evidence
-                .qualitativeIndicators
-                .isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Text(
-                'Indicators',
-                style:
-                    theme.textTheme.titleMedium?.copyWith(
-                  fontWeight:
-                      FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              ...riskResult
-                  .evidence
-                  .qualitativeIndicators
-                  .map(
-                (indicator) => Padding(
-                  padding:
-                      const EdgeInsets.only(
-                    bottom: 8,
-                  ),
-                  child: Row(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding:
-                            EdgeInsets.only(top: 6),
-                        child: Icon(
-                          Icons.circle,
-                          size: 7,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(indicator),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
           ],
-        ),
+        ],
       ),
     );
   }
@@ -1036,571 +972,305 @@ class _RiskDetailsScreenState
     BuildContext context,
     RiskMeasurement measurement,
   ) {
-    final theme = Theme.of(context);
+    final theme =
+        Theme.of(context);
 
     return Padding(
       padding:
-          const EdgeInsets.only(bottom: 14),
-      child: Container(
-        width: double.infinity,
-        padding:
-            const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color:
-                theme.colorScheme.outlineVariant,
-          ),
-          borderRadius:
-              BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-          children: [
-            Text(
-              RiskMeasurementLabel.of(
-                name: measurement.name,
-                measurementPeriod:
-                    measurement.measurementPeriod,
-                unit: measurement.unit,
-              ),
-              style:
-                  theme.textTheme.titleSmall?.copyWith(
-                fontWeight:
-                    FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              '${measurement.value.toStringAsFixed(2)} '
-              '${measurement.unit}',
-            ),
-            if (measurement.referenceValue != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                'Reference: '
-                '${measurement.referenceValue!.toStringAsFixed(2)}'
-                '${measurement.referenceUnit == null ? '' : ' ${measurement.referenceUnit}'}',
-                style:
-                    theme.textTheme.bodySmall?.copyWith(
-                  color:
-                      theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-            if (measurement.referenceLabel != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                measurement.referenceLabel!,
-                style:
-                    theme.textTheme.bodySmall?.copyWith(
-                  color:
-                      theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-            if (measurement.isDerived &&
-                measurement.derivationNote != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                'Derived value: ${measurement.derivationNote}',
-                style:
-                    theme.textTheme.bodySmall?.copyWith(
-                  color:
-                      theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-            if (measurement.source != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                'Source: ${measurement.source}',
-                style:
-                    theme.textTheme.bodySmall?.copyWith(
-                  color:
-                      theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-            if (measurement.observedAt != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                'Observed '
-                '${_formatDateTime(measurement.observedAt!)}',
-                style:
-                    theme.textTheme.bodySmall?.copyWith(
-                  color:
-                      theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAiCard(
-    BuildContext context,
-    RiskResult riskResult,
-  ) {
-    final theme = Theme.of(context);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'AI Risk Analyst',
-              style:
-                  theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'The AI interprets this stored risk result, '
-              'its measurements and its evidence. It runs '
-              'once per saved result: use Retry if the '
-              'request failed.',
-              style:
-                  theme.textTheme.bodyMedium?.copyWith(
-                color:
-                    theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 20),
-            if (_isAnalyzing)
-              const Center(
-                child: Padding(
-                  padding:
-                      EdgeInsets.all(24),
-                  child:
-                      CircularProgressIndicator(),
-                ),
-              )
-            else if (_analysisError != null)
-              _buildAnalysisError(
-                context,
-                riskResult,
-              )
-            else if (_analysis != null)
-              _buildAnalysis(
-                context,
-                _analysis!,
-              )
-            else
-              FilledButton.icon(
-                onPressed: () =>
-                    _retryAnalysis(
-                  riskResult,
-                ),
-                icon: const Icon(
-                  Icons.auto_awesome,
-                ),
-                label:
-                    const Text('Analyze risk'),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Deterministic What-If section.
-  ///
-  /// It re-runs the shared risk engine with the hypothetical values selected
-  /// here and reports the simulated outcome inside this card only: no AI
-  /// request, no data fetch, and the stored assessment, factors, evidence and
-  /// AI explanation above stay exactly as they are.
-  Widget _buildWhatIfCard(
-    BuildContext context,
-    RiskResult riskResult,
-  ) {
-    final theme = Theme.of(context);
-    final model = _simulationService.modelFrom(riskResult);
-    final variables =
-        model?.variables ?? const <RiskSimulationVariable>[];
-    final values = <String, double>{
-      for (final variable in variables)
-        variable.name:
-            _simulatedValues[variable.name] ?? variable.currentValue,
-    };
-
-    final changed = model == null
-        ? false
-        : model.adjustable.any(
-            (variable) =>
-                (values[variable.name]! - variable.currentValue).abs() >
-                0.0001,
-          );
-
-    final outcome = model != null && model.isSimulatable
-        ? _simulationService.simulate(
-            model: model,
-            values: values,
-          )
-        : null;
-
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: theme.colorScheme.primary,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.tune,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'What-If Scenario',
-                    style:
-                        theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Simulate what would happen if the conditions of this '
-              'hazard changed. The simulated score is computed by the same '
-              'risk engine as the assessment above, against the same '
-              'reference values. This is a simulation inside this section '
-              'only: not a forecast and not a warning. It never changes the '
-              'stored result, the risk factors, the evidence or the AI '
-              'explanation.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (model == null)
-              Text(
-                'The hazard of this stored assessment could not be '
-                'identified, so no simulation can be built for it.',
-              )
-            else if (!model.isSimulatable)
-              Text(
-                model.unavailableReason ??
-                    'This assessment has no adjustable input.',
-              )
-            else ...[
-              ..._buildSimulationControls(
-                context,
-                model,
-                values,
-              ),
-              if (model.fixed.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  'Not adjustable here: '
-                  '${model.fixed.map((variable) => variable.label).join(', ')}. '
-                  'These variables are reported as evidence only and are '
-                  'not part of the score.',
-                  style:
-                      theme.textTheme.bodySmall?.copyWith(
-                    color:
-                        theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 12),
-              if (!changed)
-                Text(
-                  'Move a control to simulate a different situation. The '
-                  'measured values are used until then.',
-                  style: theme.textTheme.bodyMedium,
-                )
-              else if (outcome != null)
-                _buildSimulationResult(
-                  context,
-                  model,
-                  outcome,
-                ),
-              const SizedBox(height: 8),
-              TextButton.icon(
-                onPressed: changed
-                    ? () => setState(
-                          _simulatedValues.clear,
-                        )
-                    : null,
-                icon: const Icon(Icons.restart_alt),
-                label:
-                    const Text('Back to the measured values'),
-              ),
-              if (model.factorBreakdownMissing) ...[
-                const SizedBox(height: 4),
-                Text(
-                  'This stored assessment was written before the factor '
-                  'breakdown existed: only its environmental variables are '
-                  'simulated. Recalculate it to simulate the exposure '
-                  'factors as well.',
-                  style:
-                      theme.textTheme.bodySmall?.copyWith(
-                    color:
-                        theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-              if (model.limitations.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  'What this model does not include: '
-                  '${model.limitations.join(' ')}',
-                  style:
-                      theme.textTheme.bodySmall?.copyWith(
-                    color:
-                        theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  List<Widget> _buildSimulationControls(
-    BuildContext context,
-    RiskSimulationModel model,
-    Map<String, double> values,
-  ) {
-    return model.adjustable
-        .map(
-          (variable) => _buildSimulationControl(
-            context,
-            variable,
-            values[variable.name]!,
-          ),
-        )
-        .toList(growable: false);
-  }
-
-  /// One slider per adjustable input of the hazard. The bounds come from the
-  /// statistical reference of the stored assessment, so a simulation can only
-  /// move inside a meaningful range.
-  Widget _buildSimulationControl(
-    BuildContext context,
-    RiskSimulationVariable variable,
-    double value,
-  ) {
-    final theme = Theme.of(context);
-    final lower = variable.lowerBound;
-    final upper = variable.upperBound;
-    final current = value.clamp(lower, upper);
-    final score = variable.scoreFor(current);
-    final reference = variable.referenceValue;
-
-    return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                variable.label,
-                style:
-                    theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            Text(
-              '${_formatValue(current)} '
-              '${variable.unit}',
-              style:
-                  theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-        Slider(
-          value: current,
-          min: lower,
-          max: upper,
-          divisions: 60,
-          label: '${_formatValue(current)} '
-              '${variable.unit}',
-          onChanged: (next) {
-            setState(() {
-              _simulatedValues[variable.name] = next;
-            });
-          },
-        ),
-        Text(
-          'Measured ${_formatValue(variable.currentValue)} '
-          '${variable.unit}'
-          '${reference == null ? '' : ' · reference ${_formatValue(reference)} ${variable.unit}'}'
-          ' · factor score '
-          '${score == null ? 'unavailable' : '${score.toStringAsFixed(0)}/100'}',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Outcome of a simulation, shown inside the What-If section only.
-  Widget _buildSimulationResult(
-    BuildContext context,
-    RiskSimulationModel model,
-    RiskSimulationOutcome outcome,
-  ) {
-    final theme = Theme.of(context);
-    final levelColor = _riskColor(context, outcome.level);
-    final difference = outcome.difference;
-
-    final differenceLabel = difference.abs() < 0.05
-        ? 'same score as the stored assessment'
-        : '${difference > 0 ? '+' : ''}'
-            '${difference.toStringAsFixed(1)} points versus the '
-            'stored assessment';
-
-    final changedFactors = <String>[];
-
-    for (final variable in model.variables) {
-      final value = outcome.values[variable.name] ?? variable.currentValue;
-      final simulated = variable.scoreFor(value);
-      final measured = variable.scoreFor(variable.currentValue);
-
-      if (simulated == null || measured == null) {
-        continue;
-      }
-
-      if ((simulated - measured).abs() < 0.5) {
-        continue;
-      }
-
-      changedFactors.add(
-        '${variable.label}: '
-        '${measured.toStringAsFixed(0)} → '
-        '${simulated.toStringAsFixed(0)}/100',
-      );
-    }
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: levelColor.withAlpha(18),
-        border: Border.all(
-          color: levelColor.withAlpha(90),
-        ),
-        borderRadius: BorderRadius.circular(12),
+          const EdgeInsets.only(
+        bottom: 14,
       ),
       child: Column(
         crossAxisAlignment:
             CrossAxisAlignment.start,
         children: [
           Text(
-            'Simulated result',
+            RiskMeasurementLabel.of(
+              name: measurement.name,
+              measurementPeriod:
+                  measurement.measurementPeriod,
+              unit: measurement.unit,
+            ),
             style:
                 theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight:
+                  FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 12,
-            runSpacing: 8,
-            crossAxisAlignment:
-                WrapCrossAlignment.center,
-            children: [
-              Text(
-                '${outcome.score.toStringAsFixed(0)}/100',
-                style:
-                    theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: levelColor.withAlpha(30),
-                  borderRadius:
-                      BorderRadius.circular(999),
-                ),
-                child: Text(
-                  outcome.level.name.toUpperCase(),
-                  style: TextStyle(
-                    color: levelColor,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 5),
           Text(
-            '$differenceLabel · stored assessment '
-            '${model.currentScore.toStringAsFixed(0)}/100 '
-            '(${model.currentLevel.name.toUpperCase()}).',
+            '${measurement.value.toStringAsFixed(2)} '
+            '${measurement.unit}',
           ),
-          if (outcome.levelChanged) ...[
-            const SizedBox(height: 6),
+          if (measurement.referenceValue !=
+              null) ...[
+            const SizedBox(height: 4),
             Text(
-              'Under these hypothetical values the '
-              '${model.hazard.riskNoun} reaches the '
-              '${outcome.level.name.toUpperCase()} level, while the stored '
-              'assessment is ${model.currentLevel.name.toUpperCase()}.',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: levelColor,
+              'Reference: '
+              '${measurement.referenceValue!.toStringAsFixed(2)}'
+              '${measurement.referenceUnit == null ? '' : ' ${measurement.referenceUnit}'}',
+              style:
+                  theme.textTheme.bodySmall?.copyWith(
+                color:
+                    theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ],
-          const SizedBox(height: 10),
+          if (measurement.referenceLabel !=
+              null) ...[
+            const SizedBox(height: 3),
+            Text(
+              measurement.referenceLabel!,
+              style:
+                  theme.textTheme.bodySmall?.copyWith(
+                color:
+                    theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+          if (measurement.source != null) ...[
+            const SizedBox(height: 3),
+            Text(
+              'Source: ${measurement.source}',
+              style:
+                  theme.textTheme.bodySmall?.copyWith(
+                color:
+                    theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+          if (measurement.observedAt != null) ...[
+            const SizedBox(height: 3),
+            Text(
+              'Observed '
+              '${_formatDateTime(
+                measurement.observedAt!,
+              )}',
+              style:
+                  theme.textTheme.bodySmall?.copyWith(
+                color:
+                    theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdviceCard(
+    BuildContext context,
+  ) {
+    final theme =
+        Theme.of(context);
+
+    if (_analysis == null &&
+        !_isAnalyzing) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+            BorderRadius.circular(20),
+        border: Border.all(
+          color: AppPalette.inputBorder,
+        ),
+        boxShadow: const [
+          RiskDetailsScreen._cardShadow,
+        ],
+      ),
+      child: Column(
+        children: [
+          const _SectionTitle(
+            asset:
+                'assets/icons/risk-shield.svg',
+            title:
+                'Gestes recommandés',
+          ),
+          const SizedBox(height: 12),
+          if (_isAnalyzing)
+            const Text(
+              'Preparing recommendations...',
+            )
+          else if (_analysisError !=
+              null)
+            Text(
+              'Recommendations unavailable.',
+              style:
+                  theme.textTheme.bodySmall,
+            )
+          else if (_analysis
+              ?.recommendations
+              .isEmpty ??
+              true)
+            const Text(
+              'No recommendations were returned by the AI analysis.',
+            )
+          else
+            ..._analysis!
+                .recommendations
+                .map(
+                  (recommendation) =>
+                      Padding(
+                    padding:
+                        const EdgeInsets.only(
+                      bottom: 12,
+                    ),
+                    child: Row(
+                      crossAxisAlignment:
+                          CrossAxisAlignment
+                              .start,
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          alignment:
+                              Alignment.center,
+                          decoration:
+                              BoxDecoration(
+                            color: AppPalette
+                                .infoBoxBg,
+                            borderRadius:
+                                BorderRadius
+                                    .circular(
+                              8,
+                            ),
+                          ),
+                          child:
+                              SvgPicture.asset(
+                            'assets/icons/risk-shield.svg',
+                            width: 17,
+                            height: 17,
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 12,
+                        ),
+                        Expanded(
+                          child: Text(
+                            recommendation,
+                            style:
+                                const TextStyle(
+                              fontSize: 13,
+                              height: 1.35,
+                              color: AppPalette
+                                  .textDark,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRefreshCard(
+    BuildContext context,
+    RiskResult riskResult,
+  ) {
+    final theme =
+        Theme.of(context);
+
+    return Container(
+      padding:
+          const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+            BorderRadius.circular(20),
+        border: Border.all(
+          color: AppPalette.inputBorder,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.stretch,
+        children: [
           Text(
-            'Factor scores under the simulated values',
+            'Actualisation',
             style:
-                theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
+                theme.textTheme.titleMedium?.copyWith(
+              fontWeight:
+                  FontWeight.w700,
             ),
           ),
           const SizedBox(height: 6),
-          if (changedFactors.isEmpty)
-            const Text(
-              'No factor score changed with these values.',
-            )
-          else
-            ...changedFactors.map(
-              (line) => Padding(
-                padding:
-                    const EdgeInsets.only(bottom: 4),
-                child: Text('• $line'),
+          Text(
+            'Assessment automatically refreshes after '
+            '${RiskResultFreshness.maxAge.inHours} hours '
+            'or when recalculation is requested.',
+            style:
+                theme.textTheme.bodySmall,
+          ),
+          if (_updateError !=
+              null) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Update failed: '
+              '$_updateError',
+              style:
+                  theme.textTheme.bodySmall?.copyWith(
+                color:
+                    theme.colorScheme.error,
               ),
             ),
-          const SizedBox(height: 6),
-          Text(
-            'Simulated only: this outcome is not stored, is not a forecast '
-            'and does not change the assessment, the factors, the evidence '
-            'or the AI explanation above.',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+          ],
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 48,
+            child: ElevatedButton(
+              onPressed: _isUpdatingRisk
+                  ? null
+                  : () =>
+                      _refreshLiveRisk(
+                    riskResult,
+                  ),
+              style:
+                  ElevatedButton.styleFrom(
+                elevation: 0,
+                backgroundColor:
+                    AppPalette.primary,
+                foregroundColor:
+                    Colors.white,
+                shape:
+                    RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(
+                    14,
+                  ),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.center,
+                children: [
+                  _isUpdatingRisk
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child:
+                              CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.refresh,
+                          size: 19,
+                        ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _isUpdatingRisk
+                        ? 'Recalculating...'
+                        : 'Recalculer le risque',
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -1608,174 +1278,323 @@ class _RiskDetailsScreenState
     );
   }
 
-  String _formatValue(double value) {
-    final magnitude = value.abs();
-
-    if (magnitude >= 100) {
-      return value.toStringAsFixed(0);
-    }
-
-    if (magnitude >= 10) {
-      return value.toStringAsFixed(1);
-    }
-
-    return value.toStringAsFixed(2);
-  }
-
-  Widget _buildAnalysis(
-    BuildContext context,
-    RiskAnalysis analysis,
-  ) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          'Summary',
-          style:
-              theme.textTheme.titleMedium?.copyWith(
-            fontWeight:
-                FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(analysis.summary),
-        const SizedBox(height: 20),
-        Text(
-          'Why?',
-          style:
-              theme.textTheme.titleMedium?.copyWith(
-            fontWeight:
-                FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(analysis.explanation),
-        if (analysis.mainFactors.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          Text(
-            'Main factors',
-            style:
-                theme.textTheme.titleMedium?.copyWith(
-              fontWeight:
-                  FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          ...analysis.mainFactors.map(
-            (factor) => Padding(
-              padding:
-                  const EdgeInsets.only(
-                bottom: 8,
-              ),
-              child: Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding:
-                        EdgeInsets.only(top: 6),
-                    child: Icon(
-                      Icons.circle,
-                      size: 7,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(factor),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-        if (analysis.recommendations.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          Text(
-            'Recommendations',
-            style:
-                theme.textTheme.titleMedium?.copyWith(
-              fontWeight:
-                  FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          ...analysis.recommendations.map(
-            (recommendation) => Padding(
-              padding:
-                  const EdgeInsets.only(
-                bottom: 8,
-              ),
-              child: Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                children: [
-                  const Icon(
-                    Icons.check_circle_outline,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      recommendation,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildAnalysisError(
+  Widget _buildWhatIfCard(
     BuildContext context,
     RiskResult riskResult,
   ) {
-    final theme = Theme.of(context);
+    final theme =
+        Theme.of(context);
 
-    return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          'The AI analysis could not be generated.',
-          style:
-              theme.textTheme.bodyLarge,
+    final model =
+        _simulationService.modelFrom(
+      riskResult,
+    );
+
+    final variables = model?.variables ??
+        const <RiskSimulationVariable>[];
+
+    final values =
+        <String, double>{
+      for (final variable in variables)
+        variable.name:
+            _simulatedValues[
+                  variable.name,
+                ] ??
+                variable.currentValue,
+    };
+
+    final changed = model == null
+        ? false
+        : model.adjustable.any(
+            (variable) =>
+                (values[
+                          variable.name,
+                        ]! -
+                        variable.currentValue)
+                    .abs() >
+                0.0001,
+          );
+
+    final outcome = model != null &&
+            model.isSimulatable
+        ? _simulationService.simulate(
+            model: model,
+            values: values,
+          )
+        : null;
+
+    return Container(
+      padding:
+          const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius:
+            BorderRadius.circular(20),
+        border: Border.all(
+          color: AppPalette.inputBorder,
         ),
-        const SizedBox(height: 8),
-        Text(
-          _analysisError.toString(),
-          style:
-              theme.textTheme.bodySmall?.copyWith(
-            color:
-                theme.colorScheme.error,
+        boxShadow: const [
+          RiskDetailsScreen._cardShadow,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+        children: [
+          const _SectionTitle(
+            asset:
+                'assets/icons/risk-cloud-rain.svg',
+            title: 'What-If',
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'The app does not retry on its own. Use Retry '
-          'when the AI service is reachable again.',
-          style:
-              theme.textTheme.bodySmall?.copyWith(
-            color:
-                theme.colorScheme.onSurfaceVariant,
+          const SizedBox(height: 8),
+          Text(
+            'Simulation uniquement. Ce résultat ne constitue pas une '
+            'prévision et ne modifie pas le résultat réel.',
+            style:
+                theme.textTheme.bodySmall?.copyWith(
+              color:
+                  theme.colorScheme.onSurfaceVariant,
+            ),
           ),
+          const SizedBox(height: 16),
+          if (model == null)
+            const Text(
+              'No simulation model is available for this risk.',
+            )
+          else if (!model.isSimulatable)
+            Text(
+              model.unavailableReason ??
+                  'No adjustable input is available.',
+            )
+          else ...[
+            ...model.adjustable.map(
+              (variable) {
+                final value =
+                    values[variable.name]!;
+
+                return Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            variable.label,
+                            style:
+                                theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight:
+                                  FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          '${_formatValue(value)} '
+                          '${variable.unit}',
+                        ),
+                      ],
+                    ),
+                    Slider(
+                      value: value.clamp(
+                        variable.lowerBound,
+                        variable.upperBound,
+                      ),
+                      min:
+                          variable.lowerBound,
+                      max:
+                          variable.upperBound,
+                      divisions: 60,
+                      onChanged: (next) {
+                        setState(() {
+                          _simulatedValues[
+                              variable.name] = next;
+                        });
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            if (!changed)
+              const Text(
+                'Adjust a value to see the simulated result.',
+              )
+            else if (outcome != null)
+              _buildSimulationResult(
+                context,
+                model,
+                outcome,
+              ),
+            TextButton.icon(
+              onPressed: changed
+                  ? () => setState(
+                        _simulatedValues
+                            .clear,
+                      )
+                  : null,
+              icon: const Icon(
+                Icons.restart_alt,
+              ),
+              label: const Text(
+                'Back to measured values',
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSimulationResult(
+    BuildContext context,
+    RiskSimulationModel model,
+    RiskSimulationOutcome outcome,
+  ) {
+    final color = _riskColor(
+      context,
+      outcome.level,
+    );
+
+    return Container(
+      width: double.infinity,
+      padding:
+          const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color.withAlpha(18),
+        borderRadius:
+            BorderRadius.circular(12),
+        border: Border.all(
+          color: color.withAlpha(80),
         ),
-        const SizedBox(height: 16),
-        FilledButton.icon(
-          onPressed: () =>
-              _retryAnalysis(
-            riskResult,
+      ),
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Simulated result',
+            style: TextStyle(
+              fontWeight:
+                  FontWeight.w700,
+            ),
           ),
-          icon:
-              const Icon(Icons.refresh),
-          label:
-              const Text('Retry AI analysis'),
-        ),
-      ],
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Text(
+                '${outcome.score.toStringAsFixed(0)}/100',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight:
+                      FontWeight.w800,
+                  color: color,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                outcome.level.name
+                    .toUpperCase(),
+                style: TextStyle(
+                  fontWeight:
+                      FontWeight.w700,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Simulation only — not a forecast and not stored.',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPreparing(
+    BuildContext context,
+  ) {
+    final theme =
+        Theme.of(context);
+
+    final zone =
+        RiskZoneCatalog.byId(
+      HazardRiskId.zoneIdOf(
+        widget.riskId,
+      ),
+    );
+
+    return SafeArea(
+      child: Column(
+        children: [
+          Padding(
+            padding:
+                const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                _HeaderButton(
+                  asset:
+                      'assets/icons/risk-arrow-left.svg',
+                  onTap: () {
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go('/map');
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: Padding(
+                padding:
+                    const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize:
+                      MainAxisSize.min,
+                  children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 20),
+                    Text(
+                      zone == null
+                          ? 'Preparing risk assessment...'
+                          : 'Preparing the assessment for '
+                              '${zone.name}...',
+                      textAlign:
+                          TextAlign.center,
+                      style: theme
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(
+                        fontWeight:
+                            FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Loading the stored risk result and refreshing it '
+                      'when necessary.',
+                      textAlign:
+                          TextAlign.center,
+                      style: theme
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(
+                        color: theme
+                            .colorScheme
+                            .onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1783,77 +1602,107 @@ class _RiskDetailsScreenState
     BuildContext context,
     Object error,
   ) {
-    final theme = Theme.of(context);
+    final theme =
+        Theme.of(context);
 
-    return Center(
-      child: Padding(
-        padding:
-            const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize:
-              MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.cloud_off,
-              size: 48,
+    return SafeArea(
+      child: Center(
+        child: Padding(
+          padding:
+              const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints:
+                const BoxConstraints(
+              maxWidth: 520,
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Could not load this risk result.',
-              style:
-                  theme.textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              error.toString(),
-              textAlign:
-                  TextAlign.center,
-              style:
-                  theme.textTheme.bodySmall?.copyWith(
-                color:
-                    theme.colorScheme.error,
-              ),
-            ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: () {
-                ref.invalidate(
-                  riskResultProvider(
-                    _riskId,
+            child: Column(
+              mainAxisSize:
+                  MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.cloud_off,
+                  size: 48,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Could not load this risk result.',
+                  textAlign:
+                      TextAlign.center,
+                  style: theme
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(
+                    fontWeight:
+                        FontWeight.w700,
                   ),
-                );
-              },
-              icon:
-                  const Icon(Icons.refresh),
-              label:
-                  const Text('Retry'),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  error.toString(),
+                  textAlign:
+                      TextAlign.center,
+                  style: theme
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(
+                    color: theme
+                        .colorScheme
+                        .error,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                FilledButton.icon(
+                  onPressed: () {
+                    ref.invalidate(
+                      riskResultProvider(
+                        _riskId,
+                      ),
+                    );
+                  },
+                  icon:
+                      const Icon(
+                    Icons.refresh,
+                  ),
+                  label:
+                      const Text('Retry'),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  // The old "Risk result not found." state was replaced by the automatic
-  // load-or-generate flow handled by _buildPreparing().
-  void _retryAnalysis(
-    RiskResult riskResult,
+  Color _riskColor(
+    BuildContext context,
+    RiskLevel level,
   ) {
-    setState(() {
-      _analyzedRiskVersion = null;
-      _analysis = null;
-      _analysisError = null;
-      _isAnalyzing = false;
-    });
-
-    _analyzeRisk(riskResult);
+    switch (level) {
+      case RiskLevel.low:
+        return Colors.green;
+      case RiskLevel.medium:
+        return Colors.amber.shade800;
+      case RiskLevel.high:
+        return Colors.orange;
+      case RiskLevel.critical:
+        return Theme.of(context)
+            .colorScheme
+            .error;
+    }
   }
 
-  String _formatDateTime(DateTime dateTime) {
-    final local = dateTime.toLocal();
+  String _formatDateTime(
+    DateTime dateTime,
+  ) {
+    final local =
+        dateTime.toLocal();
 
     String twoDigits(int value) =>
-        value.toString().padLeft(2, '0');
+        value.toString().padLeft(
+          2,
+          '0',
+        );
 
     return '${local.year}-'
         '${twoDigits(local.month)}-'
@@ -1862,9 +1711,272 @@ class _RiskDetailsScreenState
         '${twoDigits(local.minute)}';
   }
 
-  String _formatDate(DateTime dateTime) {
-    return '${dateTime.year}-'
-        '${dateTime.month.toString().padLeft(2, '0')}-'
-        '${dateTime.day.toString().padLeft(2, '0')}';
+  String _formatValue(
+    double value,
+  ) {
+    if (value.abs() >= 100) {
+      return value.toStringAsFixed(0);
+    }
+
+    if (value.abs() >= 10) {
+      return value.toStringAsFixed(1);
+    }
+
+    return value.toStringAsFixed(2);
+  }
+}
+
+class _HeaderButton extends StatelessWidget {
+  final String asset;
+  final VoidCallback? onTap;
+
+  const _HeaderButton({
+    required this.asset,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius:
+          BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius:
+            BorderRadius.circular(14),
+        child: Container(
+          width: 40,
+          height: 40,
+          alignment:
+              Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius:
+                BorderRadius.circular(14),
+            border: Border.all(
+              color:
+                  AppPalette.inputBorder,
+            ),
+          ),
+          child: SvgPicture.asset(
+            asset,
+            width: 20,
+            height: 20,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RiskLevelChip extends StatelessWidget {
+  final RiskLevel level;
+  final Color color;
+
+  const _RiskLevelChip({
+    required this.level,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding:
+          const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 7,
+      ),
+      decoration: BoxDecoration(
+        color: color.withAlpha(25),
+        borderRadius:
+            BorderRadius.circular(999),
+        border: Border.all(
+          color: color,
+        ),
+      ),
+      child: Row(
+        mainAxisSize:
+            MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: color,
+              shape:
+                  BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            level.name.toUpperCase(),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight:
+                  FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String asset;
+  final String title;
+
+  const _SectionTitle({
+    required this.asset,
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SvgPicture.asset(
+          asset,
+          width: 20,
+          height: 20,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style:
+              const TextStyle(
+            fontSize: 15,
+            fontWeight:
+                FontWeight.w600,
+            color:
+                AppPalette.textDark,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RiskNavigation extends StatelessWidget {
+  const _RiskNavigation();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 74,
+      padding:
+          const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 8,
+      ),
+      decoration:
+          const BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(
+            color:
+                AppPalette.inputBorder,
+          ),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment:
+            MainAxisAlignment.spaceBetween,
+        children: [
+          _NavItem(
+            label: 'Carte',
+            asset:
+                'assets/icons/map-nav-map.svg',
+            selected: true,
+            onTap: () =>
+                context.go('/map'),
+          ),
+          const _NavItem(
+            label: 'Signaler',
+            asset:
+                'assets/icons/map-nav-plus.svg',
+          ),
+          _NavItem(
+            label: 'Alertes',
+            asset:
+                'assets/icons/map-nav-bell.svg',
+            onTap: () =>
+                context.go('/alerts'),
+          ),
+          _NavItem(
+            label: 'Profil',
+            asset:
+                'assets/icons/map-nav-user.svg',
+            onTap: () =>
+                context.push('/profile'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final String label;
+  final String asset;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  const _NavItem({
+    required this.label,
+    required this.asset,
+    this.selected = false,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 76,
+        child: Column(
+          mainAxisAlignment:
+              MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 36,
+              height: 28,
+              alignment:
+                  Alignment.center,
+              decoration: BoxDecoration(
+                color: selected
+                    ? AppPalette.infoBoxBg
+                    : Colors.transparent,
+                borderRadius:
+                    BorderRadius.circular(
+                  999,
+                ),
+              ),
+              child:
+                  SvgPicture.asset(
+                asset,
+                width: 20,
+                height: 20,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: selected
+                    ? FontWeight.w600
+                    : FontWeight.w500,
+                color: selected
+                    ? AppPalette.primary
+                    : AppPalette.textMuted,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
