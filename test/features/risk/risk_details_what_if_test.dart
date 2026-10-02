@@ -156,23 +156,18 @@ Widget buildHost({
 
   return ProviderScope(
     overrides: [
-      riskResultRepositoryProvider
-          .overrideWith((ref) => repository),
-      riskExposureRepositoryProvider
-          .overrideWith((ref) => exposureRepository),
+      riskResultRepositoryProvider.overrideWith((ref) => repository),
+      riskExposureRepositoryProvider.overrideWith((ref) => exposureRepository),
       riskAnalystProvider.overrideWith((ref) => analyst),
-      zoneRiskGeneratorProvider
-          .overrideWith((ref) => unexpectedGeneration),
+      zoneRiskGeneratorProvider.overrideWith((ref) => unexpectedGeneration),
       zoneHazardRiskGeneratorProvider.overrideWith(
-        (ref) => (zone, hazard) => unexpectedGeneration(zone),
+        (ref) =>
+            (zone, hazard) => unexpectedGeneration(zone),
       ),
     ],
-    child: MaterialApp(
-      home: RiskDetailsScreen(riskId: 'zone-masina--heat'),
-    ),
+    child: MaterialApp(home: RiskDetailsScreen(riskId: 'zone-masina--heat')),
   );
 }
-
 
 void main() {
   testWidgets(
@@ -199,70 +194,68 @@ void main() {
 
       double topOf(Finder finder) => tester.getTopLeft(finder).dy;
 
-      // Section order: Risk Factors -> Evidence -> AI -> What-If.
+      // Section order: the stored assessment and its evidence come first, the
+      // AI interpretation follows them, and the What-If simulator is last.
       expect(
-        topOf(find.text('Risk Factors')),
-        lessThan(topOf(find.text('Evidence'))),
+        topOf(find.text('Facteurs de risque')),
+        lessThan(topOf(find.text('Éléments de preuve'))),
       );
       expect(
-        topOf(find.text('Evidence')),
-        lessThan(topOf(find.text('AI Risk Analyst'))),
+        topOf(find.text('Éléments de preuve')),
+        lessThan(topOf(find.text('Simulation « Et si ? »'))),
       );
       expect(
-        topOf(find.text('AI Risk Analyst')),
-        lessThan(topOf(find.text('What-If Scenario'))),
+        topOf(find.text('Analyse IA du risque')),
+        lessThan(topOf(find.text('Simulation « Et si ? »'))),
       );
 
       // The simulator declares itself a hypothetical scenario, never a
       // forecast of what will happen.
-      expect(find.textContaining('not a forecast'), findsWidgets);
-      expect(find.text('Simulated result'), findsNothing);
+      expect(find.textContaining('ce n’est pas une prévision'), findsWidgets);
+      expect(find.text('Résultat simulé'), findsNothing);
     },
   );
 
-  testWidgets(
-    'running a scenario changes only the What-If section',
-    (tester) async {
-      final repository = FakeRiskResultRepository()
-        ..stored = _storedHeatResult();
-      final exposureRepository = FakeRiskExposureRepository();
-      final analyst = FakeRiskAnalyst();
+  testWidgets('running a scenario changes only the What-If section', (
+    tester,
+  ) async {
+    final repository = FakeRiskResultRepository()..stored = _storedHeatResult();
+    final exposureRepository = FakeRiskExposureRepository();
+    final analyst = FakeRiskAnalyst();
 
-      await tester.pumpWidget(
-        buildHost(
-          repository: repository,
-          exposureRepository: exposureRepository,
-          analyst: analyst,
-        ),
-      );
+    await tester.pumpWidget(
+      buildHost(
+        repository: repository,
+        exposureRepository: exposureRepository,
+        analyst: analyst,
+      ),
+    );
 
-      await tester.pumpAndSettle();
-      expect(analyst.calls, 1);
+    await tester.pumpAndSettle();
+    expect(analyst.calls, 1);
 
-      final slider = find.byType(Slider).first;
-      await tester.ensureVisible(slider);
-      await tester.pumpAndSettle();
+    final slider = find.byType(Slider).first;
+    await tester.ensureVisible(slider);
+    await tester.pumpAndSettle();
 
-      await tester.drag(slider, const Offset(300, 0));
-      await tester.pumpAndSettle();
+    await tester.drag(slider, const Offset(300, 0));
+    await tester.pumpAndSettle();
 
-      // The hypothetical outcome is rendered inside the What-If section.
-      expect(find.text('Simulated result'), findsOneWidget);
-      expect(find.textContaining('not a forecast'), findsWidgets);
-      expect(
-        find.textContaining(
-          'does not change the assessment, the factors, the evidence '
-          'or the AI explanation above',
-        ),
-        findsOneWidget,
-      );
+    // The hypothetical outcome is rendered inside the What-If section.
+    expect(find.text('Résultat simulé'), findsOneWidget);
+    expect(find.textContaining('ce n’est pas une prévision'), findsWidgets);
+    expect(
+      find.textContaining(
+        'ne modifie ni l’évaluation, ni les facteurs, ni les preuves',
+      ),
+      findsOneWidget,
+    );
 
-      // The real assessment above is untouched by the scenario.
-      expect(find.text('62/100'), findsWidgets);
-      expect(find.text('AI summary for Masina.'), findsOneWidget);
+    // The real assessment above is untouched by the scenario.
+    expect(find.text('62/100'), findsWidgets);
+    expect(find.text('AI summary for Masina.'), findsOneWidget);
 
-      // A scenario never invokes the AI analyst.
-      expect(analyst.calls, 1);
-    },
-  );
+    // A scenario never invokes the AI analyst.
+    expect(analyst.calls, 1);
+  });
 }

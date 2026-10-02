@@ -15,10 +15,8 @@ import 'open_meteo_hourly_parser.dart';
 /// definition does not declare.
 ///
 /// Verified coverage for the zones of this app (Kinshasa, `-4.30/15.35`):
-/// `rain`, `soil_moisture_0_to_7cm`, `et0_fao_evapotranspiration`,
-/// `temperature_2m`, `apparent_temperature`, `relative_humidity_2m`,
-/// `wind_speed_10m`, `wind_gusts_10m`, `vapour_pressure_deficit` and `cape`
-/// are all returned.
+/// `rain`, `soil_moisture_0_to_7cm`, `temperature_2m` and
+/// `apparent_temperature` are all returned.
 class OpenMeteoHazardDataSource
     implements HazardEnvironmentalDataSource {
   OpenMeteoHazardDataSource({

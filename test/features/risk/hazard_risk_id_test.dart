@@ -28,9 +28,9 @@ void main() {
     expect(
       HazardRiskId.forZone(
         zoneId: 'zone-ndjili',
-        hazard: HazardType.wildfire,
+        hazard: HazardType.landslide,
       ),
-      'zone-ndjili--wildfire',
+      'zone-ndjili--landslide',
     );
   });
 

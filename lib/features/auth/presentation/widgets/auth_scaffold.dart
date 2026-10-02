@@ -19,7 +19,7 @@ class AuthScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppPalette.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -28,9 +28,14 @@ class AuthScaffold extends StatelessWidget {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 390),
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 14,
+                  ),
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight - 28),
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - 28,
+                    ),
                     child: Column(
                       mainAxisAlignment: footer == null
                           ? MainAxisAlignment.start
@@ -61,10 +66,7 @@ class _AuthIntro extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const _AuthIntro({
-    required this.title,
-    required this.subtitle,
-  });
+  const _AuthIntro({required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
@@ -87,23 +89,23 @@ class _AuthIntro extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            const Text(
+            Text(
               'urban-resilience',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
-                color: AppPalette.textDark,
+                color: Theme.of(context).colorScheme.onSurface,
                 height: 1,
               ),
             ),
           ],
         ),
         const SizedBox(height: 10),
-        const Text(
+        Text(
           'Prévenir. Comprendre. Agir.',
           style: TextStyle(
             fontSize: 13,
-            color: AppPalette.textMuted,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w500,
             height: 1,
           ),
@@ -112,10 +114,10 @@ class _AuthIntro extends StatelessWidget {
         Text(
           title,
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.w700,
-            color: AppPalette.textDark,
+            color: Theme.of(context).colorScheme.onSurface,
             height: 1.15,
           ),
         ),
@@ -123,9 +125,9 @@ class _AuthIntro extends StatelessWidget {
         Text(
           subtitle,
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
-            color: AppPalette.textMuted,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w400,
             height: 1.45,
           ),
@@ -146,9 +148,9 @@ class AuthCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppPalette.cardBackground,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppPalette.inputBorder),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         boxShadow: const [
           BoxShadow(
             color: AppPalette.shadow,
@@ -171,15 +173,15 @@ class AuthPrivacyNote extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: AppPalette.infoBoxBg,
+        color: Theme.of(context).colorScheme.secondaryContainer,
         borderRadius: BorderRadius.circular(14),
       ),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           AuthIcon(
             asset: 'assets/icons/shield-check-small.svg',
-            color: AppPalette.infoText,
+            color: Theme.of(context).colorScheme.onSecondaryContainer,
           ),
           SizedBox(width: 8),
           Flexible(
@@ -187,7 +189,7 @@ class AuthPrivacyNote extends StatelessWidget {
               'Vos informations restent privées et protégées.',
               style: TextStyle(
                 fontSize: 11,
-                color: AppPalette.infoText,
+                color: Theme.of(context).colorScheme.onSecondaryContainer,
                 fontWeight: FontWeight.w400,
                 height: 1.2,
               ),
@@ -218,9 +220,9 @@ class AuthTextLink extends StatelessWidget {
       children: [
         Text(
           leading,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
-            color: AppPalette.textMuted,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w400,
           ),
         ),
@@ -229,10 +231,10 @@ class AuthTextLink extends StatelessWidget {
           onTap: onPressed,
           child: Text(
             action,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: AppPalette.primary,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
         ),

@@ -110,10 +110,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       );
     },
     routes: [
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
@@ -126,27 +123,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/verify-email',
         builder: (context, state) => const VerifyEmailScreen(),
       ),
-      GoRoute(
-        path: '/home',
-        builder: (context, state) => const HomeScreen(),
-      ),
-      GoRoute(
-        path: '/map',
-        builder: (context, state) => const MapScreen(),
-      ),
+      GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+      GoRoute(path: '/map', builder: (context, state) => const MapScreen()),
       GoRoute(
         path: '/location',
-        builder: (context, state) =>
-            const LocationPermissionScreen(),
+        builder: (context, state) => const LocationPermissionScreen(),
       ),
       GoRoute(
         path: '/risk/:id',
         builder: (context, state) {
           final riskId = state.pathParameters['id']!;
 
-          return RiskDetailsScreen(
-            riskId: riskId,
-          );
+          return RiskDetailsScreen(riskId: riskId);
         },
       ),
       GoRoute(
@@ -155,7 +143,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/observations',
-        builder: (context, state) => const ObservationsScreen(),
+        builder: (context, state) => ObservationsScreen(
+          zoneId: state.uri.queryParameters['zone'],
+          hazardType: state.uri.queryParameters['hazard'],
+        ),
       ),
       GoRoute(
         path: '/profile',
@@ -188,6 +179,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/admin/alerts',
             builder: (context, state) {
               return const AdminAlertsScreen();
+            },
+          ),
+          GoRoute(
+            path: '/admin/profile',
+            builder: (context, state) {
+              return const ProfileScreen();
             },
           ),
         ],

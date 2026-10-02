@@ -13,8 +13,8 @@ import 'open_meteo_hourly_parser.dart';
 ///
 /// Only the fields declared by the hazard definition are requested, and only
 /// the ones the archive can actually return: a variable flagged as
-/// `hasHistoricalReference: false` in the catalog (CAPE) is not requested, so
-/// the baseline never contains a distribution built from nulls.
+/// `hasHistoricalReference: false` in the catalog is not requested, so the
+/// baseline never contains a distribution built from nulls.
 class OpenMeteoHazardHistoricalDataSource
     implements HazardHistoricalDataSource {
   OpenMeteoHazardHistoricalDataSource({

@@ -24,7 +24,10 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 16,
+        ),
         hintStyle: textTheme.bodyMedium?.copyWith(
           fontSize: 15,
           color: AppPalette.textMuted,
@@ -47,5 +50,38 @@ class AppTheme {
   }
 
   static ThemeData get light => lightTheme;
-  static ThemeData get dark => lightTheme;
+
+  static ThemeData get dark {
+    final base = ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: const Color(0xFF102A31),
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: AppPalette.primary,
+        brightness: Brightness.dark,
+        primary: const Color(0xFF70D7D0),
+        surface: const Color(0xFF19383F),
+        error: const Color(0xFFFF8A80),
+      ),
+    );
+    final textTheme = GoogleFonts.interTextTheme(base.textTheme);
+
+    return base.copyWith(
+      textTheme: textTheme,
+      primaryTextTheme: GoogleFonts.interTextTheme(base.primaryTextTheme),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFF19383F),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 16,
+        ),
+        border: _border(const Color(0xFF4E6B70)),
+        enabledBorder: _border(const Color(0xFF4E6B70)),
+        focusedBorder: _border(const Color(0xFF70D7D0), width: 1.5),
+        errorBorder: _border(const Color(0xFFFF8A80)),
+        focusedErrorBorder: _border(const Color(0xFFFF8A80)),
+      ),
+    );
+  }
 }

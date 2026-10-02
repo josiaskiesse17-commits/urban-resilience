@@ -180,6 +180,44 @@ Future<RiskResult> _assess(
 }
 
 void main() {
+  test('DIAGNOSTIC', () async {
+    for (final hazard in HazardType.values) {
+      if (hazard == HazardType.flooding) {
+        continue;
+      }
+
+      final result = await _assess(hazard);
+      // ignore: avoid_print
+      print('=== ${hazard.label} riskScore=${result.riskScore}');
+
+      for (final entry in result.factors.entries) {
+        // ignore: avoid_print
+        print(
+          '  factor ${entry.name} used=${entry.usedInScore} '
+          'score=${entry.score} reason=${entry.unavailableReason}',
+        );
+      }
+
+      for (final measurement in result.evidence.measurements) {
+        // ignore: avoid_print
+        print('  evidence ${measurement.name} value=${measurement.value}');
+      }
+    }
+
+    for (final hazard in <HazardType>[HazardType.landslide, HazardType.heat]) {
+      for (final field in _fieldBase.keys) {
+        final result = await _assess(hazard, omit: <String>{field});
+
+        // ignore: avoid_print
+        print(
+          '=== ${hazard.label} omit $field -> riskScore=${result.riskScore} '
+          'scored=${result.factors.entries.where((entry) => entry.usedInScore).map((entry) => entry.name).toList()} '
+          'indicators=${result.evidence.qualitativeIndicators.where((item) => item.startsWith('Not measured')).toList()}',
+        );
+      }
+    }
+  });
+
   test('every used factor of every hazard has its own evidence', () async {
     for (final hazard in HazardCatalog.genericHazards) {
       final result = await _assess(hazard);

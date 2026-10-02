@@ -7,8 +7,8 @@ class RiskFactors {
   final double currentObservations;
 
   /// Label of the first factor. Flooding reports `Rainfall`, the other
-  /// hazards report their own primary driver (`Heat`, `Wind gusts`, ...) so a
-  /// heat assessment is never labelled as a rainfall factor in the UI.
+  /// hazards report their own primary driver (`Heat`, `Rainfall (24 h)`, ...)
+  /// so a heat assessment is never labelled as a rainfall factor in the UI.
   final String primaryFactorLabel;
 
   /// Factors the engine really examined for this assessment, in the order the

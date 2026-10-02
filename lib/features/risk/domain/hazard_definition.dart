@@ -68,8 +68,8 @@ class HazardVariableSpec {
 
   final String? derivationNote;
 
-  /// False for a variable the historical provider cannot return (CAPE is not
-  /// part of ERA5), which therefore gets no statistical reference.
+  /// False for a variable the historical provider cannot return, which
+  /// therefore gets no statistical reference.
   final bool hasHistoricalReference;
 
   /// Percentile of the reference distribution used as central reference.

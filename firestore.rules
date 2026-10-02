@@ -39,6 +39,17 @@ service cloud.firestore {
       allow delete: if isActiveAdmin();
     }
 
+    match /observations/{observationId} {
+      allow read: if isSignedIn()
+        && (resource.data.status == 'confirmed' || isActiveAdmin());
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending';
+      allow update: if isActiveAdmin()
+        && request.resource.data.status in ['confirmed', 'rejected'];
+      allow delete: if isActiveAdmin();
+    }
+
     // Everything else stays closed: the database is never public.
     match /{document=**} {
       allow read, write: if false;

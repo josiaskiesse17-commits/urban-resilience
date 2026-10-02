@@ -13,7 +13,7 @@ typedef HazardExposure = ({
 ///
 /// The stored document is shared by every hazard, but two of its sub-scores
 /// only describe flooding (drainage vulnerability and historical flood
-/// exposure). Reusing them for heat or drought would score one hazard with
+/// exposure). Reusing them for heat or landslide would score one hazard with
 /// measurements of another, so they are reported as not available for those
 /// hazards instead of being silently counted.
 class HazardExposureExtractor {

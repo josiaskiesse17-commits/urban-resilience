@@ -30,6 +30,44 @@ class FakeRiskResultRepository implements RiskResultRepository {
   }
 }
 
+/// In-memory `risk_results` collection with one document per risk id, used by
+/// the map / Zone Active Risks flow tests. It can also fail explicit reads so
+/// the error states of those surfaces are covered.
+class StoredByHazardRepository implements RiskResultRepository {
+  StoredByHazardRepository([Map<String, RiskResult>? initial])
+      : stored = <String, RiskResult>{...?initial};
+
+  final Map<String, RiskResult> stored;
+
+  /// When set, every read throws it instead of returning a document.
+  Object? failure;
+
+  int getCalls = 0;
+
+  @override
+  Future<RiskResult?> get(String riskId) async {
+    getCalls++;
+
+    final error = failure;
+
+    if (error != null) {
+      throw error;
+    }
+
+    return stored[riskId];
+  }
+
+  @override
+  Future<RiskResult?> getLatestForZone(String zoneId) async {
+    return stored[zoneId];
+  }
+
+  @override
+  Future<void> save(RiskResult result) async {
+    stored[result.id] = result;
+  }
+}
+
 /// In-memory exposure repository. A null [profile] represents a zone whose
 /// `risk_zones/{zoneId}` document does not exist yet.
 class FakeRiskExposureRepository implements RiskExposureRepository {

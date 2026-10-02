@@ -41,7 +41,7 @@ RiskResult _resultFor(
     id: isFlooding ? zoneId : '$zoneId--${hazard.id}',
     locationName: zoneName,
     hazardType: isFlooding ? 'Flood' : hazard.label,
-    primaryFactorLabel: isFlooding ? 'Rainfall' : 'Fire weather',
+    primaryFactorLabel: isFlooding ? 'Rainfall' : 'Heat',
     riskScore: isFlooding ? 64 : 38,
     riskLevel:
         isFlooding ? RiskLevel.high : RiskLevel.medium,
@@ -115,7 +115,7 @@ void main() {
       expect(find.text('What-If Scenario'), findsOneWidget);
 
       await tester.tap(
-        find.text(HazardType.wildfire.label),
+        find.text(HazardType.heat.label),
       );
       await tester.pumpAndSettle();
 
@@ -123,7 +123,7 @@ void main() {
         generated,
         <String>[
           HazardType.flooding.id,
-          HazardType.wildfire.id,
+          HazardType.heat.id,
         ],
       );
 
@@ -132,7 +132,7 @@ void main() {
         repository.stored.keys,
         containsAll(<String>[
           'zone-masina',
-          'zone-masina--wildfire',
+          'zone-masina--heat',
         ]),
       );
       expect(
@@ -140,11 +140,11 @@ void main() {
         64,
       );
       expect(
-        repository.stored['zone-masina--wildfire']!.hazardType,
-        HazardType.wildfire.label,
+        repository.stored['zone-masina--heat']!.hazardType,
+        HazardType.heat.label,
       );
       expect(
-        repository.stored['zone-masina--wildfire']!.riskScore,
+        repository.stored['zone-masina--heat']!.riskScore,
         38,
       );
 

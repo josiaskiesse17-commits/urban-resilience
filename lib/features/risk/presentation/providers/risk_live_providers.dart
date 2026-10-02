@@ -14,6 +14,7 @@ import '../../domain/flood_risk_exposure_profile.dart';
 import '../../domain/flood_risk_input_exposure_enricher.dart';
 import '../../domain/hazard_environmental_data_source.dart';
 import '../../domain/hazard_historical_data_source.dart';
+import '../../domain/hazard_risk_id.dart';
 import '../../domain/hazard_risk_service.dart';
 import '../../domain/hazard_type.dart';
 import '../../domain/historical_flood_baseline_service.dart';
@@ -23,6 +24,7 @@ import '../../domain/risk_exposure_repository.dart';
 import '../../domain/risk_intelligence_service.dart';
 import '../../domain/risk_result.dart';
 import '../../domain/risk_result_repository.dart';
+import '../../domain/zone_active_risk.dart';
 import '../../../observations/domain/observation.dart';
 
 final httpClientProvider = Provider<http.Client>((ref) {
@@ -65,8 +67,8 @@ final floodEnvironmentalDataSourceProvider =
   );
 });
 
-/// Live series of the generic hazards (landslide, drought, heat, wildfire,
-/// storm) from the Open-Meteo forecast API.
+/// Live series of the generic hazards (landslide and heat) from the
+/// Open-Meteo forecast API.
 final hazardEnvironmentalDataSourceProvider =
     Provider<HazardEnvironmentalDataSource>((ref) {
   return OpenMeteoHazardDataSource(
@@ -177,6 +179,59 @@ final riskExposureProfileProvider =
         ref.read(riskExposureRepositoryProvider);
 
     return repository.getProfile(zoneId);
+  },
+);
+
+/// Stored state of every hazard of one zone, for the map and the Zone Active
+/// Risks selection UI.
+///
+/// This is a pure read of already calculated `risk_results` documents (one
+/// get per hazard of the zone). It never runs a hazard pipeline: generating a
+/// missing assessment or refreshing a stale one stays the job of the Risk
+/// Details screen of the selected hazard, which regenerates only that hazard.
+/// Errors from Firestore surface to the caller so the UI can report them
+/// instead of showing fake zeroes.
+final zoneHazardAssessmentsProvider = FutureProvider.autoDispose
+    .family<List<ZoneHazardAssessment>, String>(
+  (ref, zoneId) async {
+    final repository =
+        ref.watch(riskResultRepositoryProvider);
+
+    final storedByHazard = Map.fromEntries(
+      await Future.wait(
+        HazardType.values.map(
+          (hazard) => repository
+              .get(
+                HazardRiskId.forZone(
+                  zoneId: zoneId,
+                  hazard: hazard,
+                ),
+              )
+              .then((result) => MapEntry(hazard, result)),
+        ),
+      ),
+    );
+
+    return zoneHazardAssessmentsFrom(zoneId, storedByHazard);
+  },
+);
+
+/// Identified, stored risks of one zone, derived from
+/// [zoneHazardAssessmentsProvider] so both surfaces read the same documents.
+///
+/// While the read is loading, or when it failed, the list stays empty: the
+/// map then shows the neutral marker colour and the selection UI shows its own
+/// loading / error state through [zoneHazardAssessmentsProvider].
+final zoneActiveRisksProvider =
+    Provider.autoDispose.family<List<ZoneActiveRisk>, String>(
+  (ref, zoneId) {
+    final assessments =
+        ref.watch(zoneHazardAssessmentsProvider(zoneId));
+
+    return assessments.maybeWhen(
+      data: identifiedRisksOf,
+      orElse: () => const <ZoneActiveRisk>[],
+    );
   },
 );
 

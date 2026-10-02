@@ -1,7 +1,7 @@
 /// Human readable wording of a measurement identifier.
 ///
 /// The screens must never show an internal field name such as
-/// `rainfallAccumulation30d` or `riverDischargeM3s` to a citizen, but the
+/// `rainfallAccumulation6h` or `riverDischargeM3s` to a citizen, but the
 /// stored documents keep those names. This helper is the single translation
 /// point, so the Risk Factors row, the Evidence row and the What-If control of
 /// the same variable are worded identically:
@@ -24,24 +24,13 @@ class RiskMeasurementLabel {
     'rainfallIntensity': 'Rainfall intensity',
     'rainfallAccumulation': 'Rainfall accumulation',
     'rainfallAccumulation6h': 'Rainfall accumulation',
-    'rainfallAccumulation14d': 'Rainfall accumulation',
     'rainfallAccumulation24h': 'Rainfall accumulation',
-    'rainfallAccumulation30d': 'Rainfall accumulation',
     'rainfallAccumulation72h': 'Rainfall accumulation',
-    'rainfallDeficit30d': 'Rainfall deficit',
     'soilMoisture': 'Soil moisture',
     'soilMoisture0to7cm': 'Topsoil water content (0-7 cm)',
     'temperature2mMax24h': 'Maximum air temperature',
     'temperature2mMin24h': 'Night-time minimum temperature',
     'apparentTemperatureMax24h': 'Maximum apparent temperature',
-    'vapourPressureDeficit': 'Vapour pressure deficit',
-    'referenceEvapotranspiration24h': 'Reference evapotranspiration',
-    'windGusts10mMax6h': 'Maximum wind gust',
-    'windSpeed10mMax6h': 'Maximum wind speed',
-    'windSpeed10m': 'Wind speed at 10 m',
-    'convectiveAvailablePotentialEnergy':
-        'Convective available potential energy',
-    'cape': 'Convective available potential energy',
     'riverDischarge': 'River discharge',
     'riverDischargeM3s': 'River discharge',
     'geographicVulnerability': 'Geographic vulnerability',
@@ -181,7 +170,7 @@ class RiskMeasurementLabel {
     return _windowPhrase(amount, match.group(2)!);
   }
 
-  /// `windGusts10mMax6h` -> `Wind gusts 10m max` (used when nothing is known).
+  /// `customSensorAlpha` -> `Custom sensor alpha` (used when nothing is known).
   static String _camelCaseToWords(String name) {
     final buffer = StringBuffer();
 

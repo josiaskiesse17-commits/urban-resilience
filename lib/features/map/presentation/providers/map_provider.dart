@@ -3,20 +3,14 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../data/repositories/map_repository.dart';
-import '../../domain/entities/map_risk.dart';
-
-final mapRepositoryProvider = Provider<MapRepository>((ref) {
-  return MapRepository();
-});
-
 final mapControllerProvider =
-    NotifierProvider<MapController, MapState>(MapController.new);
+    NotifierProvider<MapLocationController, MapState>(
+  MapLocationController.new,
+);
 
 class MapState {
   final LatLng? currentLocation;
   final LatLng selectedLocation;
-  final List<MapRisk> risks;
   final bool loading;
   final bool locationPermissionDenied;
   final String? error;
@@ -24,7 +18,6 @@ class MapState {
   const MapState({
     required this.currentLocation,
     required this.selectedLocation,
-    required this.risks,
     required this.loading,
     required this.locationPermissionDenied,
     required this.error,
@@ -33,7 +26,6 @@ class MapState {
   MapState copyWith({
     LatLng? currentLocation,
     LatLng? selectedLocation,
-    List<MapRisk>? risks,
     bool? loading,
     bool? locationPermissionDenied,
     String? error,
@@ -41,7 +33,6 @@ class MapState {
     return MapState(
       currentLocation: currentLocation ?? this.currentLocation,
       selectedLocation: selectedLocation ?? this.selectedLocation,
-      risks: risks ?? this.risks,
       loading: loading ?? this.loading,
       locationPermissionDenied:
           locationPermissionDenied ?? this.locationPermissionDenied,
@@ -50,23 +41,24 @@ class MapState {
   }
 }
 
-class MapController extends Notifier<MapState> {
-  late final MapRepository _repository;
-
-  // Abidjan comme position de secours.
+/// Location state of the map: where the user is, what the view is centred on
+/// and whether permission was granted.
+///
+/// The markers shown on the map do not come from this controller: they are
+/// the configured application zones coloured from the stored risk results
+/// (`zoneActiveRisksProvider`), so no risk logic lives here.
+class MapLocationController extends Notifier<MapState> {
+  // Kinshasa city centre, matching the configured zone catalog.
   static const LatLng defaultLocation = LatLng(
-    5.3599517,
-    -4.0082563,
+    -4.3276,
+    15.3142,
   );
 
   @override
   MapState build() {
-    _repository = ref.read(mapRepositoryProvider);
-
     return const MapState(
       currentLocation: null,
       selectedLocation: defaultLocation,
-      risks: [],
       loading: false,
       locationPermissionDenied: false,
       error: null,
@@ -84,8 +76,6 @@ class MapController extends Notifier<MapState> {
           await Geolocator.isLocationServiceEnabled();
 
       if (!serviceEnabled) {
-        await loadRisks(defaultLocation);
-
         state = state.copyWith(
           loading: false,
           locationPermissionDenied: true,
@@ -104,8 +94,6 @@ class MapController extends Notifier<MapState> {
 
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
-        await loadRisks(defaultLocation);
-
         state = state.copyWith(
           loading: false,
           locationPermissionDenied: true,
@@ -117,48 +105,22 @@ class MapController extends Notifier<MapState> {
 
       final position = await Geolocator.getCurrentPosition();
 
-      final location = LatLng(
-        position.latitude,
-        position.longitude,
-      );
-
       state = state.copyWith(
-        currentLocation: location,
-        selectedLocation: location,
+        currentLocation: LatLng(
+          position.latitude,
+          position.longitude,
+        ),
+        selectedLocation: LatLng(
+          position.latitude,
+          position.longitude,
+        ),
         loading: false,
         locationPermissionDenied: false,
       );
-
-      await loadRisks(location);
-    } catch (e) {
-      await loadRisks(defaultLocation);
-
+    } catch (_) {
       state = state.copyWith(
         loading: false,
         error: 'Impossible de récupérer la localisation.',
-      );
-    }
-  }
-
-  Future<void> loadRisks(LatLng location) async {
-    state = state.copyWith(
-      selectedLocation: location,
-      loading: true,
-    );
-
-    try {
-      final risks = await _repository.getRisksAround(location);
-
-      state = state.copyWith(
-        selectedLocation: location,
-        risks: risks,
-        loading: false,
-        error: null,
-      );
-    } catch (e) {
-      state = state.copyWith(
-        loading: false,
-        error: 'Impossible de récupérer les risques.',
       );
     }
   }
@@ -180,10 +142,12 @@ class MapController extends Notifier<MapState> {
         locations.first.longitude,
       );
 
-      await loadRisks(location);
+      state = state.copyWith(
+        selectedLocation: location,
+      );
 
       return location;
-    } catch (e) {
+    } catch (_) {
       state = state.copyWith(
         error: 'Lieu introuvable.',
       );

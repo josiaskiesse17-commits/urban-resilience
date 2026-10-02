@@ -1,16 +1,23 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../domain/entities/map_risk.dart';
+import '../../risk/data/risk_repository.dart';
+import '../../risk/presentation/providers/risk_live_providers.dart';
 import 'providers/map_provider.dart';
 import 'widgets/map_search_bar.dart';
-import 'widgets/risk_map_marker.dart';
-import '../../risk/presentation/screens/risk_detail_screen.dart';
+import 'widgets/zone_active_risks_sheet.dart';
+import 'widgets/zone_map_marker.dart';
 
-
+/// Citizen map: the user's position and the configured application zones.
+///
+/// The map owns no risk logic. Each zone is a coloured point whose colour is
+/// the highest risk currently identified in that zone, read from the stored
+/// `risk_results` documents through [zoneActiveRisksProvider]. Tapping a zone
+/// opens the Zone Active Risks selection UI of that zone, and the selected
+/// hazard opens the Risk Details screen - the only surface that computes.
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
 
@@ -25,40 +32,44 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   void initState() {
     super.initState();
 
-    Future.microtask(() {
+    Future<void>.microtask(() {
       ref.read(mapControllerProvider.notifier).initialize();
     });
   }
 
-  void _moveToLocation(LatLng location) {
+  void _moveTo(LatLng location) {
     _mapController.move(location, 14);
   }
 
-  void _openRiskDetails(MapRisk risk) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => RiskDetailScreen(risk: risk),
-      ),
-    );
+  void _openZone(RiskZoneTarget zone) {
+    showZoneActiveRisksSheet(context, zone);
+  }
+
+  void _recenter() {
+    final location = ref.read(mapControllerProvider).currentLocation;
+
+    if (location != null) {
+      _moveTo(location);
+      return;
+    }
+
+    ref.read(mapControllerProvider.notifier).initialize();
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(mapControllerProvider);
+    final zones = ref.watch(riskZoneCatalogProvider);
 
-    ref.listen<MapState>(
-      mapControllerProvider,
-      (previous, next) {
-        if (next.error != null &&
-            next.error != previous?.error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(next.error!),
-            ),
-          );
-        }
-      },
-    );
+    ref.listen<MapState>(mapControllerProvider, (previous, next) {
+      final error = next.error;
+
+      if (error != null && error != previous?.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error)),
+        );
+      }
+    });
 
     return Scaffold(
       body: Stack(
@@ -67,7 +78,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             mapController: _mapController,
             options: MapOptions(
               initialCenter: state.selectedLocation,
-              initialZoom: 14,
+              initialZoom: 13,
               minZoom: 4,
               maxZoom: 19,
             ),
@@ -78,8 +89,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 userAgentPackageName:
                     'com.namegmail.urban_resilience',
               ),
-
-              // Position de l'utilisateur
               if (state.currentLocation != null)
                 MarkerLayer(
                   markers: [
@@ -105,84 +114,104 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     ),
                   ],
                 ),
-
-              // Risques
               MarkerLayer(
-                markers: state.risks.map((risk) {
-                  return Marker(
-                    point: risk.position,
-                    width: 50,
-                    height: 50,
-                    child: RiskMapMarker(
-                      risk: risk,
-                      onTap: () => _openRiskDetails(risk),
+                markers: [
+                  for (final zone in zones)
+                    Marker(
+                      point: LatLng(
+                        zone.latitude,
+                        zone.longitude,
+                      ),
+                      width: 120,
+                      height: 62,
+                      alignment: Alignment.topCenter,
+                      child: ZoneMapMarker(
+                        zone: zone,
+                        onTap: () => _openZone(zone),
+                      ),
                     ),
-                  );
-                }).toList(),
+                ],
               ),
             ],
           ),
-
-          // Barre de recherche
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: MapSearchBar(
-                onLocationSelected: (location) async {
-                  _moveToLocation(location);
-                },
+              child: Row(
+                children: [
+                  _MapActionButton(
+                    icon: Icons.arrow_back,
+                    tooltip: 'Retour',
+                    onTap: () {
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go('/home');
+                      }
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: MapSearchBar(
+                      onLocationSelected: (location) async {
+                        _moveTo(location);
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-
-          // Boutons flottants
           Positioned(
             right: 16,
             bottom: 30,
             child: Column(
               children: [
                 FloatingActionButton(
-                  heroTag: 'location_button',
-                  onPressed: () {
-                    final location = state.currentLocation;
-
-                    if (location != null) {
-                      _moveToLocation(location);
-                    } else {
-                      ref
-                          .read(mapControllerProvider.notifier)
-                          .initialize();
-                    }
-                  },
-                  child: const Icon(Icons.my_location),
+                  heroTag: 'zones_refresh_button',
+                  tooltip: 'Refresh identified risks',
+                  onPressed: () => ref.invalidate(
+                    zoneHazardAssessmentsProvider,
+                  ),
+                  child: const Icon(Icons.refresh),
                 ),
-
                 const SizedBox(height: 12),
-
                 FloatingActionButton(
-                  heroTag: 'refresh_button',
-                  onPressed: () {
-                    ref
-                        .read(mapControllerProvider.notifier)
-                        .loadRisks(
-                          state.selectedLocation,
-                        );
-                  },
-                  child: state.loading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Icons.refresh),
+                  heroTag: 'location_button',
+                  tooltip: 'Me localiser',
+                  onPressed: _recenter,
+                  child: const Icon(Icons.my_location),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MapActionButton extends StatelessWidget {
+  const _MapActionButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      elevation: 6,
+      borderRadius: BorderRadius.circular(16),
+      child: IconButton(
+        onPressed: onTap,
+        tooltip: tooltip,
+        icon: Icon(icon),
       ),
     );
   }

@@ -1,24 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
-import '../../risk/data/risk_repository.dart';
-import '../../risk/domain/risk_result.dart';
-import '../../risk/domain/risk_zone.dart';
-import '../../risk/presentation/providers/risk_live_providers.dart';
 
 /// Citizen entry point of the Risk Intelligence feature.
 ///
-/// Lists the zone catalog with the stored assessment of each zone. Selecting
-/// a zone pushes `/risk/{zoneId}`, where [RiskDetailsScreen] loads the saved
-/// [RiskResult] and generates it when it is missing or out of date. This
-/// screen therefore never blocks on the AI/engine pipeline itself.
-class HomeScreen extends ConsumerWidget {
+/// The home screen deliberately does not list anything about risks: choosing a
+/// zone happens on the map (`/map`), the identified risks of that zone are
+/// listed by the Zone Active Risks selection UI, and the selected hazard opens
+/// `/risk/{riskId}` ([RiskDetailsScreen]). That keeps a single entry point and
+/// a single place - the Risk Details screen - where an assessment is generated
+/// or refreshed.
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
+  static const List<({IconData icon, String title, String detail})> _steps = [
+    (
+      icon: Icons.map_outlined,
+      title: '1. Open the map',
+      detail: 'Every zone is a coloured point: the colour is the highest '
+          'risk currently identified in it.',
+    ),
+    (
+      icon: Icons.list_alt_outlined,
+      title: '2. Pick the zone',
+      detail: 'The Zone Active Risks sheet lists the identified risks of the '
+          'zone and the hazards that are not assessed yet.',
+    ),
+    (
+      icon: Icons.insights_outlined,
+      title: '3. Read the hazard',
+      detail: 'The risk details screen shows the stored assessment, its '
+          'evidence and the AI interpretation, and refreshes them there.',
+    ),
+  ];
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final zones = ref.watch(riskZoneCatalogProvider);
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -48,18 +64,40 @@ class HomeScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Each zone combines live environmental data, the '
-                  'historical reference of the same location and the '
-                  'stored community exposure profile into one assessment. '
-                  'Open a zone to see its live flood risk, and use the '
-                  'hazard selector there for landslide, drought, heat, '
-                  'wildfire and storm.',
+                  'Each zone combines the live environmental data, the '
+                  'historical reference of the same location and the stored '
+                  'community exposure profile into one assessment. The map '
+                  'shows where a risk is identified today.',
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 24),
-                _ZoneList(zones: zones),
+                FilledButton.icon(
+                  onPressed: () => context.push('/map'),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 18,
+                    ),
+                  ),
+                  icon: const Icon(Icons.map_outlined),
+                  label: const Text('Open the map'),
+                ),
+                const SizedBox(height: 24),
+                Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    children: <Widget>[
+                      for (int index = 0;
+                          index < _steps.length;
+                          index++) ...[
+                        _StepTile(step: _steps[index]),
+                        if (index < _steps.length - 1)
+                          const Divider(height: 1),
+                      ],
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -69,143 +107,36 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _ZoneList extends ConsumerWidget {
-  const _ZoneList({required this.zones});
+class _StepTile extends StatelessWidget {
+  const _StepTile({required this.step});
 
-  final List<RiskZoneTarget> zones;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-
-    if (zones.isEmpty) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'No zones published yet',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Zones are defined in the shared zone catalog. Ask an '
-                'administrator to publish the coverage list.',
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: <Widget>[
-          for (int index = 0; index < zones.length; index++) ...[
-            _ZoneTile(zone: zones[index]),
-            if (index < zones.length - 1) const Divider(height: 1),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// A single zone row: shows the stored assessment (level, score, last
-/// updated) and opens the risk details screen for that zone.
-class _ZoneTile extends ConsumerWidget {
-  const _ZoneTile({required this.zone});
-
-  final RiskZoneTarget zone;
+  final ({IconData icon, String title, String detail}) step;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final riskAsync = ref.watch(riskResultProvider(zone.id));
-    final risk = riskAsync.value;
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(
         horizontal: 20,
-        vertical: 12,
+        vertical: 10,
       ),
-      leading: CircleAvatar(
-        backgroundColor: risk == null
-            ? theme.colorScheme.surfaceContainerHighest
-            : _riskColor(context, risk.riskLevel)
-                .withValues(alpha: 0.18),
-        child: risk == null
-            ? Icon(
-                Icons.water_drop_outlined,
-                color: theme.colorScheme.onSurfaceVariant,
-              )
-            : Text(
-                '${risk.riskScore.round()}',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: _riskColor(context, risk.riskLevel),
-                ),
-              ),
+      leading: Icon(
+        step.icon,
+        color: theme.colorScheme.primary,
       ),
       title: Text(
-        zone.name,
+        step.title,
         style: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w700,
         ),
       ),
       subtitle: Text(
-        switch (risk) {
-          null =>
-            riskAsync.isLoading
-                ? 'Loading the saved assessment...'
-                : 'Open the zone to generate its assessment.',
-          final result =>
-            '${_levelLabel(result.riskLevel)} risk  ·  '
-            'Updated ${_formatDateTime(result.updatedAt)}',
-        },
+        step.detail,
         style: theme.textTheme.bodySmall?.copyWith(
-          color: risk == null
-              ? theme.colorScheme.onSurfaceVariant
-              : _riskColor(context, risk.riskLevel),
+          color: theme.colorScheme.onSurfaceVariant,
         ),
       ),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: theme.colorScheme.onSurfaceVariant,
-      ),
-      onTap: () => context.go('/risk/${zone.id}'),
     );
   }
-}
-
-Color _riskColor(BuildContext context, RiskLevel level) {
-  return switch (level) {
-    RiskLevel.low => Colors.green,
-    RiskLevel.medium => Colors.amber.shade700,
-    RiskLevel.high => Colors.orange.shade800,
-    RiskLevel.critical => Theme.of(context).colorScheme.error,
-  };
-}
-
-String _levelLabel(RiskLevel level) {
-  return switch (level) {
-    RiskLevel.low => 'Low',
-    RiskLevel.medium => 'Medium',
-    RiskLevel.high => 'High',
-    RiskLevel.critical => 'Critical',
-  };
-}
-
-String _formatDateTime(DateTime value) {
-  final local = value.toLocal();
-  final date = '${local.day.toString().padLeft(2, '0')}/'
-      '${local.month.toString().padLeft(2, '0')}/${local.year}';
-  final time = '${local.hour.toString().padLeft(2, '0')}:'
-      '${local.minute.toString().padLeft(2, '0')}';
-  return '$date $time';
 }

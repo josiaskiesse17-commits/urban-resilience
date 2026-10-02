@@ -1,11 +1,13 @@
 /// Disaster types the Risk Intelligence engine can assess.
 ///
-/// The application only declared `Flooding` (the flooding risk pipeline) and
-/// `Landslide` (as an observation category) before the multi-hazard work.
-/// `Drought`, `Heat`, `Wildfire` and `Storm` were added as first-class hazards
-/// of the *same* shared architecture: they reuse `RiskResult`, `RiskEvidence`,
+/// The application supports three hazards, and all three are carried by the
+/// *same* shared architecture: they reuse `RiskResult`, `RiskEvidence`,
 /// `RiskMeasurement`, the Firestore repositories, the providers and the
 /// screens instead of introducing a parallel design.
+///
+/// `Flooding` keeps its dedicated pipeline (`LiveFloodRiskService` →
+/// `FloodRiskCalculator`), `Landslide` and `Heat` are assessed by the generic
+/// catalog-driven engine (`HazardCatalog` → `HazardRiskService`).
 ///
 /// [label] is what is written to `RiskResult.hazardType`, so the stored
 /// documents stay human readable. The flooding label is deliberately spelled
@@ -21,25 +23,10 @@ enum HazardType {
     label: 'Landslide',
     riskNoun: 'landslide risk',
   ),
-  drought(
-    id: 'drought',
-    label: 'Drought',
-    riskNoun: 'drought risk',
-  ),
   heat(
     id: 'heat',
     label: 'Heat',
     riskNoun: 'heat risk',
-  ),
-  wildfire(
-    id: 'wildfire',
-    label: 'Wildfire',
-    riskNoun: 'wildfire risk',
-  ),
-  storm(
-    id: 'storm',
-    label: 'Storm',
-    riskNoun: 'storm risk',
   );
 
   const HazardType({

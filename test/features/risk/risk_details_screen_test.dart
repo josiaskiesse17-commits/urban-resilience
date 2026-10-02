@@ -19,19 +19,16 @@ Widget buildHost({
 }) {
   return ProviderScope(
     overrides: [
-      riskResultRepositoryProvider
-          .overrideWith((ref) => repository),
-      riskExposureRepositoryProvider
-          .overrideWith((ref) => exposureRepository),
+      riskResultRepositoryProvider.overrideWith((ref) => repository),
+      riskExposureRepositoryProvider.overrideWith((ref) => exposureRepository),
       riskAnalystProvider.overrideWith((ref) => analyst),
       zoneRiskGeneratorProvider.overrideWith((ref) => generator),
       zoneHazardRiskGeneratorProvider.overrideWith(
-        (ref) => (zone, hazard) => generator(zone),
+        (ref) =>
+            (zone, hazard) => generator(zone),
       ),
     ],
-    child: MaterialApp(
-      home: RiskDetailsScreen(riskId: riskId),
-    ),
+    child: MaterialApp(home: RiskDetailsScreen(riskId: riskId)),
   );
 }
 
@@ -40,10 +37,7 @@ void main() {
     'loads the stored RiskResult and runs the AI analyst exactly once',
     (tester) async {
       final repository = FakeRiskResultRepository()
-        ..stored = buildRiskResult(
-          riskScore: 62,
-          riskLevel: RiskLevel.high,
-        );
+        ..stored = buildRiskResult(riskScore: 62, riskLevel: RiskLevel.high);
       final exposureRepository = FakeRiskExposureRepository();
       final analyst = FakeRiskAnalyst();
       var generatorCalls = 0;
@@ -65,21 +59,13 @@ void main() {
       // The real stored result is displayed.
       expect(find.text('Masina'), findsWidgets);
       expect(find.text('62/100'), findsOneWidget);
-      expect(find.text('HIGH'), findsOneWidget);
-      expect(
-        find.text('Stored as risk_results/zone-masina'),
-        findsOneWidget,
-      );
-
+      expect(find.text('ÉLEVÉ'), findsOneWidget);
       // A fresh stored result is reused: no regeneration happened.
       expect(generatorCalls, 0);
 
       // The AI interpreted exactly this stored result, once.
       expect(analyst.calls, 1);
-      expect(
-        find.text('AI summary for Masina.'),
-        findsOneWidget,
-      );
+      expect(find.text('AI summary for Masina.'), findsOneWidget);
 
       // Rebuilding never starts another AI request.
       await tester.pump();
@@ -130,7 +116,7 @@ void main() {
 
       // The generated result is now on screen.
       expect(find.text('71/100'), findsOneWidget);
-      expect(find.text('HIGH'), findsOneWidget);
+      expect(find.text('ÉLEVÉ'), findsOneWidget);
 
       // The AI ran once for the generated result.
       expect(analyst.calls, 1);
@@ -147,10 +133,7 @@ void main() {
     'AI failure is shown once, never loops, and Retry works explicitly',
     (tester) async {
       final repository = FakeRiskResultRepository()
-        ..stored = buildRiskResult(
-          riskScore: 62,
-          riskLevel: RiskLevel.high,
-        );
+        ..stored = buildRiskResult(riskScore: 62, riskLevel: RiskLevel.high);
       final exposureRepository = FakeRiskExposureRepository();
       final analyst = FakeRiskAnalyst()
         ..failure = Exception('proxy unavailable');
@@ -169,14 +152,11 @@ void main() {
       // The request ran once and failed once.
       expect(analyst.calls, 1);
       expect(
-        find.text('The AI analysis could not be generated.'),
+        find.text('L’analyse IA n’a pas pu être générée.'),
         findsOneWidget,
       );
-      expect(
-        find.textContaining('proxy unavailable'),
-        findsWidgets,
-      );
-      expect(find.text('Retry AI analysis'), findsOneWidget);
+      expect(find.textContaining('proxy unavailable'), findsWidgets);
+      expect(find.text('Réessayer l’analyse IA'), findsOneWidget);
 
       // No automatic retry, however long we wait.
       await tester.pump(const Duration(seconds: 30));
@@ -186,63 +166,48 @@ void main() {
       // The explicit Retry button runs the request again and succeeds.
       analyst.failure = null;
 
-      final retry = find.text('Retry AI analysis');
+      final retry = find.text('Réessayer l’analyse IA');
       await tester.ensureVisible(retry);
       await tester.tap(retry);
       await tester.pumpAndSettle();
 
       expect(analyst.calls, 2);
-      expect(
-        find.text('AI summary for Masina.'),
-        findsOneWidget,
-      );
+      expect(find.text('AI summary for Masina.'), findsOneWidget);
       expect(find.text('Retry AI analysis'), findsNothing);
     },
   );
 
-  testWidgets(
-    'reports missing exposure data explicitly instead of "safe"',
-    (tester) async {
-      final repository = FakeRiskResultRepository()
-        ..stored = buildRiskResult(
-          riskScore: 62,
-          riskLevel: RiskLevel.high,
-        );
-      final exposureRepository = FakeRiskExposureRepository();
-      final analyst = FakeRiskAnalyst();
+  testWidgets('reports missing exposure data explicitly instead of "safe"', (
+    tester,
+  ) async {
+    final repository = FakeRiskResultRepository()
+      ..stored = buildRiskResult(riskScore: 62, riskLevel: RiskLevel.high);
+    final exposureRepository = FakeRiskExposureRepository();
+    final analyst = FakeRiskAnalyst();
 
-      await tester.pumpWidget(
-        buildHost(
-          repository: repository,
-          exposureRepository: exposureRepository,
-          analyst: analyst,
-          generator: (zone) async => repository.stored!,
-        ),
-      );
+    await tester.pumpWidget(
+      buildHost(
+        repository: repository,
+        exposureRepository: exposureRepository,
+        analyst: analyst,
+        generator: (zone) async => repository.stored!,
+      ),
+    );
 
-      await tester.pumpAndSettle();
+    await tester.pumpAndSettle();
 
-      expect(
-        find.text(
-          'No exposure profile is stored for this zone.',
-        ),
-        findsOneWidget,
-      );
-      expect(
-        find.textContaining('unknown, not zero'),
-        findsWidgets,
-      );
-    },
-  );
+    expect(
+      find.text('No exposure profile is stored for this zone.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('unknown, not zero'), findsWidgets);
+  });
 
   testWidgets(
     'recalculating stores a new result and reinterprets only that result',
     (tester) async {
       final repository = FakeRiskResultRepository()
-        ..stored = buildRiskResult(
-          riskScore: 62,
-          riskLevel: RiskLevel.high,
-        );
+        ..stored = buildRiskResult(riskScore: 62, riskLevel: RiskLevel.high);
       final exposureRepository = FakeRiskExposureRepository();
       final analyst = FakeRiskAnalyst();
       var generatorCalls = 0;
@@ -272,7 +237,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(analyst.calls, 1);
 
-      final refresh = find.text('Recalculate now');
+      final refresh = find.text('Recalculer le risque');
       await tester.ensureVisible(refresh);
       await tester.tap(refresh);
       await tester.pumpAndSettle();
@@ -284,7 +249,7 @@ void main() {
 
       // The refreshed result replaced the old one on screen.
       expect(find.text('79/100'), findsOneWidget);
-      expect(find.text('CRITICAL'), findsOneWidget);
+      expect(find.text('CRITIQUE'), findsOneWidget);
 
       // The new result version was interpreted once more, then stayed stable.
       expect(analyst.calls, 2);
@@ -297,5 +262,3 @@ void main() {
     },
   );
 }
-
-
