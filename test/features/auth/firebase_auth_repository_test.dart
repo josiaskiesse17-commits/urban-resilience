@@ -90,7 +90,7 @@ void main() {
         ),
       );
 
-      // The verification request was actually attempted before it failed.
+      
       expect(user.sendEmailVerificationCalls, 1);
     });
   });

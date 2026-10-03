@@ -1,7 +1,7 @@
 import 'hazard_environmental_data.dart';
 import 'hazard_type.dart';
 
-/// Historical series of a hazard over a reference period.
+
 class HazardHistoricalData {
   const HazardHistoricalData({
     required this.hazard,
@@ -13,7 +13,7 @@ class HazardHistoricalData {
 
   final HazardType hazard;
 
-  /// Series keyed by provider field.
+  
   final Map<String, HazardSeries> series;
 
   final DateTime referencePeriodStart;

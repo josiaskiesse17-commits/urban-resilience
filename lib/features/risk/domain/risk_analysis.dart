@@ -47,4 +47,20 @@ class RiskAnalysis {
       generatedAt: generatedAt,
     );
   }
+
+  
+  
+  
+  
+  
+  Map<String, dynamic> toJson() {
+    return {
+      'riskId': riskId,
+      'summary': summary,
+      'explanation': explanation,
+      'mainFactors': mainFactors,
+      'recommendations': recommendations,
+      'generatedAt': generatedAt.toIso8601String(),
+    };
+  }
 }

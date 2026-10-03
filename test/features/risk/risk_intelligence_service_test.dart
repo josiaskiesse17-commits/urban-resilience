@@ -42,7 +42,7 @@ void main() {
 
     expect(
       result.evidence.measurements.length,
-      6,
+      5,
     );
 
     expect(
@@ -54,7 +54,6 @@ void main() {
         'riverDischarge',
         'geographicVulnerability',
         'historicalExposure',
-        'citizenObservationRisk',
       ]),
     );
 
@@ -88,10 +87,11 @@ void main() {
           measurement.name == 'historicalExposure',
     );
 
-    final observationMeasurement =
-        result.evidence.measurements.firstWhere(
-      (measurement) =>
-          measurement.name == 'citizenObservationRisk',
+    
+    
+    expect(
+      result.evidence.measurements.map((measurement) => measurement.name),
+      isNot(contains('citizenObservationRisk')),
     );
 
     expect(
@@ -117,11 +117,6 @@ void main() {
     expect(
       historicalExposureMeasurement.value,
       input.historicalExposureScore,
-    );
-
-    expect(
-      observationMeasurement.value,
-      input.observationScore,
     );
 
     expect(
@@ -172,7 +167,7 @@ void main() {
 
       expect(
         result.evidence.measurements.length,
-        6,
+        5,
       );
 
       final rainfallMeasurement =

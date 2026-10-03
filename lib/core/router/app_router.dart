@@ -16,24 +16,19 @@ import '../../features/auth/presentation/screens/verify_email_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/location/presentation/location_permission_screen.dart';
 import '../../features/map/presentation/map_screen.dart';
-import '../../features/observations/presentation/new_report_screen.dart';
 import '../../features/observations/presentation/observations_screen.dart';
-import '../../features/observations/presentation/report_description_screen.dart';
-import '../../features/observations/presentation/report_location_screen.dart';
-import '../../features/observations/presentation/report_received_screen.dart';
-import '../../features/observations/presentation/report_summary_screen.dart';
 import '../../features/risk/presentation/risk_details_screen.dart';
 
-/// Pure redirect decision used by [appRouterProvider].
-///
-/// Kept free of FirebaseAuth / Riverpod dependencies so the authorization
-/// matrix can be unit tested.
-///
-/// Rules:
-/// - Guest users → `/login`
-/// - Signed-in users with unverified email → `/verify-email`
-/// - Active admins → `/admin/dashboard` for non-admin routes
-/// - Ordinary users are blocked from `/admin/*`
+
+
+
+
+
+
+
+
+
+
 String? appRouteRedirect({
   required String location,
   required bool isAuthenticated,
@@ -115,10 +110,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       );
     },
     routes: [
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
@@ -131,56 +123,33 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/verify-email',
         builder: (context, state) => const VerifyEmailScreen(),
       ),
-      GoRoute(
-        path: '/home',
-        builder: (context, state) => const HomeScreen(),
-      ),
-      GoRoute(
-        path: '/report',
-        builder: (context, state) => const NewReportScreen(),
-      ),
-      GoRoute(
-        path: '/report/description',
-        builder: (context, state) => const ReportDescriptionScreen(),
-      ),
-      GoRoute(
-        path: '/report/location',
-        builder: (context, state) => const ReportLocationScreen(),
-      ),
-      GoRoute(
-        path: '/report/summary',
-        builder: (context, state) => const ReportSummaryScreen(),
-      ),
-      GoRoute(
-        path: '/report/received',
-        builder: (context, state) => const ReportReceivedScreen(),
-      ),
-      GoRoute(
-        path: '/map',
-        builder: (context, state) => const MapScreen(),
-      ),
+      GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+      GoRoute(path: '/map', builder: (context, state) => const MapScreen()),
       GoRoute(
         path: '/location',
-        builder: (context, state) =>
-            const LocationPermissionScreen(),
+        builder: (context, state) => const LocationPermissionScreen(),
       ),
       GoRoute(
         path: '/risk/:id',
         builder: (context, state) {
           final riskId = state.pathParameters['id']!;
 
-          return RiskDetailsScreen(
-            riskId: riskId,
-          );
+          return RiskDetailsScreen(riskId: riskId);
         },
       ),
       GoRoute(
         path: '/alerts',
-        builder: (context, state) => const AlertsScreen(),
+        builder: (context, state) => AlertsScreen(
+          zoneId: state.uri.queryParameters['zone'],
+          hazardType: state.uri.queryParameters['hazard'],
+        ),
       ),
       GoRoute(
         path: '/observations',
-        builder: (context, state) => const ObservationsScreen(),
+        builder: (context, state) => ObservationsScreen(
+          zoneId: state.uri.queryParameters['zone'],
+          hazardType: state.uri.queryParameters['hazard'],
+        ),
       ),
       GoRoute(
         path: '/profile',
@@ -213,6 +182,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/admin/alerts',
             builder: (context, state) {
               return const AdminAlertsScreen();
+            },
+          ),
+          GoRoute(
+            path: '/admin/profile',
+            builder: (context, state) {
+              return const ProfileScreen();
             },
           ),
         ],

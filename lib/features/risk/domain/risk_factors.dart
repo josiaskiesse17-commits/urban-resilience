@@ -6,17 +6,17 @@ class RiskFactors {
   final double historicalExposure;
   final double currentObservations;
 
-  /// Label of the first factor. Flooding reports `Rainfall`, the other
-  /// hazards report their own primary driver (`Heat`, `Wind gusts`, ...) so a
-  /// heat assessment is never labelled as a rainfall factor in the UI.
+  
+  
+  
   final String primaryFactorLabel;
 
-  /// Factors the engine really examined for this assessment, in the order the
-  /// Risk Factors section displays them.
-  ///
-  /// A factor whose data was unavailable keeps `score == null`, so the four
-  /// legacy fields above can stay `0` for backwards compatibility without the
-  /// UI ever presenting a missing value as a zero.
+  
+  
+  
+  
+  
+  
   final List<RiskFactorScore> entries;
 
   const RiskFactors({

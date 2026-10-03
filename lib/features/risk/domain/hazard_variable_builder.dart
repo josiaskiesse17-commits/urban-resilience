@@ -5,19 +5,19 @@ import 'hazard_series_utils.dart';
 import 'hazard_variable.dart';
 import 'risk_measurement.dart';
 
-/// Result of building the variables of a hazard from live data and the
-/// statistical reference.
+
+
 typedef HazardVariableBuildResult = ({
   List<HazardVariable> variables,
   List<HazardVariableGap> gaps,
 });
 
-/// Turns the live series of a hazard into scored variables.
-///
-/// The same trailing window as the baseline is applied, so the live value and
-/// its reference are the same kind of number. A variable whose live window is
-/// incomplete, or whose reference could not be computed, becomes a
-/// [HazardVariableGap]: it is never replaced by a zero.
+
+
+
+
+
+
 class HazardVariableBuilder {
   const HazardVariableBuilder();
 
@@ -34,14 +34,14 @@ class HazardVariableBuilder {
 
       if (series == null || series.isEmpty) {
         gaps.add(
-          HazardVariableGap(
-            name: spec.name,
-            label: spec.label,
-            reason: liveData.missingFields[spec.apiField] ??
-                'the live provider returned no value for '
-                    '`${spec.apiField}` at this location',
-          ),
-        );
+        HazardVariableGap(
+          name: spec.name,
+          label: spec.label,
+          reason: liveData.missingFields[spec.apiField] ??
+              'le fournisseur n’a renvoyé aucune valeur pour '
+                  '« ${spec.apiField} » à cet endroit',
+        ),
+      );
 
         continue;
       }
@@ -58,9 +58,9 @@ class HazardVariableBuilder {
           HazardVariableGap(
             name: spec.name,
             label: spec.label,
-            reason: 'the live series of `${spec.apiField}` has a gap and no '
-                'complete ${spec.window.label} window ending at its last '
-                'timestamp',
+            reason: 'la série de « ${spec.apiField} » comporte une '
+                'interruption et aucune fenêtre ${spec.window.label} '
+                'complète ne se termine à son dernier horodatage',
           ),
         );
 
@@ -94,8 +94,9 @@ class HazardVariableBuilder {
           HazardVariableGap(
             name: spec.name,
             label: spec.label,
-            reason: 'no statistical reference could be built from the '
-                'historical series of `${spec.apiField}` for this location',
+            reason: 'aucune référence statistique n’a pu être construite '
+                'à partir de la série historique de « ${spec.apiField} » '
+                'pour cet endroit',
           ),
         );
 
@@ -144,31 +145,31 @@ class HazardVariableBuilder {
     final month = slice.month;
 
     final scope = slice.usedSeasonalBucket && month != null
-        ? 'the month of ${_monthNames[month - 1]}'
-        : 'the whole reference period';
+        ? 'du mois de ${_monthNames[month - 1]}'
+        : 'de toute la période de référence';
 
-    return 'Median of $scope, '
+    return 'Médiane $scope, '
         '${_formatDate(baseline.referencePeriodStart)} – '
         '${_formatDate(baseline.referencePeriodEnd)} '
-        '${baseline.source} reference '
-        '(${slice.distribution.sampleCount} samples of the '
-        '${reference.window.label} window)';
+        'référence ${baseline.source} '
+        '(${slice.distribution.sampleCount} échantillons de la fenêtre '
+        '${reference.window.label})';
   }
 }
 
 const List<String> _monthNames = <String>[
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
+  'janvier',
+  'février',
+  'mars',
+  'avril',
+  'mai',
+  'juin',
+  'juillet',
+  'août',
+  'septembre',
+  'octobre',
+  'novembre',
+  'décembre',
 ];
 
 String _formatDate(DateTime date) {

@@ -12,8 +12,8 @@ import 'package:urban_resilience/features/risk/domain/risk_result.dart';
 import 'package:urban_resilience/features/risk/domain/risk_simulation.dart';
 import 'package:urban_resilience/features/risk/domain/risk_zone.dart';
 
-/// One scorable heat variable of the catalog (weight and bounds as the heat
-/// model declares them).
+
+
 HazardVariable _heatVariable({
   required String name,
   required String label,
@@ -38,8 +38,8 @@ HazardVariable _heatVariable({
   );
 }
 
-/// A stored heat assessment produced by the real engine, so the simulation
-/// round trip can be compared with it.
+
+
 RiskResult _storedHeatResult() {
   return const RiskIntelligenceService().calculateHazardRisk(
     id: 'zone-test--heat',
@@ -80,8 +80,8 @@ RiskResult _storedHeatResult() {
   );
 }
 
-/// A stored heat result whose night-time minimum carries no statistical
-/// reference, as an older or partial document would.
+
+
 RiskResult _heatResultWithoutReference() {
   final timestamp = DateTime.utc(2026, 1, 15, 12);
 
@@ -131,8 +131,8 @@ void main() {
       expect(model.currentScore, result.riskScore);
       expect(model.currentLevel, result.riskLevel);
 
-      // No override: the engine must reproduce exactly the stored score from
-      // the stored evidence and references.
+      
+      
       final outcome = service.simulate(model: model)!;
 
       expect(outcome.score, closeTo(result.riskScore, 0.0001));
@@ -156,7 +156,7 @@ void main() {
         ],
       );
 
-      // Variables of other hazards never appear as controls.
+      
       expect(
         model.variables.map((variable) => variable.name),
         isNot(contains('riverDischarge')),
@@ -170,10 +170,10 @@ void main() {
         isNot(contains('rainfallAccumulation6h')),
       );
 
-      // Control labels are human readable, never internal identifiers.
+      
       expect(
         model.variables.first.label,
-        'Maximum air temperature — 24 hours',
+        'Température maximale de l’air — dernières 24 heures',
       );
       expect(
         model.variables.first.label,
@@ -206,11 +206,11 @@ void main() {
       expect(outcome.score, greaterThan(result.riskScore));
       expect(outcome.riskIncreased, isTrue);
 
-      // The stored assessment is untouched by the simulation.
+      
       expect(result.toJson().toString(), storedJson);
       expect(model.currentScore, result.riskScore);
 
-      // The same hypothetical inputs always produce the same outcome.
+      
       final again = service.simulate(
         model: model,
         values: const <String, double>{

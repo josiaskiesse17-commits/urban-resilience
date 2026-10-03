@@ -13,7 +13,7 @@ import 'package:urban_resilience/features/risk/presentation/providers/risk_live_
 import '../risk/risk_result_test_support.dart';
 import '../risk/risk_test_fakes.dart';
 
-/// One document per risk id, like the `risk_results` collection.
+
 class MapRiskResultRepository implements RiskResultRepository {
   final Map<String, RiskResult> stored = <String, RiskResult>{};
 
@@ -41,7 +41,7 @@ RiskResult _resultFor(
     id: isFlooding ? zoneId : '$zoneId--${hazard.id}',
     locationName: zoneName,
     hazardType: isFlooding ? 'Flood' : hazard.label,
-    primaryFactorLabel: isFlooding ? 'Rainfall' : 'Fire weather',
+    primaryFactorLabel: isFlooding ? 'Rainfall' : 'Heat',
     riskScore: isFlooding ? 64 : 38,
     riskLevel:
         isFlooding ? RiskLevel.high : RiskLevel.medium,
@@ -99,8 +99,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // The first hazard of the zone is generated automatically. Flooding
-      // keeps the bare zone id as its document id.
+      
+      
       expect(generated, <String>[HazardType.flooding.id]);
       expect(
         repository.stored.keys,
@@ -111,11 +111,11 @@ void main() {
         'Flood',
       );
 
-      // The flood scenario simulator belongs to the flooding hazard.
-      expect(find.text('What-If Scenario'), findsOneWidget);
+      
+      expect(find.text('Scénario hypothétique'), findsOneWidget);
 
       await tester.tap(
-        find.text(HazardType.wildfire.label),
+        find.text(HazardType.heat.labelFr),
       );
       await tester.pumpAndSettle();
 
@@ -123,16 +123,16 @@ void main() {
         generated,
         <String>[
           HazardType.flooding.id,
-          HazardType.wildfire.id,
+          HazardType.heat.id,
         ],
       );
 
-      // A new document was added; the flooding one was not overwritten.
+      
       expect(
         repository.stored.keys,
         containsAll(<String>[
           'zone-masina',
-          'zone-masina--wildfire',
+          'zone-masina--heat',
         ]),
       );
       expect(
@@ -140,16 +140,16 @@ void main() {
         64,
       );
       expect(
-        repository.stored['zone-masina--wildfire']!.hazardType,
-        HazardType.wildfire.label,
+        repository.stored['zone-masina--heat']!.hazardType,
+        HazardType.heat.label,
       );
       expect(
-        repository.stored['zone-masina--wildfire']!.riskScore,
+        repository.stored['zone-masina--heat']!.riskScore,
         38,
       );
 
-      // The flood-only scenario tool is not offered for another hazard.
-      expect(find.text('What-If Scenario'), findsNothing);
+      
+      expect(find.text('Scénario hypothétique'), findsNothing);
     },
   );
 }

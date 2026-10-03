@@ -4,7 +4,7 @@ import 'hazard_catalog.dart';
 import 'hazard_historical_data_source.dart';
 import 'hazard_type.dart';
 
-/// Builds the historical reference of a hazard for one location.
+
 class HazardBaselineService {
   const HazardBaselineService({
     required this.dataSource,

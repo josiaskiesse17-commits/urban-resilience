@@ -1,32 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../risk/data/risk_repository.dart';
-import '../../risk/domain/risk_result.dart';
-import '../../risk/domain/risk_zone.dart';
-import '../../risk/presentation/providers/risk_live_providers.dart';
 
-/// Citizen entry point of the Risk Intelligence feature.
-///
-/// Lists the zone catalog with the stored assessment of each zone. Selecting
-/// a zone pushes `/risk/{zoneId}`, where [RiskDetailsScreen] loads the saved
-/// [RiskResult] and generates it when it is missing or out of date. This
-/// screen therefore never blocks on the AI/engine pipeline itself.
-class HomeScreen extends ConsumerWidget {
+
+
+
+
+
+
+
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
+  static const List<({IconData icon, String title, String detail})> _steps = [
+    (
+      icon: Icons.map_outlined,
+      title: '1. Ouvrir la carte',
+      detail: 'Chaque zone est un point coloré : la couleur indique le risque '
+          'le plus élevé actuellement identifié dans cette zone.',
+    ),
+    (
+      icon: Icons.list_alt_outlined,
+      title: '2. Choisir la zone',
+      detail: 'La fiche des risques actifs liste les risques identifiés de la '
+          'zone ainsi que les risques qui ne sont pas encore évalués.',
+    ),
+    (
+      icon: Icons.insights_outlined,
+      title: '3. Lire le risque',
+      detail: 'La fiche de détail affiche l’évaluation enregistrée, ses '
+          'preuves et l’interprétation IA, et les actualise sur place.',
+    ),
+  ];
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final zones = ref.watch(riskZoneCatalogProvider);
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Flood risk'),
+        title: const Text('Risque d’inondation'),
         actions: [
           IconButton(
-            tooltip: 'Profile and role',
+            tooltip: 'Profil et rôle',
             icon: const Icon(Icons.account_circle_outlined),
             onPressed: () => context.go('/profile'),
           ),
@@ -41,25 +57,48 @@ class HomeScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Know your zone before the next rainfall.',
+                  'Connaissez votre zone avant la prochaine pluie.',
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Each zone combines live environmental data, the '
-                  'historical reference of the same location and the '
-                  'stored community exposure profile into one assessment. '
-                  'Open a zone to see its live flood risk, and use the '
-                  'hazard selector there for landslide, drought, heat, '
-                  'wildfire and storm.',
+                  'Chaque zone combine les données environnementales en '
+                  'direct, la référence historique du même endroit et le '
+                  'profil d’exposition de la communauté enregistré, en une '
+                  'seule évaluation. La carte montre où un risque est '
+                  'identifié aujourd’hui.',
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 24),
-                _ZoneList(zones: zones),
+                FilledButton.icon(
+                  onPressed: () => context.push('/map'),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 18,
+                    ),
+                  ),
+                  icon: const Icon(Icons.map_outlined),
+                  label: const Text('Ouvrir la carte'),
+                ),
+                const SizedBox(height: 24),
+                Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    children: <Widget>[
+                      for (int index = 0;
+                          index < _steps.length;
+                          index++) ...[
+                        _StepTile(step: _steps[index]),
+                        if (index < _steps.length - 1)
+                          const Divider(height: 1),
+                      ],
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -69,143 +108,36 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _ZoneList extends ConsumerWidget {
-  const _ZoneList({required this.zones});
+class _StepTile extends StatelessWidget {
+  const _StepTile({required this.step});
 
-  final List<RiskZoneTarget> zones;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-
-    if (zones.isEmpty) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'No zones published yet',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Zones are defined in the shared zone catalog. Ask an '
-                'administrator to publish the coverage list.',
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: <Widget>[
-          for (int index = 0; index < zones.length; index++) ...[
-            _ZoneTile(zone: zones[index]),
-            if (index < zones.length - 1) const Divider(height: 1),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// A single zone row: shows the stored assessment (level, score, last
-/// updated) and opens the risk details screen for that zone.
-class _ZoneTile extends ConsumerWidget {
-  const _ZoneTile({required this.zone});
-
-  final RiskZoneTarget zone;
+  final ({IconData icon, String title, String detail}) step;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final riskAsync = ref.watch(riskResultProvider(zone.id));
-    final risk = riskAsync.value;
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(
         horizontal: 20,
-        vertical: 12,
+        vertical: 10,
       ),
-      leading: CircleAvatar(
-        backgroundColor: risk == null
-            ? theme.colorScheme.surfaceContainerHighest
-            : _riskColor(context, risk.riskLevel)
-                .withValues(alpha: 0.18),
-        child: risk == null
-            ? Icon(
-                Icons.water_drop_outlined,
-                color: theme.colorScheme.onSurfaceVariant,
-              )
-            : Text(
-                '${risk.riskScore.round()}',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: _riskColor(context, risk.riskLevel),
-                ),
-              ),
+      leading: Icon(
+        step.icon,
+        color: theme.colorScheme.primary,
       ),
       title: Text(
-        zone.name,
+        step.title,
         style: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w700,
         ),
       ),
       subtitle: Text(
-        switch (risk) {
-          null =>
-            riskAsync.isLoading
-                ? 'Loading the saved assessment...'
-                : 'Open the zone to generate its assessment.',
-          final result =>
-            '${_levelLabel(result.riskLevel)} risk  ·  '
-            'Updated ${_formatDateTime(result.updatedAt)}',
-        },
+        step.detail,
         style: theme.textTheme.bodySmall?.copyWith(
-          color: risk == null
-              ? theme.colorScheme.onSurfaceVariant
-              : _riskColor(context, risk.riskLevel),
+          color: theme.colorScheme.onSurfaceVariant,
         ),
       ),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: theme.colorScheme.onSurfaceVariant,
-      ),
-      onTap: () => context.go('/risk/${zone.id}'),
     );
   }
-}
-
-Color _riskColor(BuildContext context, RiskLevel level) {
-  return switch (level) {
-    RiskLevel.low => Colors.green,
-    RiskLevel.medium => Colors.amber.shade700,
-    RiskLevel.high => Colors.orange.shade800,
-    RiskLevel.critical => Theme.of(context).colorScheme.error,
-  };
-}
-
-String _levelLabel(RiskLevel level) {
-  return switch (level) {
-    RiskLevel.low => 'Low',
-    RiskLevel.medium => 'Medium',
-    RiskLevel.high => 'High',
-    RiskLevel.critical => 'Critical',
-  };
-}
-
-String _formatDateTime(DateTime value) {
-  final local = value.toLocal();
-  final date = '${local.day.toString().padLeft(2, '0')}/'
-      '${local.month.toString().padLeft(2, '0')}/${local.year}';
-  final time = '${local.hour.toString().padLeft(2, '0')}:'
-      '${local.minute.toString().padLeft(2, '0')}';
-  return '$date $time';
 }

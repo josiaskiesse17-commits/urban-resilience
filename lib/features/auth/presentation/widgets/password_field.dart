@@ -28,10 +28,10 @@ class _PasswordFieldState extends State<PasswordField> {
       children: [
         Text(
           widget.label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppPalette.textDark,
+            color: Theme.of(context).colorScheme.onSurface,
             height: 1,
           ),
         ),
@@ -41,14 +41,17 @@ class _PasswordFieldState extends State<PasswordField> {
           obscureText: _obscureText,
           validator: widget.validator,
           textAlignVertical: TextAlignVertical.center,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w400,
-            color: AppPalette.textDark,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           decoration: InputDecoration(
             isDense: true,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 16,
+            ),
             prefixIcon: const Padding(
               padding: EdgeInsets.only(left: 14),
               child: Align(

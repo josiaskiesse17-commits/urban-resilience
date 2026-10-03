@@ -18,7 +18,7 @@ class FirestoreRiskResultRepository
   @override
   Future<void> save(RiskResult result) async {
     await _collection.doc(result.id).set(
-          result.toJson(),
+          result.toStoredJson(),
           SetOptions(merge: true),
         );
   }

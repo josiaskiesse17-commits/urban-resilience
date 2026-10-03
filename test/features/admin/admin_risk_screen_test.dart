@@ -20,17 +20,15 @@ Widget buildAdminHost({
   return ProviderScope(
     overrides: [
       riskResultRepositoryProvider.overrideWith((ref) => repository),
-      riskExposureRepositoryProvider
-          .overrideWith((ref) => exposureRepository),
+      riskExposureRepositoryProvider.overrideWith((ref) => exposureRepository),
       riskAnalystProvider.overrideWith((ref) => analyst),
       zoneRiskGeneratorProvider.overrideWith((ref) => generator),
       zoneHazardRiskGeneratorProvider.overrideWith(
-        (ref) => (zone, hazard) => generator(zone),
+        (ref) =>
+            (zone, hazard) => generator(zone),
       ),
     ],
-    child: const MaterialApp(
-      home: AdminRiskScreen(),
-    ),
+    child: const MaterialApp(home: AdminRiskScreen()),
   );
 }
 
@@ -43,17 +41,15 @@ Widget buildCitizenHost({
   return ProviderScope(
     overrides: [
       riskResultRepositoryProvider.overrideWith((ref) => repository),
-      riskExposureRepositoryProvider
-          .overrideWith((ref) => exposureRepository),
+      riskExposureRepositoryProvider.overrideWith((ref) => exposureRepository),
       riskAnalystProvider.overrideWith((ref) => analyst),
       zoneRiskGeneratorProvider.overrideWith((ref) => generator),
       zoneHazardRiskGeneratorProvider.overrideWith(
-        (ref) => (zone, hazard) => generator(zone),
+        (ref) =>
+            (zone, hazard) => generator(zone),
       ),
     ],
-    child: const MaterialApp(
-      home: RiskDetailsScreen(riskId: 'zone-masina'),
-    ),
+    child: const MaterialApp(home: RiskDetailsScreen(riskId: 'zone-masina')),
   );
 }
 
@@ -84,24 +80,18 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // The stored result of the selected zone is shown...
-      expect(find.text('CRITICAL'), findsWidgets);
+      
+      expect(find.text('CRITIQUE'), findsWidgets);
       expect(find.text('64'), findsWidgets);
-      expect(find.textContaining('Updated'), findsWidgets);
+      expect(find.textContaining('Mis à jour'), findsWidgets);
 
-      // ...with its evidence and measurements from the same document.
-      expect(find.text('Evidence'), findsOneWidget);
-      expect(
-        find.textContaining('observations received'),
-        findsOneWidget,
-      );
-      expect(find.text('Key Measurements'), findsOneWidget);
-      expect(
-        find.textContaining('Source: Open-Meteo'),
-        findsWidgets,
-      );
+      
+      expect(find.text('Éléments de preuve'), findsOneWidget);
+      expect(find.textContaining('observations reçues'), findsOneWidget);
+      expect(find.text('Mesures clés'), findsOneWidget);
+      expect(find.textContaining('Source : Open-Meteo'), findsWidgets);
 
-      // A fresh stored result is reused: no recalculation ran.
+      
       expect(generatorCalls, 0);
     },
   );
@@ -143,25 +133,25 @@ void main() {
       await tester.pumpAndSettle();
       expect(generatorCalls, 0);
 
-      final recalculate = find.text('Recalculate live risk');
+      final recalculate = find.text('Recalculer le risque actuel');
       await tester.ensureVisible(recalculate);
       await tester.tap(recalculate);
       await tester.pumpAndSettle();
 
-      // Exactly one recalculation ran and the new result was persisted.
+      
       expect(generatorCalls, 1);
       expect(repository.stored, isNotNull);
       expect(repository.stored!.riskScore, 81);
 
-      // The updated result replaced the old one on the admin screen.
+      
       expect(find.text('81'), findsWidgets);
 
-      // Flush the confirmation SnackBar timer.
+      
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
 
-      // The citizen Risk Details screen reads the admin-updated result from
-      // the same source of truth.
+      
+      
       await tester.pumpWidget(
         buildCitizenHost(
           repository: repository,
@@ -177,10 +167,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('81/100'), findsOneWidget);
-      expect(find.text('CRITICAL'), findsOneWidget);
+      expect(find.text('CRITIQUE'), findsOneWidget);
 
-      // The citizen screen only read the stored result; it did not
-      // regenerate it.
+      
+      
       expect(generatorCalls, 1);
       expect(analyst.calls, 1);
     },

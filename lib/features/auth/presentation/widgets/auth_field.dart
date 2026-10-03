@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:urban_resilience/core/theme/app_palette.dart';
 
 class AuthField extends StatelessWidget {
   final String label;
@@ -30,10 +29,10 @@ class AuthField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppPalette.textDark,
+            color: Theme.of(context).colorScheme.onSurface,
             height: 1,
           ),
         ),
@@ -44,16 +43,19 @@ class AuthField extends StatelessWidget {
           textCapitalization: textCapitalization,
           validator: validator,
           textAlignVertical: TextAlignVertical.center,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w400,
-            color: AppPalette.textDark,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           decoration: InputDecoration(
             hintText: hintText,
             isDense: true,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-            prefixIcon: _prefix,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 16,
+            ),
+            prefixIcon: _prefix(context),
             prefixIconConstraints: const BoxConstraints(
               minWidth: 40,
               maxWidth: 40,
@@ -66,11 +68,16 @@ class AuthField extends StatelessWidget {
     );
   }
 
-  Widget? get _prefix {
-    final icon = prefix ??
+  Widget? _prefix(BuildContext context) {
+    final icon =
+        prefix ??
         (prefixIcon == null
             ? null
-            : Icon(prefixIcon, size: 19, color: AppPalette.primary));
+            : Icon(
+                prefixIcon,
+                size: 19,
+                color: Theme.of(context).colorScheme.primary,
+              ));
 
     if (icon == null) {
       return null;
@@ -78,10 +85,7 @@ class AuthField extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(left: 14),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: icon,
-      ),
+      child: Align(alignment: Alignment.centerLeft, child: icon),
     );
   }
 }

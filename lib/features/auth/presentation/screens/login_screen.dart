@@ -87,7 +87,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               AuthField(
                 label: 'Adresse e-mail',
                 controller: _emailController,
-                hintText: 'votreemail@gmail.com',
+                hintText: 'e-mail adresse',
                 prefix: const AuthIcon(
                   asset: 'assets/icons/mail.svg',
                   color: AppPalette.primary,

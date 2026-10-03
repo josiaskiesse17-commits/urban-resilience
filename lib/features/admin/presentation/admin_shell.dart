@@ -4,23 +4,22 @@ import 'package:go_router/go_router.dart';
 class AdminShell extends StatelessWidget {
   final Widget child;
 
-  const AdminShell({
-    super.key,
-    required this.child,
-  });
+  const AdminShell({super.key, required this.child});
 
   static const routes = [
     '/admin/dashboard',
     '/admin/risk',
     '/admin/observations',
     '/admin/alerts',
+    '/admin/profile',
   ];
 
   static const labels = [
-    'Dashboard',
-    'Risk Intelligence',
+    'Tableau de bord',
+    'Intelligence des risques',
     'Observations',
-    'Alerts',
+    'Alertes',
+    'Profil',
   ];
 
   static const icons = [
@@ -28,6 +27,7 @@ class AdminShell extends StatelessWidget {
     Icons.analytics_outlined,
     Icons.assignment_outlined,
     Icons.notifications_outlined,
+    Icons.person_outline,
   ];
 
   static const selectedIcons = [
@@ -35,6 +35,7 @@ class AdminShell extends StatelessWidget {
     Icons.analytics,
     Icons.assignment,
     Icons.notifications,
+    Icons.person,
   ];
 
   int _currentIndex(String location) {
@@ -43,10 +44,7 @@ class AdminShell extends StatelessWidget {
     return index >= 0 ? index : 0;
   }
 
-  void _navigate(
-    BuildContext context,
-    int index,
-  ) {
+  void _navigate(BuildContext context, int index) {
     context.go(routes[index]);
   }
 
@@ -54,8 +52,7 @@ class AdminShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final location =
-            GoRouterState.of(context).matchedLocation;
+        final location = GoRouterState.of(context).matchedLocation;
 
         final currentIndex = _currentIndex(location);
 
@@ -72,13 +69,8 @@ class AdminShell extends StatelessWidget {
                     },
                   ),
                 ),
-                const VerticalDivider(
-                  width: 1,
-                  thickness: 1,
-                ),
-                Expanded(
-                  child: child,
-                ),
+                const VerticalDivider(width: 1, thickness: 1),
+                Expanded(child: child),
               ],
             ),
           );
@@ -95,9 +87,7 @@ class AdminShell extends StatelessWidget {
               for (int i = 0; i < labels.length; i++)
                 NavigationDestination(
                   icon: Icon(icons[i]),
-                  selectedIcon: Icon(
-                    selectedIcons[i],
-                  ),
+                  selectedIcon: Icon(selectedIcons[i]),
                   label: labels[i],
                 ),
             ],
@@ -112,10 +102,7 @@ class _DesktopSidebar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onSelected;
 
-  const _DesktopSidebar({
-    required this.currentIndex,
-    required this.onSelected,
-  });
+  const _DesktopSidebar({required this.currentIndex, required this.onSelected});
 
   @override
   Widget build(BuildContext context) {
@@ -126,12 +113,7 @@ class _DesktopSidebar extends StatelessWidget {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              16,
-              20,
-              16,
-              24,
-            ),
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
             child: Row(
               children: [
                 Icon(
@@ -159,21 +141,11 @@ class _DesktopSidebar extends StatelessWidget {
               extended: true,
               minExtendedWidth: 250,
               destinations: [
-                for (
-                  int i = 0;
-                  i < AdminShell.labels.length;
-                  i++
-                )
+                for (int i = 0; i < AdminShell.labels.length; i++)
                   NavigationRailDestination(
-                    icon: Icon(
-                      AdminShell.icons[i],
-                    ),
-                    selectedIcon: Icon(
-                      AdminShell.selectedIcons[i],
-                    ),
-                    label: Text(
-                      AdminShell.labels[i],
-                    ),
+                    icon: Icon(AdminShell.icons[i]),
+                    selectedIcon: Icon(AdminShell.selectedIcons[i]),
+                    label: Text(AdminShell.labels[i]),
                   ),
               ],
             ),

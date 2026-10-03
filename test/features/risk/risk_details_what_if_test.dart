@@ -15,8 +15,8 @@ import 'package:urban_resilience/features/risk/presentation/risk_details_screen.
 
 import 'risk_test_fakes.dart';
 
-/// A fresh, stored heat assessment with its factor breakdown and evidence,
-/// as the Risk Details screen receives it from `risk_results`.
+
+
 RiskResult _storedHeatResult() {
   final timestamp = DateTime.now().toUtc();
 
@@ -146,8 +146,8 @@ Widget buildHost({
   required FakeRiskExposureRepository exposureRepository,
   required FakeRiskAnalyst analyst,
 }) {
-  // The stored result is fresh, so no generation may ever run during these
-  // tests: a call is a failure.
+  
+  
   Future<RiskResult> unexpectedGeneration(RiskZoneTarget zone) async {
     throw StateError(
       'the stored assessment must not be regenerated: ${zone.id}',
@@ -156,23 +156,18 @@ Widget buildHost({
 
   return ProviderScope(
     overrides: [
-      riskResultRepositoryProvider
-          .overrideWith((ref) => repository),
-      riskExposureRepositoryProvider
-          .overrideWith((ref) => exposureRepository),
+      riskResultRepositoryProvider.overrideWith((ref) => repository),
+      riskExposureRepositoryProvider.overrideWith((ref) => exposureRepository),
       riskAnalystProvider.overrideWith((ref) => analyst),
-      zoneRiskGeneratorProvider
-          .overrideWith((ref) => unexpectedGeneration),
+      zoneRiskGeneratorProvider.overrideWith((ref) => unexpectedGeneration),
       zoneHazardRiskGeneratorProvider.overrideWith(
-        (ref) => (zone, hazard) => unexpectedGeneration(zone),
+        (ref) =>
+            (zone, hazard) => unexpectedGeneration(zone),
       ),
     ],
-    child: MaterialApp(
-      home: RiskDetailsScreen(riskId: 'zone-masina--heat'),
-    ),
+    child: MaterialApp(home: RiskDetailsScreen(riskId: 'zone-masina--heat')),
   );
 }
-
 
 void main() {
   testWidgets(
@@ -193,76 +188,74 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // The AI explained the real stored assessment, exactly once.
+      
       expect(analyst.calls, 1);
       expect(find.text('AI summary for Masina.'), findsOneWidget);
 
       double topOf(Finder finder) => tester.getTopLeft(finder).dy;
 
-      // Section order: Risk Factors -> Evidence -> AI -> What-If.
+      
+      
       expect(
-        topOf(find.text('Risk Factors')),
-        lessThan(topOf(find.text('Evidence'))),
+        topOf(find.text('Facteurs de risque')),
+        lessThan(topOf(find.text('Éléments de preuve'))),
       );
       expect(
-        topOf(find.text('Evidence')),
-        lessThan(topOf(find.text('AI Risk Analyst'))),
+        topOf(find.text('Éléments de preuve')),
+        lessThan(topOf(find.text('Simulation « Et si ? »'))),
       );
       expect(
-        topOf(find.text('AI Risk Analyst')),
-        lessThan(topOf(find.text('What-If Scenario'))),
+        topOf(find.text('AI summary for Masina.')),
+        lessThan(topOf(find.text('Simulation « Et si ? »'))),
       );
 
-      // The simulator declares itself a hypothetical scenario, never a
-      // forecast of what will happen.
-      expect(find.textContaining('not a forecast'), findsWidgets);
-      expect(find.text('Simulated result'), findsNothing);
+      
+      
+      expect(find.textContaining('ce n’est pas une prévision'), findsWidgets);
+      expect(find.text('Résultat simulé'), findsNothing);
     },
   );
 
-  testWidgets(
-    'running a scenario changes only the What-If section',
-    (tester) async {
-      final repository = FakeRiskResultRepository()
-        ..stored = _storedHeatResult();
-      final exposureRepository = FakeRiskExposureRepository();
-      final analyst = FakeRiskAnalyst();
+  testWidgets('running a scenario changes only the What-If section', (
+    tester,
+  ) async {
+    final repository = FakeRiskResultRepository()..stored = _storedHeatResult();
+    final exposureRepository = FakeRiskExposureRepository();
+    final analyst = FakeRiskAnalyst();
 
-      await tester.pumpWidget(
-        buildHost(
-          repository: repository,
-          exposureRepository: exposureRepository,
-          analyst: analyst,
-        ),
-      );
+    await tester.pumpWidget(
+      buildHost(
+        repository: repository,
+        exposureRepository: exposureRepository,
+        analyst: analyst,
+      ),
+    );
 
-      await tester.pumpAndSettle();
-      expect(analyst.calls, 1);
+    await tester.pumpAndSettle();
+    expect(analyst.calls, 1);
 
-      final slider = find.byType(Slider).first;
-      await tester.ensureVisible(slider);
-      await tester.pumpAndSettle();
+    final slider = find.byType(Slider).first;
+    await tester.ensureVisible(slider);
+    await tester.pumpAndSettle();
 
-      await tester.drag(slider, const Offset(300, 0));
-      await tester.pumpAndSettle();
+    await tester.drag(slider, const Offset(300, 0));
+    await tester.pumpAndSettle();
 
-      // The hypothetical outcome is rendered inside the What-If section.
-      expect(find.text('Simulated result'), findsOneWidget);
-      expect(find.textContaining('not a forecast'), findsWidgets);
-      expect(
-        find.textContaining(
-          'does not change the assessment, the factors, the evidence '
-          'or the AI explanation above',
-        ),
-        findsOneWidget,
-      );
+    
+    expect(find.text('Résultat simulé'), findsOneWidget);
+    expect(find.textContaining('ce n’est pas une prévision'), findsWidgets);
+    expect(
+      find.textContaining(
+        'ne modifie ni l’évaluation, ni les facteurs, ni les preuves',
+      ),
+      findsOneWidget,
+    );
 
-      // The real assessment above is untouched by the scenario.
-      expect(find.text('62/100'), findsWidgets);
-      expect(find.text('AI summary for Masina.'), findsOneWidget);
+    
+    expect(find.text('62/100'), findsWidgets);
+    expect(find.text('AI summary for Masina.'), findsOneWidget);
 
-      // A scenario never invokes the AI analyst.
-      expect(analyst.calls, 1);
-    },
-  );
+    
+    expect(analyst.calls, 1);
+  });
 }

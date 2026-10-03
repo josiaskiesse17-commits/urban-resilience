@@ -5,10 +5,10 @@ import '../domain/risk_analyst.dart';
 import '../domain/risk_result.dart';
 
 class FirebaseAiRiskAnalyst implements RiskAnalyst {
-  /// URL of the AI proxy worker (`ai-proxy/`).
-  ///
-  /// Override it for Android emulators or devices, for example:
-  /// `flutter run --dart-define=AI_PROXY_URL=http://10.0.2.2:8787`.
+  
+  
+  
+  
   static const String _workerUrl = String.fromEnvironment(
     'AI_PROXY_URL',
     defaultValue: 'http://localhost:8787',

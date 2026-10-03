@@ -38,6 +38,7 @@ STRICT RULES:
 15. If information is incomplete or uncertain, acknowledge the limitation.
 16. Keep the response concise.
 17. Do not simply repeat every number supplied by the risk engine.
+18. Write every user-facing field in French.
 
 OUTPUT REQUIREMENTS:
 
@@ -143,7 +144,8 @@ export default {
       }
 
       const prompt = `
-Interpret the following Urban Resilience risk assessment.
+Interprète l’évaluation de risque Urban Resilience suivante.
+Rédige tous les champs destinés à l’utilisateur en français.
 
 The risk score and risk level have already been calculated by the
 application. Do not recalculate them.

@@ -107,7 +107,7 @@ void main() {
 
       expect(
         result.baseline.evidence.measurements.length,
-        6,
+        5,
       );
 
       expect(

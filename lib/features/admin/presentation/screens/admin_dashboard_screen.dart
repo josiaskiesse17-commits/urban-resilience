@@ -13,10 +13,10 @@ class AdminDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Dashboard'),
+        title: const Text('Tableau de bord'),
         actions: [
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: 'Actualiser',
             onPressed: () {},
             icon: const Icon(Icons.refresh),
           ),
@@ -82,14 +82,15 @@ class AdminDashboardScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'System Overview',
+          "Vue d'ensemble du système",
           style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.w800,
           ),
         ),
         const SizedBox(height: 6),
         Text(
-          'Monitor current risk conditions, citizen observations, alerts, and data health.',
+          'Suivez les conditions de risque actuelles, les observations '
+          'citoyennes, les alertes et la santé des données.',
           style: theme.textTheme.bodyLarge?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -134,32 +135,32 @@ class AdminDashboardScreen extends ConsumerWidget {
 
     final cards = [
       _MetricData(
-        title: 'High-risk zones',
+        title: 'Zones à risque élevé',
         value: loading > 0 && assessed == 0 ? '—' : '$highRisk',
         subtitle: loading > 0
-            ? 'Loading zone assessments...'
+            ? 'Chargement des évaluations de zones...'
             : assessed == 0
-                ? 'No stored assessments'
-                : '$critical critical • '
-                    '$assessed of ${zones.length} assessed',
+                ? 'Aucune évaluation enregistrée'
+                : '$critical critique(s) • '
+                    '$assessed sur ${zones.length} évaluées',
         icon: Icons.warning_amber_rounded,
       ),
       _MetricData(
-        title: 'Pending reports',
+        title: 'Signalements en attente',
         value: '14',
-        subtitle: '5 new today',
+        subtitle: '5 nouveaux aujourd’hui',
         icon: Icons.assignment_outlined,
       ),
       _MetricData(
-        title: 'Active alerts',
+        title: 'Alertes actives',
         value: '5',
-        subtitle: '2 high priority',
+        subtitle: '2 de priorité élevée',
         icon: Icons.notifications_outlined,
       ),
       _MetricData(
-        title: 'Data sources',
+        title: 'Sources de données',
         value: '8/9',
-        subtitle: '1 source stale',
+        subtitle: '1 source périmée',
         icon: Icons.cloud_outlined,
       ),
     ];
@@ -210,7 +211,7 @@ class AdminDashboardScreen extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Current Risk Overview',
+                    'Vue d’ensemble des risques actuels',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -220,7 +221,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                   onPressed: () {
                     context.go('/admin/risk');
                   },
-                  child: const Text('View risk intelligence'),
+                  child: const Text('Voir l’intelligence des risques'),
                 ),
               ],
             ),
@@ -228,9 +229,9 @@ class AdminDashboardScreen extends ConsumerWidget {
             if (zones.isEmpty)
               const ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text('No risk zones available'),
+                title: Text('Aucune zone de risque disponible'),
                 subtitle: Text(
-                  'No configured risk zones were found.',
+                  'Aucune zone de risque configurée n’a été trouvée.',
                 ),
               )
             else
@@ -258,9 +259,9 @@ class AdminDashboardScreen extends ConsumerWidget {
         title: Text(zone.name),
         subtitle: Text(
           riskAsync.isLoading
-              ? 'Loading the stored assessment...'
-              : 'No stored assessment. Open Risk Intelligence '
-                  'to generate it.',
+              ? 'Chargement de l’évaluation enregistrée...'
+              : 'Aucune évaluation enregistrée. Ouvrez l’intelligence '
+                  'des risques pour la générer.',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -277,10 +278,19 @@ class AdminDashboardScreen extends ConsumerWidget {
 
     return _RiskRow(
       zone: zone.name,
-      risk: result.riskLevel.name.toUpperCase(),
+      risk: _riskLevelLabel(result.riskLevel),
       score: result.riskScore.round(),
       color: _riskColor(context, result.riskLevel),
     );
+  }
+
+  static String _riskLevelLabel(RiskLevel level) {
+    return switch (level) {
+      RiskLevel.low => 'FAIBLE',
+      RiskLevel.medium => 'MOYEN',
+      RiskLevel.high => 'ÉLEVÉ',
+      RiskLevel.critical => 'CRITIQUE',
+    };
   }
 
   Widget _buildSystemStatus(BuildContext context) {
@@ -291,35 +301,35 @@ class AdminDashboardScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Data Health',
+              'Santé des données',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
             ),
             const SizedBox(height: 16),
             const _SourceStatus(
-              name: 'Weather API',
-              status: 'Online',
+              name: 'API météo',
+              status: 'En ligne',
               healthy: true,
             ),
             const _SourceStatus(
-              name: 'River data',
-              status: 'Online',
+              name: 'Données fluviales',
+              status: 'En ligne',
               healthy: true,
             ),
             const _SourceStatus(
-              name: 'Historical data',
-              status: 'Online',
+              name: 'Données historiques',
+              status: 'En ligne',
               healthy: true,
             ),
             const _SourceStatus(
-              name: 'Air quality',
-              status: 'Stale',
+              name: 'Qualité de l’air',
+              status: 'Périmée',
               healthy: false,
             ),
             const SizedBox(height: 12),
             Text(
-              'Last system update: 10:42',
+              'Dernière mise à jour du système : 10:42',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -339,7 +349,7 @@ class AdminDashboardScreen extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Recent Citizen Observations',
+                    'Observations citoyennes récentes',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -349,7 +359,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                   onPressed: () {
                     context.go('/admin/observations');
                   },
-                  child: const Text('View all'),
+                  child: const Text('Tout voir'),
                 ),
               ],
             ),
@@ -357,20 +367,20 @@ class AdminDashboardScreen extends ConsumerWidget {
             const ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.water),
-              title: Text('Water accumulation reported'),
-              subtitle: Text('Masina • 10 minutes ago'),
+              title: Text('Accumulation d’eau signalée'),
+              subtitle: Text('Masina • il y a 10 minutes'),
               trailing: Chip(
-                label: Text('Pending'),
+                label: Text('En attente'),
               ),
             ),
             const Divider(),
             const ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Icon(Icons.block),
-              title: Text('Road blocked by flooding'),
-              subtitle: Text("N'Djili • 18 minutes ago"),
+              title: Text('Route bloquée par une inondation'),
+              subtitle: Text("N'Djili • il y a 18 minutes"),
               trailing: Chip(
-                label: Text('Confirmed'),
+                label: Text('Confirmée'),
               ),
             ),
           ],

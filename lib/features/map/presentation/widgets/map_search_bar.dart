@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../providers/map_provider.dart';
 
 class MapSearchBar extends ConsumerStatefulWidget {
-  final Future<void> Function(dynamic location) onLocationSelected;
+  
+  final Future<void> Function(LatLng location) onLocationSelected;
 
   const MapSearchBar({
     super.key,

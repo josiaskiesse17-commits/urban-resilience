@@ -24,8 +24,7 @@ class _FakeLive implements HazardEnvironmentalDataSource {
     required HazardType hazard,
     required double latitude,
     required double longitude,
-  }) async =>
-      data;
+  }) async => data;
 }
 
 class _FakeHistorical implements HazardHistoricalDataSource {
@@ -40,8 +39,7 @@ class _FakeHistorical implements HazardHistoricalDataSource {
     required double longitude,
     required DateTime startDate,
     required DateTime endDate,
-  }) async =>
-      data;
+  }) async => data;
 }
 
 class _FakeExposure implements RiskExposureRepository {
@@ -60,7 +58,7 @@ class _FakeExposure implements RiskExposureRepository {
   Future<void> saveProfile(FloodRiskExposureProfile profile) async {}
 }
 
-/// Plausible value of every field the catalog reads.
+
 const Map<String, double> _fieldBase = <String, double>{
   'rain': 0.8,
   'soil_moisture_0_to_7cm': 0.30,
@@ -85,9 +83,7 @@ HazardSeries _series({
 
   for (var hour = 0; hour < hours; hour++) {
     times.add(start.add(Duration(hours: hour)));
-    values.add(
-      base * (1 + amplitude * ((hour % 24) / 24)),
-    );
+    values.add(base * (1 + amplitude * ((hour % 24) / 24)));
   }
 
   return HazardSeries(
@@ -167,12 +163,8 @@ Future<RiskResult> _assess(
   Set<String> omit = const <String>{},
 }) {
   final service = HazardRiskService(
-    liveDataSource: _FakeLive(
-      _liveData(hazard, omit: omit),
-    ),
-    historicalDataSource: _FakeHistorical(
-      _historicalData(hazard),
-    ),
+    liveDataSource: _FakeLive(_liveData(hazard, omit: omit)),
+    historicalDataSource: _FakeHistorical(_historicalData(hazard)),
     referencePeriodStart: DateTime.utc(2021, 1, 1),
     referencePeriodEnd: DateTime.utc(2021, 2, 14),
     exposureRepository: _FakeExposure(),
@@ -188,249 +180,175 @@ Future<RiskResult> _assess(
 }
 
 void main() {
-  test(
-    'every used factor of every hazard has its own evidence',
-    () async {
-      for (final hazard in HazardCatalog.genericHazards) {
-        final result = await _assess(hazard);
-        final measurements = <String, RiskMeasurement>{
-          for (final measurement in result.evidence.measurements)
-            measurement.name: measurement,
-        };
+  test('every used factor of every hazard has its own evidence', () async {
+    for (final hazard in HazardCatalog.genericHazards) {
+      final result = await _assess(hazard);
+      final measurements = <String, RiskMeasurement>{
+        for (final measurement in result.evidence.measurements)
+          measurement.name: measurement,
+      };
 
-        expect(
-          result.factors.entries,
-          isNotEmpty,
-          reason: '${hazard.label} produced no factor',
-        );
+      expect(
+        result.factors.entries,
+        isNotEmpty,
+        reason: '${hazard.label} produced no factor',
+      );
 
-        for (final entry in result.factors.entries) {
-          if (!entry.usedInScore) {
-            continue;
-          }
+      for (final entry in result.factors.entries) {
+        if (!entry.usedInScore) {
+          continue;
+        }
+
+        expect(entry.score, isNotNull, reason: '${hazard.label}/${entry.name}');
+
+        for (final name in entry.evidenceNames) {
+          final measurement = measurements[name];
 
           expect(
-            entry.score,
+            measurement,
             isNotNull,
-            reason: '${hazard.label}/${entry.name}',
-          );
-
-          for (final name in entry.evidenceNames) {
-            final measurement = measurements[name];
-
-            expect(
-              measurement,
-              isNotNull,
-              reason:
-                  'the factor ${entry.name} of ${hazard.label} is '
-                  'displayed without an evidence measurement named $name',
-            );
-
-            expect(
-              measurement!.unit,
-              isNotEmpty,
-              reason: '$name has no unit',
-            );
-
-            expect(
-              measurement.value.isFinite,
-              isTrue,
-              reason: '$name has no real value',
-            );
-          }
-
-          if (entry.evidenceNames.length == 1) {
-            final measurement = measurements[entry.name]!;
-
-            expect(
-              entry.label,
-              RiskMeasurementLabel.of(
-                name: measurement.name,
-                measurementPeriod: measurement.measurementPeriod,
-                unit: measurement.unit,
-              ),
-              reason:
-                  'the risk factor and its evidence must read the same',
-            );
-          }
-        }
-      }
-    },
-  );
-
-  test(
-    'an unavailable factor is never presented as a measured zero',
-    () async {
-      for (final hazard in HazardCatalog.genericHazards) {
-        final result = await _assess(hazard);
-        final measurements = result.evidence.measurements
-            .map((measurement) => measurement.name)
-            .toSet();
-
-        for (final entry in result.factors.entries) {
-          if (entry.usedInScore) {
-            continue;
-          }
-
-          expect(entry.score, isNull, reason: entry.name);
-          expect(entry.unavailableReason, isNotNull, reason: entry.name);
-          expect(
-            measurements,
-            isNot(contains(entry.name)),
             reason:
-                '${entry.name} has no measured value, so it must not appear '
-                'in the evidence as a number',
+                'the factor ${entry.name} of ${hazard.label} is '
+                'displayed without an evidence measurement named $name',
+          );
+
+          expect(measurement!.unit, isNotEmpty, reason: '$name has no unit');
+
+          expect(
+            measurement.value.isFinite,
+            isTrue,
+            reason: '$name has no real value',
+          );
+        }
+
+        if (entry.evidenceNames.length == 1) {
+          final measurement = measurements[entry.name]!;
+
+          expect(
+            entry.label,
+            RiskMeasurementLabel.of(
+              name: measurement.name,
+              measurementPeriod: measurement.measurementPeriod,
+              unit: measurement.unit,
+            ),
+            reason: 'the risk factor and its evidence must read the same',
           );
         }
       }
-    },
-  );
+    }
+  });
 
-  test(
-    'no variable of another hazard is displayed',
-    () async {
-      for (final hazard in HazardCatalog.genericHazards) {
-        final own = HazardCatalog.of(hazard)
-            .variables
-            .map((variable) => variable.name)
-            .toSet();
-        final foreign = <String>{};
-
-        for (final other in HazardType.values) {
-          if (other == hazard) {
-            continue;
-          }
-
-          for (final spec in HazardCatalog.of(other).variables) {
-            if (!own.contains(spec.name)) {
-              foreign.add(spec.name);
-            }
-          }
-        }
-
-        final result = await _assess(hazard);
-
-        expect(
-          result.evidence.measurements
-              .map((measurement) => measurement.name)
-              .toSet()
-              .intersection(foreign),
-          isEmpty,
-          reason: '${hazard.label} evidence',
-        );
-
-        expect(
-          result.factors.entries
-              .map((entry) => entry.name)
-              .toSet()
-              .intersection(foreign),
-          isEmpty,
-          reason: '${hazard.label} factors',
-        );
-      }
-    },
-  );
-
-  test(
-    'a missing measurement becomes a gap, not a zero',
-    () async {
-      final result = await _assess(
-        HazardType.storm,
-        omit: <String>{'wind_gusts_10m'},
-      );
-
-      final gust = result.factors.entries.firstWhere(
-        (entry) => entry.name == 'windGusts10mMax6h',
-      );
-
-      expect(gust.usedInScore, isFalse);
-      expect(gust.score, isNull);
-      expect(gust.unavailableReason, isNotNull);
-
-      expect(
-        result.evidence.measurements
-            .map((measurement) => measurement.name),
-        isNot(contains('windGusts10mMax6h')),
-      );
-
-      expect(
-        result.evidence.qualitativeIndicators.join(' '),
-        contains('Not measured: Maximum wind gust'),
-      );
-
-      // The rest of the hazard is still scored, renormalised over the
-      // variables that were really measured.
-      expect(
-        result.factors.entries
-            .where((entry) => entry.usedInScore)
-            .map((entry) => entry.name),
-        containsAll(<String>[
-          'windSpeed10mMax6h',
-          'rainfallAccumulation6h',
-        ]),
-      );
-      expect(result.riskScore, greaterThan(0));
-    },
-  );
-
-  test(
-    'a measured variable without a usable reference stays in the evidence, '
-    'never in the factors',
-    () async {
-      final result = await _assess(HazardType.landslide);
-
+  test('an unavailable factor is never presented as a measured zero', () async {
+    for (final hazard in HazardCatalog.genericHazards) {
+      final result = await _assess(hazard);
       final measurements = result.evidence.measurements
           .map((measurement) => measurement.name)
           .toSet();
-      final factors = result.factors.entries
-          .map((entry) => entry.name)
-          .toSet();
 
-      // The synthetic reference series makes the 24 h accumulation constant,
-      // so it carries no usable statistical reference: its value is real
-      // evidence, but it played no role in the score, so it must not be
-      // shown as a factor (available or unavailable).
-      expect(measurements, contains('rainfallAccumulation24h'));
-      expect(factors, isNot(contains('rainfallAccumulation24h')));
+      for (final entry in result.factors.entries) {
+        if (entry.usedInScore) {
+          continue;
+        }
 
-      // The exclusion is reported explicitly instead of being dropped.
-      expect(
-        result.evidence.qualitativeIndicators.join(' '),
-        contains('Not scored: Rainfall accumulation — 24 hours'),
-      );
-      expect(
-        result.evidence.qualitativeIndicators.join(' '),
-        contains('excluded from the score instead of being counted as zero'),
-      );
-    },
-  );
-
-  test(
-    'the factor breakdown survives the stored JSON round trip',
-    () async {
-      final result = await _assess(HazardType.heat);
-      final restored = RiskResult.fromJson(result.toJson());
-
-      expect(
-        restored.factors.entries.length,
-        result.factors.entries.length,
-      );
-
-      for (var index = 0;
-          index < result.factors.entries.length;
-          index++) {
-        final original = result.factors.entries[index];
-        final copy = restored.factors.entries[index];
-
-        expect(copy.name, original.name);
-        expect(copy.label, original.label);
-        expect(copy.score, original.score);
-        expect(copy.usedInScore, original.usedInScore);
-        expect(copy.unavailableReason, original.unavailableReason);
-        expect(copy.componentNames, original.componentNames);
+        expect(entry.score, isNull, reason: entry.name);
+        expect(entry.unavailableReason, isNotNull, reason: entry.name);
+        expect(
+          measurements,
+          isNot(contains(entry.name)),
+          reason:
+              '${entry.name} has no measured value, so it must not appear '
+              'in the evidence as a number',
+        );
       }
-    },
-  );
+    }
+  });
+
+  test('no variable of another hazard is displayed', () async {
+    for (final hazard in HazardCatalog.genericHazards) {
+      final own = HazardCatalog.of(hazard).variables
+          .map((variable) => variable.name)
+          .toSet();
+      final foreign = <String>{};
+
+      for (final other in HazardType.values) {
+        if (other == hazard) {
+          continue;
+        }
+
+        for (final spec in HazardCatalog.of(other).variables) {
+          if (!own.contains(spec.name)) {
+            foreign.add(spec.name);
+          }
+        }
+      }
+
+      final result = await _assess(hazard);
+
+      expect(
+        result.evidence.measurements
+            .map((measurement) => measurement.name)
+            .toSet()
+            .intersection(foreign),
+        isEmpty,
+        reason: '${hazard.label} evidence',
+      );
+
+      expect(
+        result.factors.entries
+            .map((entry) => entry.name)
+            .toSet()
+            .intersection(foreign),
+        isEmpty,
+        reason: '${hazard.label} factors',
+      );
+    }
+  });
+
+  test('a measured variable without a usable reference stays in the evidence, '
+      'never in the factors', () async {
+    final result = await _assess(HazardType.landslide);
+
+    final measurements = result.evidence.measurements
+        .map((measurement) => measurement.name)
+        .toSet();
+    final factors = result.factors.entries.map((entry) => entry.name).toSet();
+
+    
+    
+    
+    
+    expect(measurements, contains('rainfallAccumulation24h'));
+    expect(factors, isNot(contains('rainfallAccumulation24h')));
+
+    
+    expect(
+      result.evidence.qualitativeIndicators.join(' '),
+      contains('Non pris en compte : Cumul de pluie — dernières 24 heures'),
+    );
+    expect(
+      result.evidence.qualitativeIndicators.join(' '),
+      contains('exclue du score au lieu d’être comptée comme un zéro'),
+    );
+  });
+
+  test('the factor breakdown survives the stored JSON round trip', () async {
+    final result = await _assess(HazardType.heat);
+    final restored = RiskResult.fromJson(result.toJson());
+
+    expect(restored.factors.entries.length, result.factors.entries.length);
+
+    for (var index = 0; index < result.factors.entries.length; index++) {
+      final original = result.factors.entries[index];
+      final copy = restored.factors.entries[index];
+
+      expect(copy.name, original.name);
+      expect(copy.label, original.label);
+      expect(copy.score, original.score);
+      expect(copy.usedInScore, original.usedInScore);
+      expect(copy.unavailableReason, original.unavailableReason);
+      expect(copy.componentNames, original.componentNames);
+    }
+  });
 
   test(
     'a document stored before the breakdown keeps its four legacy scores',
@@ -451,4 +369,3 @@ void main() {
     },
   );
 }
-

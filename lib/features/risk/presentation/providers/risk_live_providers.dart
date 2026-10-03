@@ -14,6 +14,7 @@ import '../../domain/flood_risk_exposure_profile.dart';
 import '../../domain/flood_risk_input_exposure_enricher.dart';
 import '../../domain/hazard_environmental_data_source.dart';
 import '../../domain/hazard_historical_data_source.dart';
+import '../../domain/hazard_risk_id.dart';
 import '../../domain/hazard_risk_service.dart';
 import '../../domain/hazard_type.dart';
 import '../../domain/historical_flood_baseline_service.dart';
@@ -23,6 +24,7 @@ import '../../domain/risk_exposure_repository.dart';
 import '../../domain/risk_intelligence_service.dart';
 import '../../domain/risk_result.dart';
 import '../../domain/risk_result_repository.dart';
+import '../../domain/zone_active_risk.dart';
 import '../../../observations/domain/observation.dart';
 
 final httpClientProvider = Provider<http.Client>((ref) {
@@ -65,8 +67,8 @@ final floodEnvironmentalDataSourceProvider =
   );
 });
 
-/// Live series of the generic hazards (landslide, drought, heat, wildfire,
-/// storm) from the Open-Meteo forecast API.
+
+
 final hazardEnvironmentalDataSourceProvider =
     Provider<HazardEnvironmentalDataSource>((ref) {
   return OpenMeteoHazardDataSource(
@@ -74,8 +76,8 @@ final hazardEnvironmentalDataSourceProvider =
   );
 });
 
-/// ERA5 historical series the generic hazards build their statistical
-/// reference from.
+
+
 final hazardHistoricalDataSourceProvider =
     Provider<HazardHistoricalDataSource>((ref) {
   return OpenMeteoHazardHistoricalDataSource(
@@ -159,17 +161,17 @@ final riskResultProvider =
   },
 );
 
-/// Zones shared by the citizen home screen and the admin risk screen.
+
 final riskZoneCatalogProvider =
     Provider<List<RiskZoneTarget>>((ref) {
   return RiskZoneCatalog.zones;
 });
 
-/// Stored exposure / vulnerability profile of a zone, read from
-/// `risk_zones/{zoneId}`.
-///
-/// A null value means the zone has no exposure data yet. Screens must report
-/// that explicitly instead of reading it as "no vulnerability".
+
+
+
+
+
 final riskExposureProfileProvider =
     FutureProvider.family<FloodRiskExposureProfile?, String>(
   (ref, zoneId) async {
@@ -180,22 +182,75 @@ final riskExposureProfileProvider =
   },
 );
 
-/// Runs the Risk Intelligence pipeline of a zone for one hazard and persists
-/// the result. Flooding is served by its dedicated pipeline, the other
-/// hazards by [HazardRiskService]; both write to `risk_results` with the
-/// hazard-aware id built by `HazardRiskId`.
+
+
+
+
+
+
+
+
+
+final zoneHazardAssessmentsProvider = FutureProvider.autoDispose
+    .family<List<ZoneHazardAssessment>, String>(
+  (ref, zoneId) async {
+    final repository =
+        ref.watch(riskResultRepositoryProvider);
+
+    final storedByHazard = Map.fromEntries(
+      await Future.wait(
+        HazardType.values.map(
+          (hazard) => repository
+              .get(
+                HazardRiskId.forZone(
+                  zoneId: zoneId,
+                  hazard: hazard,
+                ),
+              )
+              .then((result) => MapEntry(hazard, result)),
+        ),
+      ),
+    );
+
+    return zoneHazardAssessmentsFrom(zoneId, storedByHazard);
+  },
+);
+
+
+
+
+
+
+
+final zoneActiveRisksProvider =
+    Provider.autoDispose.family<List<ZoneActiveRisk>, String>(
+  (ref, zoneId) {
+    final assessments =
+        ref.watch(zoneHazardAssessmentsProvider(zoneId));
+
+    return assessments.maybeWhen(
+      data: identifiedRisksOf,
+      orElse: () => const <ZoneActiveRisk>[],
+    );
+  },
+);
+
+
+
+
+
 typedef ZoneHazardRiskGenerator = Future<RiskResult> Function(
   RiskZoneTarget zone,
   HazardType hazard,
 );
 
-/// Runs the Risk Intelligence pipeline of a zone and persists the result.
+
 typedef ZoneRiskGenerator = Future<RiskResult> Function(
   RiskZoneTarget zone,
 );
 
-/// Single entry point for hazard risk generation, shared by the citizen
-/// screens and the admin screens so both use the exact same pipeline.
+
+
 final zoneHazardRiskGeneratorProvider =
     Provider<ZoneHazardRiskGenerator>((ref) {
   final floodService = ref.watch(liveFloodRiskServiceProvider);
@@ -225,9 +280,9 @@ final zoneHazardRiskGeneratorProvider =
   };
 });
 
-/// Single entry point for flood risk generation, shared by the citizen
-/// screens and the admin screens so both use the exact same pipeline and
-/// write to the same `risk_results/{zoneId}` document.
+
+
+
 final zoneRiskGeneratorProvider =
     Provider<ZoneRiskGenerator>((ref) {
   final generator = ref.watch(zoneHazardRiskGeneratorProvider);

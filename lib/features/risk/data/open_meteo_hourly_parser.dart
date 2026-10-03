@@ -2,11 +2,11 @@ import 'dart:convert';
 
 import '../domain/hazard_environmental_data.dart';
 
-/// Shared parsing of Open-Meteo `hourly` payloads.
-///
-/// The parser keeps the provider timestamps and its null entries: a missing
-/// hour must stay visible, because dropping it silently would shift every
-/// following hour of a window.
+
+
+
+
+
 class OpenMeteoHourlyParser {
   const OpenMeteoHourlyParser._();
 
@@ -71,9 +71,9 @@ class OpenMeteoHourlyParser {
     return parsed;
   }
 
-  /// Reads one field of the `hourly` block.
-  ///
-  /// Returns null when the field is absent from the response.
+  
+  
+  
   static HazardSeries? seriesFor({
     required Map<String, dynamic> json,
     required List<DateTime> times,

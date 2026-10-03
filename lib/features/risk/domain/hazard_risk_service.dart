@@ -16,7 +16,7 @@ import 'risk_intelligence_service.dart';
 import 'risk_result.dart';
 import 'risk_result_repository.dart';
 
-/// Baseline kept for one hazard / location / reference-period tuple.
+
 class _CachedBaseline {
   const _CachedBaseline({
     required this.baseline,
@@ -27,23 +27,23 @@ class _CachedBaseline {
   final DateTime cachedAt;
 }
 
-/// Orchestrates one assessment of a generic (non-flooding) hazard.
-///
-/// The pipeline is strictly data driven:
-///
-/// 1. live series from [liveDataSource] (fields declared by the catalog);
-/// 2. statistical reference from [historicalDataSource], computed once per
-///    hazard / location / reference period and cached in memory so opening
-///    several hazards of the same zone does not re-download the whole
-///    reference period;
-/// 3. scored variables (or explicit gaps) from `HazardVariableBuilder`;
-/// 4. the stored exposure profile of the zone through
-///    [HazardExposureExtractor];
-/// 5. the shared risk formula and evidence from
-///    `RiskIntelligenceService.calculateHazardRisk`.
-///
-/// Flooding is not served here: `definition.legacyPipeline` is rejected so a
-/// zone can never be scored by two competing flood pipelines.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class HazardRiskService {
   HazardRiskService({
     required this.liveDataSource,
@@ -64,7 +64,7 @@ class HazardRiskService {
   final HazardEnvironmentalDataSource liveDataSource;
   final HazardHistoricalDataSource historicalDataSource;
 
-  /// Reference window every hazard of this service compares against.
+  
   final DateTime referencePeriodStart;
   final DateTime referencePeriodEnd;
 
@@ -74,14 +74,14 @@ class HazardRiskService {
   final HazardVariableBuilder variableBuilder;
   final HazardExposureExtractor exposureExtractor;
 
-  /// How long a generated baseline is reused before it is rebuilt.
+  
   final Duration baselineMaxAge;
 
   final HazardBaselineService _baselineService;
   final Map<String, _CachedBaseline> _baselineCache =
       <String, _CachedBaseline>{};
 
-  /// Generates the assessment of [hazard] for one zone.
+  
   Future<RiskResult> calculate({
     required String zoneId,
     required String locationName,
@@ -94,8 +94,8 @@ class HazardRiskService {
 
     if (definition.legacyPipeline) {
       throw StateError(
-        '${hazard.label} is assessed by its dedicated pipeline '
-        '(LiveFloodRiskService); HazardRiskService must not score it.',
+        '${hazard.label} est évalué par son pipeline dédié '
+        '(LiveFloodRiskService) ; HazardRiskService ne doit pas le scorer.',
       );
     }
 
@@ -168,8 +168,8 @@ class HazardRiskService {
     );
   }
 
-  /// Generates the assessment of [hazard] and stores it under its
-  /// `risk_results/{zoneId--hazardId}` document.
+  
+  
   Future<RiskResult> calculateAndSave({
     required String zoneId,
     required String locationName,
@@ -196,8 +196,8 @@ class HazardRiskService {
     return result;
   }
 
-  /// Drops every cached baseline (used after a reference-window change and
-  /// by tests that must not leak state).
+  
+  
   void clearBaselineCache() {
     _baselineCache.clear();
   }
@@ -239,8 +239,8 @@ class HazardRiskService {
     return baseline;
   }
 
-  /// True when at least one scored variable fell back to the whole reference
-  /// period because the seasonal bucket of its observation was too small.
+  
+  
   bool _partialReference({
     required HazardDefinition definition,
     required HazardBaseline baseline,

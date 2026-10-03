@@ -11,25 +11,25 @@ void main() {
           RiskMeasurementLabel.of(
             name: 'rainfallAccumulation30d',
           ),
-          'Rainfall accumulation — 30 days',
+          'Cumul de pluie — derniers 30 jours',
         );
         expect(
           RiskMeasurementLabel.of(
             name: 'rainfallAccumulation24h',
           ),
-          'Rainfall accumulation — 24 hours',
+          'Cumul de pluie — dernières 24 heures',
         );
         expect(
           RiskMeasurementLabel.of(
             name: 'rainfallAccumulation6h',
           ),
-          'Rainfall accumulation — 6 hours',
+          'Cumul de pluie — dernières 6 heures',
         );
         expect(
           RiskMeasurementLabel.of(
             name: 'rainfallAccumulation14d',
           ),
-          'Rainfall accumulation — 14 days',
+          'Cumul de pluie — derniers 14 jours',
         );
       },
     );
@@ -41,13 +41,13 @@ void main() {
           RiskMeasurementLabel.of(
             name: 'rainfallIntensityMmPerHour',
           ),
-          'Rainfall intensity — mm/hour',
+          'Intensité de la pluie — mm/h',
         );
         expect(
           RiskMeasurementLabel.of(
             name: 'riverDischargeM3s',
           ),
-          'River discharge — m³/s',
+          'Débit fluvial — m³/s',
         );
       },
     );
@@ -60,21 +60,21 @@ void main() {
             name: 'riverDischarge',
             measurementPeriod: 'daily',
           ),
-          'River discharge — daily mean',
+          'Débit fluvial — moyenne journalière',
         );
         expect(
           RiskMeasurementLabel.of(
             name: 'rainfallIntensity',
             measurementPeriod: '1h',
           ),
-          'Rainfall intensity — last hour',
+          'Intensité de la pluie — dernière heure',
         );
         expect(
           RiskMeasurementLabel.of(
             name: 'soilMoisture0to7cm',
             measurementPeriod: 'instant',
           ),
-          'Topsoil water content (0-7 cm)',
+          'Contenu en eau de la couche 0-7 cm',
         );
       },
     );
@@ -86,7 +86,7 @@ void main() {
           RiskMeasurementLabel.of(
             name: 'rainfallAccumulation6hMm',
           ),
-          'Rainfall accumulation — 6 hours (mm)',
+          'Cumul de pluie — dernières 6 heures (mm)',
         );
       },
     );
@@ -98,13 +98,13 @@ void main() {
           RiskMeasurementLabel.of(
             name: 'geographicVulnerability',
           ),
-          'Geographic vulnerability',
+          'Vulnérabilité géographique',
         );
         expect(
           RiskMeasurementLabel.of(
             name: 'citizenObservationRisk',
           ),
-          'Citizen observation risk',
+          'Risque lié aux observations citoyennes',
         );
       },
     );

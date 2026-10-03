@@ -1,3 +1,4 @@
+import 'risk_analysis.dart';
 import 'risk_evidence.dart';
 import 'risk_factors.dart';
 import 'risk_measurement.dart';
@@ -15,6 +16,15 @@ class RiskResult {
   final RiskEvidence evidence;
   final DateTime updatedAt;
 
+  
+  
+  
+  
+  
+  
+  
+  final RiskAnalysis? analysis;
+
   const RiskResult({
     required this.id,
     required this.locationName,
@@ -26,6 +36,7 @@ class RiskResult {
     required this.factors,
     required this.evidence,
     required this.updatedAt,
+    this.analysis,
   });
 
   Map<String, dynamic> toJson() {
@@ -41,6 +52,37 @@ class RiskResult {
       'evidence': evidence.toJson(),
       'updatedAt': updatedAt.toIso8601String(),
     };
+  }
+
+  
+  
+  
+  
+  
+  Map<String, dynamic> toStoredJson() {
+    return {
+      ...toJson(),
+      'analysis': analysis?.toJson(),
+    };
+  }
+
+  
+  
+  
+  RiskResult withAnalysis(RiskAnalysis analysis) {
+    return RiskResult(
+      id: id,
+      locationName: locationName,
+      latitude: latitude,
+      longitude: longitude,
+      hazardType: hazardType,
+      riskScore: riskScore,
+      riskLevel: riskLevel,
+      factors: factors,
+      evidence: evidence,
+      updatedAt: updatedAt,
+      analysis: analysis,
+    );
   }
 
   factory RiskResult.fromJson(Map<String, dynamic> json) {
@@ -109,6 +151,11 @@ class RiskResult {
                 .toList() ??
             <String>[];
 
+    final analysis = _parseAnalysis(
+      json['analysis'],
+      json['id'] as String,
+    );
+
     return RiskResult(
       id: json['id'] as String,
       locationName: json['locationName'] as String,
@@ -138,7 +185,36 @@ class RiskResult {
       updatedAt:
           _parseDateTime(json['updatedAt']) ??
               DateTime.now().toUtc(),
+      analysis: analysis,
     );
+  }
+
+  
+  
+  
+  
+  
+  
+  static RiskAnalysis? _parseAnalysis(
+    Object? value,
+    String riskId,
+  ) {
+    if (value is! Map) {
+      return null;
+    }
+
+    try {
+      final json = Map<String, dynamic>.from(value);
+
+      return RiskAnalysis.fromJson(
+        json,
+        riskId: json['riskId'] as String? ?? riskId,
+        generatedAt: _parseDateTime(json['generatedAt']) ??
+            DateTime.now().toUtc(),
+      );
+    } catch (_) {
+      return null;
+    }
   }
 
   static RiskLevel _parseRiskLevel(

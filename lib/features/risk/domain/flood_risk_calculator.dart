@@ -81,11 +81,9 @@ class FloodRiskCalculator {
       input.historicalExposureScore,
     );
 
-    final observations =
-        RiskScoreUtils.clamp(
-      input.observationScore,
-    );
-
+    
+    
+    
     final overallScore =
         RiskScoreUtils.weightedAverage([
       (
@@ -100,10 +98,6 @@ class FloodRiskCalculator {
         value: historicalExposure,
         weight: 0.15,
       ),
-      (
-        value: observations,
-        weight: 0.20,
-      ),
     ]);
 
     final riskLevel =
@@ -115,14 +109,13 @@ class FloodRiskCalculator {
       rainfall: rainfallScore,
       geographicVulnerability: vulnerability,
       historicalExposure: historicalExposure,
-      currentObservations: observations,
+      currentObservations: 0,
       entries: _entries(
         rainfallScore: rainfallScore,
         rainfallAccumulationScore: rainfallAccumulationScore,
         riverDischargeScore: riverDischargeScore,
         vulnerability: vulnerability,
         historicalExposure: historicalExposure,
-        observations: observations,
       ),
     );
 
@@ -139,18 +132,17 @@ class FloodRiskCalculator {
     );
   }
 
-  /// Factors the flooding assessment really used, in display order: the
-  /// weighted rainfall factor, the three environmental variables it is built
-  /// from, then the exposure factors. The labels come from
-  /// [RiskMeasurementLabel], so the Risk Factors row and the Evidence row of
-  /// the same variable are worded identically.
+  
+  
+  
+  
+  
   List<RiskFactorScore> _entries({
     required double rainfallScore,
     required double rainfallAccumulationScore,
     required double riverDischargeScore,
     required double vulnerability,
     required double historicalExposure,
-    required double observations,
   }) {
     return <RiskFactorScore>[
       RiskFactorScore(
@@ -200,23 +192,16 @@ class FloodRiskCalculator {
       ),
       RiskFactorScore(
         name: 'geographicVulnerability',
-        label: 'Geographic vulnerability',
+        label: RiskMeasurementLabel.of(name: 'geographicVulnerability'),
         score: vulnerability,
         weight: 0.25,
         usedInScore: true,
       ),
       RiskFactorScore(
         name: 'historicalExposure',
-        label: 'Historical exposure',
+        label: RiskMeasurementLabel.of(name: 'historicalExposure'),
         score: historicalExposure,
         weight: 0.15,
-        usedInScore: true,
-      ),
-      RiskFactorScore(
-        name: 'citizenObservationRisk',
-        label: 'Citizen observations',
-        score: observations,
-        weight: 0.20,
         usedInScore: true,
       ),
     ];

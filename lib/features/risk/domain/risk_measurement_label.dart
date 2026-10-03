@@ -1,66 +1,55 @@
-/// Human readable wording of a measurement identifier.
-///
-/// The screens must never show an internal field name such as
-/// `rainfallAccumulation30d` or `riverDischargeM3s` to a citizen, but the
-/// stored documents keep those names. This helper is the single translation
-/// point, so the Risk Factors row, the Evidence row and the What-If control of
-/// the same variable are worded identically:
-///
-/// * a known identifier is translated with the wording of its hazard model;
-/// * a trailing window (`6h`, `24h`, `14d`, `30d`, ...) becomes a period
-///   ("- 30 days"), taken from the identifier or from [measurementPeriod];
-/// * a unit embedded in the identifier (`MmPerHour`, `M3s`, ...) is spelled
-///   out as a unit;
-/// * anything else falls back to a camel-case split, so a new variable is
-///   readable without a mapping table.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class RiskMeasurementLabel {
   const RiskMeasurementLabel._();
 
   static const String _separator = ' \u2014 ';
 
-  /// Base wording of the identifiers the application stores.
+  
   static const Map<String, String> _known = <String, String>{
-    'rainfall': 'Rainfall',
-    'rainfallIntensity': 'Rainfall intensity',
-    'rainfallAccumulation': 'Rainfall accumulation',
-    'rainfallAccumulation6h': 'Rainfall accumulation',
-    'rainfallAccumulation14d': 'Rainfall accumulation',
-    'rainfallAccumulation24h': 'Rainfall accumulation',
-    'rainfallAccumulation30d': 'Rainfall accumulation',
-    'rainfallAccumulation72h': 'Rainfall accumulation',
-    'rainfallDeficit30d': 'Rainfall deficit',
-    'soilMoisture': 'Soil moisture',
-    'soilMoisture0to7cm': 'Topsoil water content (0-7 cm)',
-    'temperature2mMax24h': 'Maximum air temperature',
-    'temperature2mMin24h': 'Night-time minimum temperature',
-    'apparentTemperatureMax24h': 'Maximum apparent temperature',
-    'vapourPressureDeficit': 'Vapour pressure deficit',
-    'referenceEvapotranspiration24h': 'Reference evapotranspiration',
-    'windGusts10mMax6h': 'Maximum wind gust',
-    'windSpeed10mMax6h': 'Maximum wind speed',
-    'windSpeed10m': 'Wind speed at 10 m',
-    'convectiveAvailablePotentialEnergy':
-        'Convective available potential energy',
-    'cape': 'Convective available potential energy',
-    'riverDischarge': 'River discharge',
-    'riverDischargeM3s': 'River discharge',
-    'geographicVulnerability': 'Geographic vulnerability',
-    'historicalExposure': 'Historical exposure',
-    'citizenObservationRisk': 'Citizen observation risk',
+    'rainfall': 'Pluie',
+    'rainfallIntensity': 'Intensité de la pluie',
+    'rainfallAccumulation': 'Cumul de pluie',
+    'rainfallAccumulation6h': 'Cumul de pluie',
+    'rainfallAccumulation24h': 'Cumul de pluie',
+    'rainfallAccumulation72h': 'Cumul de pluie',
+    'soilMoisture': 'Humidité du sol',
+    'soilMoisture0to7cm': 'Contenu en eau de la couche 0-7 cm',
+    'temperature2mMax24h': 'Température maximale de l’air',
+    'temperature2mMin24h': 'Température minimale nocturne',
+    'apparentTemperatureMax24h': 'Température ressentie maximale',
+    'riverDischarge': 'Débit fluvial',
+    'riverDischargeM3s': 'Débit fluvial',
+    'geographicVulnerability': 'Vulnérabilité géographique',
+    'historicalExposure': 'Exposition historique',
+    'citizenObservationRisk': 'Risque lié aux observations citoyennes',
   };
 
-  /// Unit spellings for the identifiers that embed one.
+  
   static const Map<String, String> _unitsInName = <String, String>{
-    'MmPerHour': 'mm/hour',
-    'PerHour': '/hour',
-    'MmPerDay': 'mm/day',
+    'MmPerHour': 'mm/h',
+    'PerHour': '/heure',
+    'MmPerDay': 'mm/jour',
     'M3s': 'm\u00b3/s',
     'M3S': 'm\u00b3/s',
     'Kpa': 'kPa',
     'JPerKg': 'J/kg',
     'Kmh': 'km/h',
     'Mm': 'mm',
-    'Celsius': '\u00b0C',
+    'Celsius': '°C',
     'Percent': '%',
   };
 
@@ -113,7 +102,7 @@ class RiskMeasurementLabel {
     return '$base$_separator$scale';
   }
 
-  /// Extracts a trailing window token of an identifier (`rainfall30d`).
+  
   static ({String remainder, String phrase})? _takeWindow(String value) {
     final match = _windowPattern.firstMatch(value);
 
@@ -138,21 +127,23 @@ class RiskMeasurementLabel {
 
   static final RegExp _windowPattern = RegExp(r'(\d{1,3})(h|d)$');
 
-  /// Wording of a trailing window token (`6h`, `30d`).
+  
   static String? _windowPhrase(int amount, String unit) {
     if (unit == 'h') {
-      return amount == 1 ? 'last hour' : '$amount hours';
+      return amount == 1
+          ? 'dernière heure'
+          : 'dernières $amount heures';
     }
 
     if (unit == 'd') {
-      return amount == 1 ? 'last day' : '$amount days';
+      return amount == 1 ? 'dernier jour' : 'derniers $amount jours';
     }
 
     return null;
   }
 
-  /// Wording of the measurement period written by the sources
-  /// (`instant`, `1h`, `6h`, `daily`, ...).
+  
+  
   static String? _periodPhrase(String? measurementPeriod) {
     if (measurementPeriod == null || measurementPeriod.isEmpty) {
       return null;
@@ -163,7 +154,7 @@ class RiskMeasurementLabel {
     }
 
     if (measurementPeriod == 'daily') {
-      return 'daily mean';
+      return 'moyenne journalière';
     }
 
     final match = _windowPattern.firstMatch(measurementPeriod);
@@ -181,7 +172,7 @@ class RiskMeasurementLabel {
     return _windowPhrase(amount, match.group(2)!);
   }
 
-  /// `windGusts10mMax6h` -> `Wind gusts 10m max` (used when nothing is known).
+  
   static String _camelCaseToWords(String name) {
     final buffer = StringBuffer();
 

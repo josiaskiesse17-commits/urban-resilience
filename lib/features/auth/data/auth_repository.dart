@@ -58,18 +58,8 @@ class FirebaseAuthRepository implements AuthRepository {
 
     await user.updateDisplayName(displayName);
     await user.sendEmailVerification();
-    await user.reload();
 
-    final updatedUser = _remoteDataSource.currentUser;
-
-    if (updatedUser == null) {
-      throw FirebaseAuthException(
-        code: 'registration-failed',
-        message: 'Unable to retrieve the created user.',
-      );
-    }
-
-    return _mapUser(updatedUser);
+    return _mapUser(user);
   }
 
   @override
@@ -91,18 +81,7 @@ class FirebaseAuthRepository implements AuthRepository {
       );
     }
 
-    await user.reload();
-
-    final updatedUser = _remoteDataSource.currentUser;
-
-    if (updatedUser == null) {
-      throw FirebaseAuthException(
-        code: 'login-failed',
-        message: 'Unable to retrieve the authenticated user.',
-      );
-    }
-
-    return _mapUser(updatedUser);
+    return _mapUser(user);
   }
 
   @override

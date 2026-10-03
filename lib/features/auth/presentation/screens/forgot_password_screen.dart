@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:urban_resilience/core/theme/app_palette.dart';
 import 'package:urban_resilience/features/auth/presentation/widgets/auth_button.dart';
 import 'package:urban_resilience/features/auth/presentation/widgets/auth_field.dart';
 import 'package:urban_resilience/features/auth/presentation/widgets/auth_scaffold.dart';
@@ -25,11 +24,12 @@ class _ForgotPasswordScreenState extends State {
   Widget build(BuildContext context) {
     return AuthScaffold(
       title: 'Mot de passe oublié',
-      subtitle: 'Saisissez votre e-mail pour recevoir un lien\nde réinitialisation.',
+      subtitle:
+          'Saisissez votre e-mail pour recevoir un lien\nde réinitialisation.',
       child: Container(
         padding: const EdgeInsets.all(24.0),
         decoration: BoxDecoration(
-          color: AppPalette.cardBackground,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(

@@ -104,7 +104,7 @@ void main() {
             ],
             <double?>[0.2, 0.3],
           ),
-          // Only three hours: no complete 6-hour window.
+          
           'rain': _series(
             'rain',
             [
@@ -144,7 +144,7 @@ void main() {
       expect(soil.source, 'test-provider');
       expect(
         soil.referenceLabel,
-        contains('the month of January'),
+        contains('du mois de janvier'),
       );
 
       final cape = result.variables.last;
@@ -164,7 +164,7 @@ void main() {
 
       expect(
         windowGap.reason,
-        contains('no complete 6h window'),
+        contains('aucune fenêtre 6h complète'),
       );
     },
   );
@@ -255,7 +255,7 @@ void main() {
 
       expect(
         soil.referenceLabel,
-        contains('whole reference period'),
+        contains('toute la période de référence'),
       );
     },
   );

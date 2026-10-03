@@ -48,11 +48,11 @@ void main() {
     expect(measurement.statisticalCriticalValue, 65);
     expect(
       measurement.statisticalCriticalLabel,
-      contains('95th percentile'),
+      contains('95e centile'),
     );
     expect(
       measurement.statisticalCriticalLabel,
-      contains('not an official safety threshold'),
+      contains('non un seuil de sécurité officiel'),
     );
     expect(measurement.isDerived, isTrue);
     expect(
@@ -89,7 +89,7 @@ void main() {
 
       expect(
         measurement.statisticalCriticalLabel,
-        contains('5th percentile'),
+        contains('5e centile'),
       );
       expect(
         measurement.ratioToReference,

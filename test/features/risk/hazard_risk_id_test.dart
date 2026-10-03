@@ -28,9 +28,9 @@ void main() {
     expect(
       HazardRiskId.forZone(
         zoneId: 'zone-ndjili',
-        hazard: HazardType.wildfire,
+        hazard: HazardType.landslide,
       ),
-      'zone-ndjili--wildfire',
+      'zone-ndjili--landslide',
     );
   });
 
@@ -58,7 +58,7 @@ void main() {
         'zone-limete',
       );
 
-      // A document written before the multi-hazard work keeps resolving.
+      
       expect(
         HazardRiskId.zoneIdOf('zone-masina--unknown'),
         'zone-masina--unknown',

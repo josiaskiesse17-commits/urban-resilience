@@ -120,15 +120,15 @@ void main() {
             measurement.name == 'historicalExposure',
       );
 
-      final observationRisk =
-          result.evidence.measurements.firstWhere(
-        (measurement) =>
-            measurement.name == 'citizenObservationRisk',
-      );
-
       expect(vulnerability.value, 71.5);
       expect(historicalExposure.value, 75);
-      expect(observationRisk.value, greaterThan(0));
+
+      
+      
+      expect(
+        result.evidence.measurements.map((measurement) => measurement.name),
+        isNot(contains('citizenObservationRisk')),
+      );
 
       expect(result.evidence.observationCount, 2);
       expect(
@@ -167,10 +167,11 @@ void main() {
         observations: observations,
       );
 
-      final observationRisk =
-          result.evidence.measurements.firstWhere(
-        (measurement) =>
-            measurement.name == 'citizenObservationRisk',
+      
+      
+      expect(
+        result.evidence.measurements.map((measurement) => measurement.name),
+        isNot(contains('citizenObservationRisk')),
       );
 
       expect(result.evidence.observationCount, 1);
@@ -178,7 +179,6 @@ void main() {
         result.evidence.confirmedObservationCount,
         0,
       );
-      expect(observationRisk.value, 0);
     },
   );
 }
