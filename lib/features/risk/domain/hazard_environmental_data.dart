@@ -1,11 +1,6 @@
 import 'hazard_series_utils.dart';
 import 'hazard_type.dart';
 
-
-
-
-
-
 class HazardSeries {
   HazardSeries({
     required this.field,
@@ -13,32 +8,24 @@ class HazardSeries {
     required this.times,
     required this.values,
     required this.source,
-  }) : samples = HazardSeriesUtils.align(
-          times: times,
-          values: values,
-        );
+  }) : samples = HazardSeriesUtils.align(times: times, values: values);
 
-  
   final String field;
 
-  
   final String unit;
 
   final List<DateTime> times;
   final List<double?> values;
   final String source;
 
-  
   final List<HazardSample> samples;
 
   bool get isEmpty => samples.isEmpty;
 
   int get sampleCount => samples.length;
 
-  DateTime? get lastObservedAt =>
-      samples.isEmpty ? null : samples.last.time;
+  DateTime? get lastObservedAt => samples.isEmpty ? null : samples.last.time;
 }
-
 
 class HazardLiveData {
   const HazardLiveData({
@@ -52,25 +39,17 @@ class HazardLiveData {
 
   final HazardType hazard;
 
-  
   final Map<String, HazardSeries> series;
 
-  
-  
   final DateTime observedAt;
 
   final List<String> sources;
 
-  
   final Map<String, String> missingFields;
 
-  
-  
   final List<String> providerNotes;
 
   HazardSeries? seriesFor(String field) => series[field];
 
-  bool get isEmpty => series.values.every(
-        (item) => item.isEmpty,
-      );
+  bool get isEmpty => series.values.every((item) => item.isEmpty);
 }

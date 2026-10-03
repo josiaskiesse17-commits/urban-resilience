@@ -38,7 +38,10 @@ class ReportSummaryScreen extends ConsumerWidget {
                     const SizedBox(height: 4),
                     const Text(
                       'Vous pouvez encore modifier les informations.',
-                      style: TextStyle(fontSize: 13, color: AppPalette.textMuted),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppPalette.textMuted,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Container(
@@ -55,7 +58,11 @@ class ReportSummaryScreen extends ConsumerWidget {
                             onEdit: () => context.go('/report'),
                             child: Row(
                               children: [
-                                SvgPicture.asset(draft.typeIcon, width: 20, height: 20),
+                                SvgPicture.asset(
+                                  draft.typeIcon,
+                                  width: 20,
+                                  height: 20,
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -70,7 +77,10 @@ class ReportSummaryScreen extends ConsumerWidget {
                               ],
                             ),
                           ),
-                          const Divider(height: 20, color: AppPalette.inputBorder),
+                          const Divider(
+                            height: 20,
+                            color: AppPalette.inputBorder,
+                          ),
                           _Section(
                             title: 'Description',
                             onEdit: () => context.go('/report/description'),
@@ -83,14 +93,20 @@ class ReportSummaryScreen extends ConsumerWidget {
                               ),
                             ),
                           ),
-                          const Divider(height: 20, color: AppPalette.inputBorder),
+                          const Divider(
+                            height: 20,
+                            color: AppPalette.inputBorder,
+                          ),
                           _Section(
                             title: 'Photo jointe',
                             onEdit: () => context.go('/report/description'),
                             child: draft.photoName == null
                                 ? const Text(
                                     'Aucune photo',
-                                    style: TextStyle(fontSize: 13, color: AppPalette.textMuted),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: AppPalette.textMuted,
+                                    ),
                                   )
                                 : Row(
                                     children: [
@@ -113,7 +129,10 @@ class ReportSummaryScreen extends ConsumerWidget {
                                     ],
                                   ),
                           ),
-                          const Divider(height: 20, color: AppPalette.inputBorder),
+                          const Divider(
+                            height: 20,
+                            color: AppPalette.inputBorder,
+                          ),
                           _Section(
                             title: 'Lieu de l’événement',
                             onEdit: () => context.go('/report/location'),
@@ -127,7 +146,8 @@ class ReportSummaryScreen extends ConsumerWidget {
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         draft.street,

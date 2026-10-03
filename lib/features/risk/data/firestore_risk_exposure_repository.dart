@@ -4,9 +4,8 @@ import '../domain/flood_risk_exposure_profile.dart';
 import '../domain/risk_exposure_repository.dart';
 
 class FirestoreRiskExposureRepository implements RiskExposureRepository {
-  FirestoreRiskExposureRepository({
-    FirebaseFirestore? firestore,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance;
+  FirestoreRiskExposureRepository({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _firestore;
 
@@ -25,12 +24,9 @@ class FirestoreRiskExposureRepository implements RiskExposureRepository {
   }
 
   @override
-  Future<void> saveProfile(
-    FloodRiskExposureProfile profile,
-  ) async {
-    await _collection.doc(profile.zoneId).set(
-          profile.toJson(),
-          SetOptions(merge: true),
-        );
+  Future<void> saveProfile(FloodRiskExposureProfile profile) async {
+    await _collection
+        .doc(profile.zoneId)
+        .set(profile.toJson(), SetOptions(merge: true));
   }
 }

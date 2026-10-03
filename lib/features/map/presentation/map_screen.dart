@@ -11,13 +11,6 @@ import 'widgets/map_search_bar.dart';
 import 'widgets/zone_active_risks_sheet.dart';
 import 'widgets/zone_map_marker.dart';
 
-
-
-
-
-
-
-
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
 
@@ -65,9 +58,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       final error = next.error;
 
       if (error != null && error != previous?.error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error)),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error)));
       }
     });
 
@@ -84,10 +76,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             ),
             children: [
               TileLayer(
-                urlTemplate:
-                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName:
-                    'com.namegmail.urban_resilience',
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.namegmail.urban_resilience',
               ),
               if (state.currentLocation != null)
                 MarkerLayer(
@@ -100,10 +90,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         decoration: BoxDecoration(
                           color: Colors.blue,
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 3,
-                          ),
+                          border: Border.all(color: Colors.white, width: 3),
                         ),
                         child: const Icon(
                           Icons.my_location,
@@ -118,10 +105,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 markers: [
                   for (final zone in zones)
                     Marker(
-                      point: LatLng(
-                        zone.latitude,
-                        zone.longitude,
-                      ),
+                      point: LatLng(zone.latitude, zone.longitude),
                       width: 120,
                       height: 62,
                       alignment: Alignment.topCenter,
@@ -170,9 +154,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 FloatingActionButton(
                   heroTag: 'zones_refresh_button',
                   tooltip: 'Actualiser les risques identifiés',
-                  onPressed: () => ref.invalidate(
-                    zoneHazardAssessmentsProvider,
-                  ),
+                  onPressed: () =>
+                      ref.invalidate(zoneHazardAssessmentsProvider),
                   child: const Icon(Icons.refresh),
                 ),
                 const SizedBox(height: 12),
@@ -208,11 +191,7 @@ class _MapActionButton extends StatelessWidget {
       color: Theme.of(context).colorScheme.surface,
       elevation: 6,
       borderRadius: BorderRadius.circular(16),
-      child: IconButton(
-        onPressed: onTap,
-        tooltip: tooltip,
-        icon: Icon(icon),
-      ),
+      child: IconButton(onPressed: onTap, tooltip: tooltip, icon: Icon(icon)),
     );
   }
 }

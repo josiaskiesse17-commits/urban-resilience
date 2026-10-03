@@ -13,10 +13,6 @@ import 'risk_measurement_label.dart';
 import 'risk_result.dart';
 import 'risk_zone.dart';
 
-
-
-
-
 class RiskSimulationVariable {
   const RiskSimulationVariable({
     required this.name,
@@ -34,7 +30,6 @@ class RiskSimulationVariable {
   final String label;
   final String unit;
 
-  
   final double currentValue;
 
   final double weight;
@@ -43,7 +38,6 @@ class RiskSimulationVariable {
   final double? criticalValue;
   final bool informational;
 
-  
   bool get isAdjustable {
     if (informational) {
       return false;
@@ -59,19 +53,13 @@ class RiskSimulationVariable {
     return inverted ? central > outer : outer > central;
   }
 
-  
-  
   double get lowerBound {
-    final lowest = _triple.reduce(
-      (left, right) => left < right ? left : right,
-    );
+    final lowest = _triple.reduce((left, right) => left < right ? left : right);
     final bound = lowest * 0.5;
 
     return bound < 0 ? 0 : bound;
   }
 
-  
-  
   double get upperBound {
     final highest = _triple.reduce(
       (left, right) => left > right ? left : right,
@@ -82,13 +70,11 @@ class RiskSimulationVariable {
   }
 
   List<double> get _triple => <double>[
-        currentValue,
-        referenceValue ?? currentValue,
-        criticalValue ?? currentValue,
-      ];
+    currentValue,
+    referenceValue ?? currentValue,
+    criticalValue ?? currentValue,
+  ];
 
-  
-  
   double? scoreFor(double value) {
     if (!isAdjustable) {
       return null;
@@ -97,7 +83,6 @@ class RiskSimulationVariable {
     return variableFor(value).score;
   }
 
-  
   HazardVariable variableFor(double value) {
     return HazardVariable(
       name: name,
@@ -113,7 +98,6 @@ class RiskSimulationVariable {
     );
   }
 }
-
 
 class RiskSimulationModel {
   const RiskSimulationModel({
@@ -133,15 +117,11 @@ class RiskSimulationModel {
   final HazardType hazard;
   final List<RiskSimulationVariable> variables;
 
-  
   final double currentScore;
   final RiskLevel currentLevel;
 
-  
-  
   final bool factorBreakdownMissing;
 
-  
   final String? unavailableReason;
 
   final double? vulnerabilityScore;
@@ -160,13 +140,8 @@ class RiskSimulationModel {
 
   List<String> get limitations => HazardCatalog.of(hazard).limitations;
 
-  bool get isSimulatable =>
-      unavailableReason == null && adjustable.isNotEmpty;
+  bool get isSimulatable => unavailableReason == null && adjustable.isNotEmpty;
 }
-
-
-
-
 
 class RiskSimulationOutcome {
   const RiskSimulationOutcome({
@@ -179,13 +154,11 @@ class RiskSimulationOutcome {
 
   final RiskSimulationModel model;
 
-  
   final Map<String, double> values;
 
   final double score;
   final RiskLevel level;
 
-  
   final List<RiskFactorScore> factors;
 
   double get difference => score - model.currentScore;
@@ -197,39 +170,25 @@ class RiskSimulationOutcome {
   bool get riskDecreased => difference < 0;
 }
 
-
-
-
-
-
-
 class RiskSimulationService {
   const RiskSimulationService({
     HazardRiskCalculator? hazardRiskCalculator,
     FloodRiskCalculator? floodRiskCalculator,
-  })  : _hazardRiskCalculator =
-            hazardRiskCalculator ?? const HazardRiskCalculator(),
-        _floodRiskCalculator =
-            floodRiskCalculator ?? const FloodRiskCalculator();
+  }) : _hazardRiskCalculator =
+           hazardRiskCalculator ?? const HazardRiskCalculator(),
+       _floodRiskCalculator =
+           floodRiskCalculator ?? const FloodRiskCalculator();
 
   final HazardRiskCalculator _hazardRiskCalculator;
   final FloodRiskCalculator _floodRiskCalculator;
 
-  
-  
   static const List<({String name, double weight})> floodVariables =
       <({String name, double weight})>[
-    (name: 'rainfallIntensity', weight: 0.40),
-    (name: 'rainfallAccumulation6h', weight: 0.30),
-    (name: 'riverDischarge', weight: 0.30),
-  ];
+        (name: 'rainfallIntensity', weight: 0.40),
+        (name: 'rainfallAccumulation6h', weight: 0.30),
+        (name: 'riverDischarge', weight: 0.30),
+      ];
 
-  
-  
-  
-  
-  
-  
   RiskSimulationModel? modelFrom(RiskResult result) {
     final hazard = _hazardOf(result);
     final definition = HazardCatalog.of(hazard);
@@ -250,10 +209,7 @@ class RiskSimulationService {
         }
 
         variables.add(
-          _variableFrom(
-            measurement: measurement,
-            weight: spec.weight,
-          ),
+          _variableFrom(measurement: measurement, weight: spec.weight),
         );
       }
     } else {
@@ -280,7 +236,8 @@ class RiskSimulationService {
       for (final entry in entries) entry.name: entry,
     };
 
-    final missingFloodReference = definition.legacyPipeline &&
+    final missingFloodReference =
+        definition.legacyPipeline &&
         floodVariables.any((spec) {
           final measurement = measurements[spec.name];
 
@@ -289,8 +246,9 @@ class RiskSimulationService {
               measurement.statisticalCriticalValue == null;
         });
 
-    final adjustableCount =
-        variables.where((variable) => variable.isAdjustable).length;
+    final adjustableCount = variables
+        .where((variable) => variable.isAdjustable)
+        .length;
 
     return RiskSimulationModel(
       hazard: hazard,
@@ -300,12 +258,12 @@ class RiskSimulationService {
       factorBreakdownMissing: entries.isEmpty,
       unavailableReason: missingFloodReference
           ? 'The stored flooding assessment does not contain the complete '
-              'rainfall and river reference, so it cannot be re-run.'
+                'rainfall and river reference, so it cannot be re-run.'
           : adjustableCount == 0
-              ? 'None of the stored measurements of this hazard has a '
-                  'statistical reference, so no simulated score can be '
-                  'computed.'
-              : null,
+          ? 'None of the stored measurements of this hazard has a '
+                'statistical reference, so no simulated score can be '
+                'computed.'
+          : null,
       vulnerabilityScore: _factorScore(
         name: 'geographicVulnerability',
         factors: result.factors,
@@ -321,18 +279,10 @@ class RiskSimulationService {
         result: result,
       ),
       observationCount: result.evidence.observationCount,
-      confirmedObservationCount:
-          result.evidence.confirmedObservationCount,
+      confirmedObservationCount: result.evidence.confirmedObservationCount,
     );
   }
 
-  
-  
-  
-  
-  
-  
-  
   RiskSimulationOutcome? simulate({
     required RiskSimulationModel model,
     Map<String, double> values = const <String, double>{},
@@ -353,14 +303,9 @@ class RiskSimulationService {
     final assessment = _hazardRiskCalculator.calculate(
       HazardRiskInput(
         hazard: model.hazard,
-        primaryFactorLabel:
-            HazardCatalog.of(model.hazard).primaryFactorLabel,
+        primaryFactorLabel: HazardCatalog.of(model.hazard).primaryFactorLabel,
         variables: model.variables
-            .map(
-              (variable) => variable.variableFor(
-                applied[variable.name]!,
-              ),
-            )
+            .map((variable) => variable.variableFor(applied[variable.name]!))
             .toList(growable: false),
         vulnerabilityScore: model.vulnerabilityScore,
         historicalExposureScore: model.historicalExposureScore,
@@ -400,13 +345,6 @@ class RiskSimulationService {
     );
   }
 
-  
-  
-  
-  
-  
-  
-  
   FloodRiskInput? _floodInput({
     required RiskSimulationModel model,
     required Map<String, double> values,
@@ -480,13 +418,6 @@ class RiskSimulationService {
     );
   }
 
-  
-  
-  
-  
-  
-  
-  
   double? _factorScore({
     required String name,
     required RiskFactors factors,
@@ -517,8 +448,6 @@ class RiskSimulationService {
         : 0;
   }
 
-  
-  
   HazardType _hazardOf(RiskResult result) {
     final fromLabel = HazardType.fromLabel(result.hazardType);
 

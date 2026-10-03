@@ -4,8 +4,6 @@ import 'package:urban_resilience/features/risk/domain/risk_measurement.dart';
 import 'package:urban_resilience/features/risk/domain/risk_result.dart';
 import 'package:urban_resilience/features/risk/domain/risk_zone.dart';
 
-
-
 RiskResult buildRiskResult({
   String id = 'zone-masina',
   String locationName = 'Masina',

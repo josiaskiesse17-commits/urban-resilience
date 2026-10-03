@@ -1,14 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-
-
-
-
-
-
-
-
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -16,19 +8,22 @@ class HomeScreen extends StatelessWidget {
     (
       icon: Icons.map_outlined,
       title: '1. Ouvrir la carte',
-      detail: 'Chaque zone est un point coloré : la couleur indique le risque '
+      detail:
+          'Chaque zone est un point coloré : la couleur indique le risque '
           'le plus élevé actuellement identifié dans cette zone.',
     ),
     (
       icon: Icons.list_alt_outlined,
       title: '2. Choisir la zone',
-      detail: 'La fiche des risques actifs liste les risques identifiés de la '
+      detail:
+          'La fiche des risques actifs liste les risques identifiés de la '
           'zone ainsi que les risques qui ne sont pas encore évalués.',
     ),
     (
       icon: Icons.insights_outlined,
       title: '3. Lire le risque',
-      detail: 'La fiche de détail affiche l’évaluation enregistrée, ses '
+      detail:
+          'La fiche de détail affiche l’évaluation enregistrée, ses '
           'preuves et l’interprétation IA, et les actualise sur place.',
     ),
   ];
@@ -77,9 +72,7 @@ class HomeScreen extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: () => context.push('/map'),
                   style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 18,
-                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 18),
                   ),
                   icon: const Icon(Icons.map_outlined),
                   label: const Text('Ouvrir la carte'),
@@ -89,12 +82,9 @@ class HomeScreen extends StatelessWidget {
                   clipBehavior: Clip.antiAlias,
                   child: Column(
                     children: <Widget>[
-                      for (int index = 0;
-                          index < _steps.length;
-                          index++) ...[
+                      for (int index = 0; index < _steps.length; index++) ...[
                         _StepTile(step: _steps[index]),
-                        if (index < _steps.length - 1)
-                          const Divider(height: 1),
+                        if (index < _steps.length - 1) const Divider(height: 1),
                       ],
                     ],
                   ),
@@ -118,14 +108,8 @@ class _StepTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 10,
-      ),
-      leading: Icon(
-        step.icon,
-        color: theme.colorScheme.primary,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      leading: Icon(step.icon, color: theme.colorScheme.primary),
       title: Text(
         step.title,
         style: theme.textTheme.titleMedium?.copyWith(

@@ -37,11 +37,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                   children: [
                     _buildHeader(context),
                     const SizedBox(height: 24),
-                    _buildMetrics(
-                      context,
-                      ref,
-                      isWide,
-                    ),
+                    _buildMetrics(context, ref, isWide),
                     const SizedBox(height: 24),
                     if (isWide)
                       Row(
@@ -52,10 +48,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                             child: _buildRiskOverview(context, ref),
                           ),
                           const SizedBox(width: 20),
-                          Expanded(
-                            flex: 2,
-                            child: _buildSystemStatus(context),
-                          ),
+                          Expanded(flex: 2, child: _buildSystemStatus(context)),
                         ],
                       )
                     else ...[
@@ -99,11 +92,7 @@ class AdminDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMetrics(
-    BuildContext context,
-    WidgetRef ref,
-    bool isWide,
-  ) {
+  Widget _buildMetrics(BuildContext context, WidgetRef ref, bool isWide) {
     final zones = ref.watch(riskZoneCatalogProvider);
 
     var assessed = 0;
@@ -140,9 +129,9 @@ class AdminDashboardScreen extends ConsumerWidget {
         subtitle: loading > 0
             ? 'Chargement des évaluations de zones...'
             : assessed == 0
-                ? 'Aucune évaluation enregistrée'
-                : '$critical critique(s) • '
-                    '$assessed sur ${zones.length} évaluées',
+            ? 'Aucune évaluation enregistrée'
+            : '$critical critique(s) • '
+                  '$assessed sur ${zones.length} évaluées',
         icon: Icons.warning_amber_rounded,
       ),
       _MetricData(
@@ -169,11 +158,8 @@ class AdminDashboardScreen extends ConsumerWidget {
       return Row(
         children: [
           for (int i = 0; i < cards.length; i++) ...[
-            Expanded(
-              child: _MetricCard(data: cards[i]),
-            ),
-            if (i != cards.length - 1)
-              const SizedBox(width: 16),
+            Expanded(child: _MetricCard(data: cards[i])),
+            if (i != cards.length - 1) const SizedBox(width: 16),
           ],
         ],
       );
@@ -195,10 +181,7 @@ class AdminDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRiskOverview(
-    BuildContext context,
-    WidgetRef ref,
-  ) {
+  Widget _buildRiskOverview(BuildContext context, WidgetRef ref) {
     final zones = ref.watch(riskZoneCatalogProvider);
 
     return Card(
@@ -212,9 +195,8 @@ class AdminDashboardScreen extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     'Vue d’ensemble des risques actuels',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                    style: Theme.of(context).textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w700),
                   ),
                 ),
                 TextButton(
@@ -235,9 +217,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                 ),
               )
             else
-              for (final zone in zones) ...[
-                _zoneRiskRow(context, ref, zone),
-              ],
+              for (final zone in zones) ...[_zoneRiskRow(context, ref, zone)],
           ],
         ),
       ),
@@ -261,7 +241,7 @@ class AdminDashboardScreen extends ConsumerWidget {
           riskAsync.isLoading
               ? 'Chargement de l’évaluation enregistrée...'
               : 'Aucune évaluation enregistrée. Ouvrez l’intelligence '
-                  'des risques pour la générer.',
+                    'des risques pour la générer.',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -302,9 +282,8 @@ class AdminDashboardScreen extends ConsumerWidget {
           children: [
             Text(
               'Santé des données',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+              style: Theme.of(context).textTheme.titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 16),
             const _SourceStatus(
@@ -350,9 +329,8 @@ class AdminDashboardScreen extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     'Observations citoyennes récentes',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                    style: Theme.of(context).textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w700),
                   ),
                 ),
                 TextButton(
@@ -369,9 +347,7 @@ class AdminDashboardScreen extends ConsumerWidget {
               leading: Icon(Icons.water),
               title: Text('Accumulation d’eau signalée'),
               subtitle: Text('Masina • il y a 10 minutes'),
-              trailing: Chip(
-                label: Text('En attente'),
-              ),
+              trailing: Chip(label: Text('En attente')),
             ),
             const Divider(),
             const ListTile(
@@ -379,9 +355,7 @@ class AdminDashboardScreen extends ConsumerWidget {
               leading: Icon(Icons.block),
               title: Text('Route bloquée par une inondation'),
               subtitle: Text("N'Djili • il y a 18 minutes"),
-              trailing: Chip(
-                label: Text('Confirmée'),
-              ),
+              trailing: Chip(label: Text('Confirmée')),
             ),
           ],
         ),
@@ -390,10 +364,7 @@ class AdminDashboardScreen extends ConsumerWidget {
   }
 }
 
-Color _riskColor(
-  BuildContext context,
-  RiskLevel level,
-) {
+Color _riskColor(BuildContext context, RiskLevel level) {
   switch (level) {
     case RiskLevel.low:
       return Colors.green;
@@ -426,9 +397,7 @@ class _MetricData {
 class _MetricCard extends StatelessWidget {
   final _MetricData data;
 
-  const _MetricCard({
-    required this.data,
-  });
+  const _MetricCard({required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -437,9 +406,7 @@ class _MetricCard extends StatelessWidget {
         padding: const EdgeInsets.all(18),
         child: Row(
           children: [
-            CircleAvatar(
-              child: Icon(data.icon),
-            ),
+            CircleAvatar(child: Icon(data.icon)),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -452,10 +419,8 @@ class _MetricCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     data.value,
-                    style:
-                        Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.w800,
-                            ),
+                    style: Theme.of(context).textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.w800),
                   ),
                   Text(
                     data.subtitle,
@@ -489,20 +454,14 @@ class _RiskRow extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: Text(zone),
-      subtitle: LinearProgressIndicator(
-        value: score / 100,
-        color: color,
-      ),
+      subtitle: LinearProgressIndicator(value: score / 100, color: color),
       trailing: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
             risk,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.w700,
-            ),
+            style: TextStyle(color: color, fontWeight: FontWeight.w700),
           ),
           Text('$score/100'),
         ],
@@ -527,9 +486,7 @@ class _SourceStatus extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       dense: true,
-      leading: Icon(
-        healthy ? Icons.check_circle : Icons.warning,
-      ),
+      leading: Icon(healthy ? Icons.check_circle : Icons.warning),
       title: Text(name),
       trailing: Text(status),
     );

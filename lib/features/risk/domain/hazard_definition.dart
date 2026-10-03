@@ -1,26 +1,15 @@
 import 'hazard_series_utils.dart';
 import 'hazard_type.dart';
 
-
 enum HazardVariableSource {
-  
-  
   openMeteoWeather(label: 'Open-Meteo Weather API'),
 
-  
   openMeteoFlood(label: 'Open-Meteo Global Flood API / GloFAS');
 
-  const HazardVariableSource({
-    required this.label,
-  });
+  const HazardVariableSource({required this.label});
 
   final String label;
 }
-
-
-
-
-
 
 class HazardVariableSpec {
   const HazardVariableSpec({
@@ -38,47 +27,34 @@ class HazardVariableSpec {
     this.hasHistoricalReference = true,
   });
 
-  
   final String name;
 
-  
   final String label;
 
-  
   final String apiField;
 
   final HazardVariableSource source;
 
-  
   final HazardWindow window;
 
   final String unit;
 
-  
   final double weight;
 
-  
   final bool inverted;
 
-  
   final bool informational;
 
-  
   final bool derived;
 
   final String? derivationNote;
 
-  
-  
   final bool hasHistoricalReference;
 
-  
   double get centralPercentile => 50;
 
-  
   double get outerPercentile => inverted ? 5 : 95;
 }
-
 
 class HazardDefinition {
   const HazardDefinition({
@@ -93,33 +69,22 @@ class HazardDefinition {
 
   final HazardType hazard;
 
-  
   final String primaryFactorLabel;
 
   final String description;
 
   final List<HazardVariableSpec> variables;
 
-  
-  
-  
-  
-  
   final bool seasonalReference;
 
-  
-  
   final List<String> limitations;
 
-  
-  
   final bool legacyPipeline;
 
   List<HazardVariableSpec> get scoredVariables => variables
       .where((variable) => !variable.informational)
       .toList(growable: false);
 
-  
   List<String> get liveApiFields {
     final fields = <String>[];
 
@@ -136,7 +101,6 @@ class HazardDefinition {
     return fields;
   }
 
-  
   List<String> get historicalApiFields {
     final fields = <String>[];
 
@@ -157,7 +121,6 @@ class HazardDefinition {
     return fields;
   }
 
-  
   int get liveLookbackDays {
     var days = 1;
 

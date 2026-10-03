@@ -91,9 +91,6 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
 
       ref.invalidate(riskResultProvider(_riskId));
 
-      
-      
-      
       ref.invalidate(zoneHazardAssessmentsProvider(zone.id));
 
       setState(() {
@@ -150,13 +147,6 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
     await _generate(zone);
   }
 
-  
-  
-  
-  
-  
-  
-  
   Future<void> _analyzeRisk(RiskResult riskResult, {bool force = false}) async {
     final version = _riskVersion(riskResult);
 
@@ -196,19 +186,10 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
     }
   }
 
-  
-  
-  
-  
-  
-  
-  
   Future<void> _storeAnalysis(
     RiskResult riskResult,
     RiskAnalysis analysis,
   ) async {
-    
-    
     final latest = ref.read(riskResultProvider(_riskId)).value;
 
     if (latest != null &&
@@ -217,9 +198,9 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
     }
 
     try {
-      await ref.read(riskResultRepositoryProvider).save(
-            riskResult.withAnalysis(analysis),
-          );
+      await ref
+          .read(riskResultRepositoryProvider)
+          .save(riskResult.withAnalysis(analysis));
     } catch (_) {
       return;
     }
@@ -288,8 +269,6 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
             final storedAnalysis = riskResult.analysis;
 
             if (storedAnalysis != null) {
-              
-              
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) {
                   setState(() {
@@ -536,8 +515,6 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
     );
   }
 
-  
-  
   RiskAnalysis? _visibleAnalysis(RiskResult riskResult) {
     return _analysis ?? riskResult.analysis;
   }
@@ -629,12 +606,7 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
     );
   }
 
-  
-  
-  Widget _buildWhyInterpretation(
-    BuildContext context,
-    RiskAnalysis analysis,
-  ) {
+  Widget _buildWhyInterpretation(BuildContext context, RiskAnalysis analysis) {
     final theme = Theme.of(context);
 
     return Column(
@@ -707,9 +679,6 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
     final rows = <Widget>[];
 
     if (entries.isEmpty) {
-      
-      
-      
       rows.addAll([
         _buildFactorRow(context, factors.primaryFactorLabel, factors.rainfall),
         _buildFactorRow(
@@ -1500,10 +1469,7 @@ class _SectionTitle extends StatelessWidget {
 }
 
 class _RiskNavigation extends StatelessWidget {
-  const _RiskNavigation({
-    required this.onReport,
-    required this.onAlerts,
-  });
+  const _RiskNavigation({required this.onReport, required this.onAlerts});
 
   final VoidCallback onReport;
   final VoidCallback onAlerts;

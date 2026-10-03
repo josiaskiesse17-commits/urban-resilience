@@ -26,24 +26,12 @@ void main() {
 
     final result = calculator.calculate(input);
 
-    expect(
-      result.hazardScore,
-      greaterThan(0),
-    );
+    expect(result.hazardScore, greaterThan(0));
 
-    expect(
-      result.overallScore,
-      greaterThan(0),
-    );
+    expect(result.overallScore, greaterThan(0));
 
-    expect(
-      result.riskLevel,
-      isNotNull,
-    );
+    expect(result.riskLevel, isNotNull);
 
-    expect(
-      result.overallScore,
-      lessThanOrEqualTo(100),
-    );
+    expect(result.overallScore, lessThanOrEqualTo(100));
   });
 }

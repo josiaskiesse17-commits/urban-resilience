@@ -1,11 +1,6 @@
 import 'risk_factors.dart';
 
-enum RiskLevel {
-  low,
-  medium,
-  high,
-  critical,
-}
+enum RiskLevel { low, medium, high, critical }
 
 class RiskZone {
   final String id;

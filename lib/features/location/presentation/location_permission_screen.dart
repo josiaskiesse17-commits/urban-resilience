@@ -12,10 +12,12 @@ class LocationPermissionScreen extends ConsumerStatefulWidget {
   const LocationPermissionScreen({super.key});
 
   @override
-  ConsumerState<LocationPermissionScreen> createState() => _LocationPermissionScreenState();
+  ConsumerState<LocationPermissionScreen> createState() =>
+      _LocationPermissionScreenState();
 }
 
-class _LocationPermissionScreenState extends ConsumerState<LocationPermissionScreen> {
+class _LocationPermissionScreenState
+    extends ConsumerState<LocationPermissionScreen> {
   bool _isRequesting = false;
   String? _error;
 
@@ -63,7 +65,9 @@ class _LocationPermissionScreenState extends ConsumerState<LocationPermissionScr
         return;
       }
 
-      await ref.read(selectedPlaceProvider.notifier).select(
+      await ref
+          .read(selectedPlaceProvider.notifier)
+          .select(
             SelectedPlace(
               label: 'Ma position',
               latitude: position.latitude,
@@ -250,11 +254,7 @@ class _ProximityIllustration extends StatelessWidget {
             height: 104,
           ),
           _Pin(),
-          Positioned(
-            left: 28,
-            top: 31,
-            child: _Dot(color: Color(0xFFE8A629)),
-          ),
+          Positioned(left: 28, top: 31, child: _Dot(color: Color(0xFFE8A629))),
           Positioned(
             right: 30,
             bottom: 34,
@@ -298,10 +298,7 @@ class _Dot extends StatelessWidget {
     return Container(
       width: 12,
       height: 12,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-      ),
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }

@@ -6,8 +6,7 @@ class FloodRiskInputObservationEnricher {
   const FloodRiskInputObservationEnricher({
     ObservationRiskCalculator? observationRiskCalculator,
   }) : _observationRiskCalculator =
-            observationRiskCalculator ??
-            const ObservationRiskCalculator();
+           observationRiskCalculator ?? const ObservationRiskCalculator();
 
   final ObservationRiskCalculator _observationRiskCalculator;
 
@@ -19,8 +18,7 @@ class FloodRiskInputObservationEnricher {
     Duration lookback = const Duration(hours: 24),
     double radiusKm = 5,
   }) {
-    final calculation =
-        _observationRiskCalculator.calculate(
+    final calculation = _observationRiskCalculator.calculate(
       latitude: latitude,
       longitude: longitude,
       observations: observations,
@@ -31,8 +29,7 @@ class FloodRiskInputObservationEnricher {
     return input.copyWith(
       observationScore: calculation.score,
       observationCount: calculation.observationCount,
-      confirmedObservationCount:
-          calculation.confirmedObservationCount,
+      confirmedObservationCount: calculation.confirmedObservationCount,
     );
   }
 }

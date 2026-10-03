@@ -7,45 +7,34 @@ import '../domain/flood_environmental_data.dart';
 import '../domain/flood_environmental_data_source.dart';
 import '../domain/hazard_series_utils.dart';
 
-class OpenMeteoRiskDataSource
-    implements FloodEnvironmentalDataSource {
+class OpenMeteoRiskDataSource implements FloodEnvironmentalDataSource {
   final http.Client client;
 
-  OpenMeteoRiskDataSource({
-    required this.client,
-  });
+  OpenMeteoRiskDataSource({required this.client});
 
   @override
   Future<FloodEnvironmentalData> fetch({
     required double latitude,
     required double longitude,
   }) async {
-    final weatherUri = Uri.https(
-      'api.open-meteo.com',
-      '/v1/forecast',
-      {
-        'latitude': latitude.toString(),
-        'longitude': longitude.toString(),
-        'hourly': 'rain',
-        'past_hours': '6',
-        'forecast_hours': '0',
-        'timezone': 'UTC',
-      },
-    );
+    final weatherUri = Uri.https('api.open-meteo.com', '/v1/forecast', {
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'hourly': 'rain',
+      'past_hours': '6',
+      'forecast_hours': '0',
+      'timezone': 'UTC',
+    });
 
-    final floodUri = Uri.https(
-      'flood-api.open-meteo.com',
-      '/v1/flood',
-      {
-        'latitude': latitude.toString(),
-        'longitude': longitude.toString(),
-        'daily': 'river_discharge',
-        'past_days': '1',
-        'forecast_days': '1',
-        'timezone': 'UTC',
-        'cell_selection': 'nearest',
-      },
-    );
+    final floodUri = Uri.https('flood-api.open-meteo.com', '/v1/flood', {
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'daily': 'river_discharge',
+      'past_days': '1',
+      'forecast_days': '1',
+      'timezone': 'UTC',
+      'cell_selection': 'nearest',
+    });
 
     final responses = await Future.wait([
       client.get(weatherUri),
@@ -71,13 +60,9 @@ class OpenMeteoRiskDataSource
       );
     }
 
-    final weatherJson = _decodeObject(
-      weatherResponse.body,
-    );
+    final weatherJson = _decodeObject(weatherResponse.body);
 
-    final floodJson = _decodeObject(
-      floodResponse.body,
-    );
+    final floodJson = _decodeObject(floodResponse.body);
 
     final rainfall = _parseRainfall(weatherJson);
 
@@ -98,36 +83,28 @@ class OpenMeteoRiskDataSource
 
     return FloodEnvironmentalData(
       rainfallLastHourMm: rainfall.lastHourMm,
-      rainfallAccumulation6hMm:
-          rainfall.accumulationMm,
+      rainfallAccumulation6hMm: rainfall.accumulationMm,
       riverDischargeM3s: river.value,
       observedAt: rainfall.observedAt,
       rainfallSource: 'Open-Meteo Weather API',
-      riverSource:
-          'Open-Meteo Global Flood API / GloFAS',
+      riverSource: 'Open-Meteo Global Flood API / GloFAS',
       rainfallObservedAt: rainfall.observedAt,
       riverObservedAt: river.date,
-      rainfallAccumulationWindowHours:
-          rainfall.windowHours,
+      rainfallAccumulationWindowHours: rainfall.windowHours,
       dataNotes: notes,
     );
   }
 
-  Map<String, dynamic> _decodeObject(
-    String body,
-  ) {
+  Map<String, dynamic> _decodeObject(String body) {
     final decoded = jsonDecode(body);
 
     if (decoded is! Map<String, dynamic>) {
-      throw const FormatException(
-        'API response is not a JSON object.',
-      );
+      throw const FormatException('API response is not a JSON object.');
     }
 
     if (decoded['error'] == true) {
       throw FormatException(
-        decoded['reason']?.toString() ??
-            'Open-Meteo returned an API error.',
+        decoded['reason']?.toString() ?? 'Open-Meteo returned an API error.',
       );
     }
 
@@ -141,50 +118,34 @@ class OpenMeteoRiskDataSource
     DateTime observedAt,
     List<String> notes,
   })
-      _parseRainfall(
-    Map<String, dynamic> json,
-  ) {
+  _parseRainfall(Map<String, dynamic> json) {
     final hourly = json['hourly'];
 
     if (hourly is! Map<String, dynamic>) {
-      throw const FormatException(
-        'Weather API did not return hourly data.',
-      );
+      throw const FormatException('Weather API did not return hourly data.');
     }
 
     final rain = hourly['rain'];
     final times = hourly['time'];
 
     if (rain is! List || times is! List) {
-      throw const FormatException(
-        'Weather API did not return rain data.',
-      );
+      throw const FormatException('Weather API did not return rain data.');
     }
 
-    
-    
-    final samples = HazardSeriesUtils.align(
-      times: times,
-      values: rain,
-    );
+    final samples = HazardSeriesUtils.align(times: times, values: rain);
 
     if (samples.isEmpty) {
-      throw const FormatException(
-        'No rainfall values returned.',
-      );
+      throw const FormatException('No rainfall values returned.');
     }
 
     final last = samples.last;
 
     final notes = <String>[];
 
-    
     var windowHours = 1;
 
     for (var index = samples.length - 1; index > 0; index--) {
-      final gap = samples[index].time.difference(
-        samples[index - 1].time,
-      );
+      final gap = samples[index].time.difference(samples[index - 1].time);
 
       if (gap != const Duration(hours: 1)) {
         break;
@@ -221,16 +182,13 @@ class OpenMeteoRiskDataSource
     );
   }
 
-  ({DateTime date, double value})
-      _parseLatestRiverDischarge(
+  ({DateTime date, double value}) _parseLatestRiverDischarge(
     Map<String, dynamic> json,
   ) {
     final daily = json['daily'];
 
     if (daily is! Map<String, dynamic>) {
-      throw const FormatException(
-        'Flood API did not return daily data.',
-      );
+      throw const FormatException('Flood API did not return daily data.');
     }
 
     final times = daily['time'];
@@ -242,13 +200,11 @@ class OpenMeteoRiskDataSource
       );
     }
 
-    final values =
-        <({DateTime date, double value})>[];
+    final values = <({DateTime date, double value})>[];
 
-    final length =
-        times.length < discharge.length
-            ? times.length
-            : discharge.length;
+    final length = times.length < discharge.length
+        ? times.length
+        : discharge.length;
 
     for (var i = 0; i < length; i++) {
       final time = times[i];
@@ -258,30 +214,19 @@ class OpenMeteoRiskDataSource
         final date = DateTime.tryParse(time);
 
         if (date != null) {
-          values.add(
-            (
-              date: date.toUtc(),
-              value: value.toDouble(),
-            ),
-          );
+          values.add((date: date.toUtc(), value: value.toDouble()));
         }
       }
     }
 
     if (values.isEmpty) {
-      throw const FormatException(
-        'No valid river discharge values returned.',
-      );
+      throw const FormatException('No valid river discharge values returned.');
     }
 
-    values.sort(
-      (a, b) => a.date.compareTo(b.date),
-    );
+    values.sort((a, b) => a.date.compareTo(b.date));
 
     final today = DateTime.now().toUtc();
 
-    
-    
     ({DateTime date, double value})? latest;
 
     for (final item in values) {
@@ -289,8 +234,7 @@ class OpenMeteoRiskDataSource
         continue;
       }
 
-      if (latest == null ||
-          item.date.isAfter(latest.date)) {
+      if (latest == null || item.date.isAfter(latest.date)) {
         latest = item;
       }
     }
@@ -299,10 +243,7 @@ class OpenMeteoRiskDataSource
   }
 
   String _formatDate(DateTime date) {
-    final month = date.month.toString().padLeft(
-      2,
-      '0',
-    );
+    final month = date.month.toString().padLeft(2, '0');
     final day = date.day.toString().padLeft(2, '0');
 
     return '${date.year}-$month-$day';

@@ -15,8 +15,6 @@ import 'package:urban_resilience/features/risk/presentation/risk_details_screen.
 
 import 'risk_test_fakes.dart';
 
-
-
 RiskResult _storedHeatResult() {
   final timestamp = DateTime.now().toUtc();
 
@@ -146,8 +144,6 @@ Widget buildHost({
   required FakeRiskExposureRepository exposureRepository,
   required FakeRiskAnalyst analyst,
 }) {
-  
-  
   Future<RiskResult> unexpectedGeneration(RiskZoneTarget zone) async {
     throw StateError(
       'the stored assessment must not be regenerated: ${zone.id}',
@@ -188,14 +184,11 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      
       expect(analyst.calls, 1);
       expect(find.text('AI summary for Masina.'), findsOneWidget);
 
       double topOf(Finder finder) => tester.getTopLeft(finder).dy;
 
-      
-      
       expect(
         topOf(find.text('Facteurs de risque')),
         lessThan(topOf(find.text('Éléments de preuve'))),
@@ -209,8 +202,6 @@ void main() {
         lessThan(topOf(find.text('Simulation « Et si ? »'))),
       );
 
-      
-      
       expect(find.textContaining('ce n’est pas une prévision'), findsWidgets);
       expect(find.text('Résultat simulé'), findsNothing);
     },
@@ -241,7 +232,6 @@ void main() {
     await tester.drag(slider, const Offset(300, 0));
     await tester.pumpAndSettle();
 
-    
     expect(find.text('Résultat simulé'), findsOneWidget);
     expect(find.textContaining('ce n’est pas une prévision'), findsWidgets);
     expect(
@@ -251,11 +241,9 @@ void main() {
       findsOneWidget,
     );
 
-    
     expect(find.text('62/100'), findsWidgets);
     expect(find.text('AI summary for Masina.'), findsOneWidget);
 
-    
     expect(analyst.calls, 1);
   });
 }

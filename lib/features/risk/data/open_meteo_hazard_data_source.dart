@@ -8,20 +8,8 @@ import '../domain/hazard_environmental_data_source.dart';
 import '../domain/hazard_type.dart';
 import 'open_meteo_hourly_parser.dart';
 
-
-
-
-
-
-
-
-
-
-class OpenMeteoHazardDataSource
-    implements HazardEnvironmentalDataSource {
-  OpenMeteoHazardDataSource({
-    required this.client,
-  });
+class OpenMeteoHazardDataSource implements HazardEnvironmentalDataSource {
+  OpenMeteoHazardDataSource({required this.client});
 
   final http.Client client;
 
@@ -44,21 +32,17 @@ class OpenMeteoHazardDataSource
       );
     }
 
-    final uri = Uri.https(
-      'api.open-meteo.com',
-      '/v1/forecast',
-      {
-        'latitude': latitude.toString(),
-        'longitude': longitude.toString(),
-        'hourly': fields.join(','),
-        'past_days': definition.liveLookbackDays.toString(),
-        'forecast_days': '0',
-        'timezone': 'UTC',
-        'temperature_unit': 'celsius',
-        'wind_speed_unit': 'kmh',
-        'precipitation_unit': 'mm',
-      },
-    );
+    final uri = Uri.https('api.open-meteo.com', '/v1/forecast', {
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'hourly': fields.join(','),
+      'past_days': definition.liveLookbackDays.toString(),
+      'forecast_days': '0',
+      'timezone': 'UTC',
+      'temperature_unit': 'celsius',
+      'wind_speed_unit': 'kmh',
+      'precipitation_unit': 'mm',
+    });
 
     final response = await client.get(uri);
 
@@ -70,8 +54,7 @@ class OpenMeteoHazardDataSource
       );
     }
 
-    final json =
-        OpenMeteoHourlyParser.decodeObject(response.body);
+    final json = OpenMeteoHourlyParser.decodeObject(response.body);
 
     final times = OpenMeteoHourlyParser.parseTimes(json);
 

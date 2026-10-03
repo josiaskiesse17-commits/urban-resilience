@@ -90,30 +90,18 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> sendPasswordResetEmail({
-    required String email,
-  }) {
-    return _remoteDataSource.sendPasswordResetEmail(
-      email: email,
-    );
+  Future<void> sendPasswordResetEmail({required String email}) {
+    return _remoteDataSource.sendPasswordResetEmail(email: email);
   }
 
   @override
-  Future<void> changePassword({
-    required String newPassword,
-  }) {
-    return _remoteDataSource.changePassword(
-      newPassword: newPassword,
-    );
+  Future<void> changePassword({required String newPassword}) {
+    return _remoteDataSource.changePassword(newPassword: newPassword);
   }
 
   @override
-  Future<void> changeDisplayName({
-    required String displayName,
-  }) {
-    return _remoteDataSource.changeDisplayName(
-      displayName: displayName,
-    );
+  Future<void> changeDisplayName({required String displayName}) {
+    return _remoteDataSource.changeDisplayName(displayName: displayName);
   }
 
   @override
@@ -122,12 +110,8 @@ class FirebaseAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> reauthenticate({
-    required String password,
-  }) {
-    return _remoteDataSource.reauthenticate(
-      password: password,
-    );
+  Future<void> reauthenticate({required String password}) {
+    return _remoteDataSource.reauthenticate(password: password);
   }
 
   @override

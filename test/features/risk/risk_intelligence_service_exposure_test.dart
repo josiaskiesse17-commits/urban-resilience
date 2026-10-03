@@ -7,16 +7,12 @@ import 'package:urban_resilience/features/risk/domain/risk_exposure_repository.d
 import 'package:urban_resilience/features/risk/domain/risk_intelligence_service.dart';
 
 class FakeRiskExposureRepository implements RiskExposureRepository {
-  FakeRiskExposureRepository({
-    this.profile,
-  });
+  FakeRiskExposureRepository({this.profile});
 
   final FloodRiskExposureProfile? profile;
 
   @override
-  Future<FloodRiskExposureProfile?> getProfile(
-    String zoneId,
-  ) async {
+  Future<FloodRiskExposureProfile?> getProfile(String zoneId) async {
     if (profile?.zoneId == zoneId) {
       return profile;
     }
@@ -25,9 +21,7 @@ class FakeRiskExposureRepository implements RiskExposureRepository {
   }
 
   @override
-  Future<void> saveProfile(
-    FloodRiskExposureProfile profile,
-  ) async {}
+  Future<void> saveProfile(FloodRiskExposureProfile profile) async {}
 }
 
 void main() {
@@ -58,17 +52,11 @@ void main() {
   );
 
   test('uses stored exposure profile in final risk result', () async {
-    final repository = FakeRiskExposureRepository(
-      profile: profile,
-    );
+    final repository = FakeRiskExposureRepository(profile: profile);
 
-    final enricher = FloodRiskInputExposureEnricher(
-      repository: repository,
-    );
+    final enricher = FloodRiskInputExposureEnricher(repository: repository);
 
-    final service = RiskIntelligenceService(
-      exposureEnricher: enricher,
-    );
+    final service = RiskIntelligenceService(exposureEnricher: enricher);
 
     final result = await service.calculateFloodRiskWithExposure(
       id: 'risk-1',
@@ -81,17 +69,12 @@ void main() {
       riverSource: 'test',
     );
 
-    final vulnerabilityMeasurement = result.evidence.measurements
-        .firstWhere(
-          (measurement) =>
-              measurement.name == 'geographicVulnerability',
-        );
-
-    final historicalExposureMeasurement =
-        result.evidence.measurements.firstWhere(
-      (measurement) =>
-          measurement.name == 'historicalExposure',
+    final vulnerabilityMeasurement = result.evidence.measurements.firstWhere(
+      (measurement) => measurement.name == 'geographicVulnerability',
     );
+
+    final historicalExposureMeasurement = result.evidence.measurements
+        .firstWhere((measurement) => measurement.name == 'historicalExposure');
 
     expect(vulnerabilityMeasurement.value, 71.5);
     expect(historicalExposureMeasurement.value, 75);
@@ -101,17 +84,12 @@ void main() {
     expect(result.hazardType, 'Flooding');
   });
 
-  test('keeps original risk inputs when no exposure profile exists',
-      () async {
+  test('keeps original risk inputs when no exposure profile exists', () async {
     final repository = FakeRiskExposureRepository();
 
-    final enricher = FloodRiskInputExposureEnricher(
-      repository: repository,
-    );
+    final enricher = FloodRiskInputExposureEnricher(repository: repository);
 
-    final service = RiskIntelligenceService(
-      exposureEnricher: enricher,
-    );
+    final service = RiskIntelligenceService(exposureEnricher: enricher);
 
     final result = await service.calculateFloodRiskWithExposure(
       id: 'risk-2',
@@ -122,17 +100,12 @@ void main() {
       input: input,
     );
 
-    final vulnerabilityMeasurement = result.evidence.measurements
-        .firstWhere(
-          (measurement) =>
-              measurement.name == 'geographicVulnerability',
-        );
-
-    final historicalExposureMeasurement =
-        result.evidence.measurements.firstWhere(
-      (measurement) =>
-          measurement.name == 'historicalExposure',
+    final vulnerabilityMeasurement = result.evidence.measurements.firstWhere(
+      (measurement) => measurement.name == 'geographicVulnerability',
     );
+
+    final historicalExposureMeasurement = result.evidence.measurements
+        .firstWhere((measurement) => measurement.name == 'historicalExposure');
 
     expect(vulnerabilityMeasurement.value, 10);
     expect(historicalExposureMeasurement.value, 20);

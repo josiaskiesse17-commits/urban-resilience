@@ -5,22 +5,16 @@ import 'package:latlong2/latlong.dart';
 import '../providers/map_provider.dart';
 
 class MapSearchBar extends ConsumerStatefulWidget {
-  
   final Future<void> Function(LatLng location) onLocationSelected;
 
-  const MapSearchBar({
-    super.key,
-    required this.onLocationSelected,
-  });
+  const MapSearchBar({super.key, required this.onLocationSelected});
 
   @override
   ConsumerState<MapSearchBar> createState() => _MapSearchBarState();
 }
 
-class _MapSearchBarState
-    extends ConsumerState<MapSearchBar> {
-  final TextEditingController _controller =
-      TextEditingController();
+class _MapSearchBarState extends ConsumerState<MapSearchBar> {
+  final TextEditingController _controller = TextEditingController();
 
   bool _loading = false;
 
@@ -72,9 +66,7 @@ class _MapSearchBarState
                   child: SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                    ),
+                    child: CircularProgressIndicator(strokeWidth: 2),
                   ),
                 )
               : IconButton(
@@ -84,9 +76,7 @@ class _MapSearchBarState
                   },
                 ),
           filled: true,
-          fillColor: Theme.of(context)
-              .colorScheme
-              .surface,
+          fillColor: Theme.of(context).colorScheme.surface,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide.none,

@@ -1,24 +1,8 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class RiskMeasurementLabel {
   const RiskMeasurementLabel._();
 
   static const String _separator = ' \u2014 ';
 
-  
   static const Map<String, String> _known = <String, String>{
     'rainfall': 'Pluie',
     'rainfallIntensity': 'Intensité de la pluie',
@@ -38,7 +22,6 @@ class RiskMeasurementLabel {
     'citizenObservationRisk': 'Risque lié aux observations citoyennes',
   };
 
-  
   static const Map<String, String> _unitsInName = <String, String>{
     'MmPerHour': 'mm/h',
     'PerHour': '/heure',
@@ -83,17 +66,15 @@ class RiskMeasurementLabel {
       identifier = window.remainder;
     }
 
-    final base = _known[identifier] ??
-        _known[name] ??
-        _camelCaseToWords(identifier);
+    final base =
+        _known[identifier] ?? _known[name] ?? _camelCaseToWords(identifier);
 
-    final period = window?.phrase ??
-        _periodPhrase(measurementPeriod);
+    final period = window?.phrase ?? _periodPhrase(measurementPeriod);
     final scale = period == null
         ? unitFromName
         : unitFromName == null
-            ? period
-            : '$period ($unitFromName)';
+        ? period
+        : '$period ($unitFromName)';
 
     if (scale == null) {
       return base;
@@ -102,7 +83,6 @@ class RiskMeasurementLabel {
     return '$base$_separator$scale';
   }
 
-  
   static ({String remainder, String phrase})? _takeWindow(String value) {
     final match = _windowPattern.firstMatch(value);
 
@@ -127,12 +107,9 @@ class RiskMeasurementLabel {
 
   static final RegExp _windowPattern = RegExp(r'(\d{1,3})(h|d)$');
 
-  
   static String? _windowPhrase(int amount, String unit) {
     if (unit == 'h') {
-      return amount == 1
-          ? 'dernière heure'
-          : 'dernières $amount heures';
+      return amount == 1 ? 'dernière heure' : 'dernières $amount heures';
     }
 
     if (unit == 'd') {
@@ -142,8 +119,6 @@ class RiskMeasurementLabel {
     return null;
   }
 
-  
-  
   static String? _periodPhrase(String? measurementPeriod) {
     if (measurementPeriod == null || measurementPeriod.isEmpty) {
       return null;
@@ -172,7 +147,6 @@ class RiskMeasurementLabel {
     return _windowPhrase(amount, match.group(2)!);
   }
 
-  
   static String _camelCaseToWords(String name) {
     final buffer = StringBuffer();
 

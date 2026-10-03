@@ -33,26 +33,18 @@ class AuthRemoteDataSource {
     return _firebaseAuth.signOut();
   }
 
-  Future<void> sendPasswordResetEmail({
-    required String email,
-  }) {
-    return _firebaseAuth.sendPasswordResetEmail(
-      email: email,
-    );
+  Future<void> sendPasswordResetEmail({required String email}) {
+    return _firebaseAuth.sendPasswordResetEmail(email: email);
   }
 
-  Future<void> changePassword({
-    required String newPassword,
-  }) async {
+  Future<void> changePassword({required String newPassword}) async {
     final user = _requireCurrentUser();
 
     await user.updatePassword(newPassword);
     await user.reload();
   }
 
-  Future<void> changeDisplayName({
-    required String displayName,
-  }) async {
+  Future<void> changeDisplayName({required String displayName}) async {
     final user = _requireCurrentUser();
 
     await user.updateDisplayName(displayName);
@@ -69,9 +61,7 @@ class AuthRemoteDataSource {
     await user.sendEmailVerification();
   }
 
-  Future<void> reauthenticate({
-    required String password,
-  }) async {
+  Future<void> reauthenticate({required String password}) async {
     final user = _requireCurrentUser();
 
     final email = user.email;

@@ -36,7 +36,6 @@ void main() {
 
       expect(assessments, hasLength(HazardType.values.length));
 
-      
       expect(assessments[0].hazard, HazardType.heat);
       expect(assessments[0].status, ZoneHazardStatus.identified);
       expect(assessments[0].riskId, 'zone-masina--heat');
@@ -44,7 +43,6 @@ void main() {
       expect(assessments[1].hazard, HazardType.flooding);
       expect(assessments[1].riskId, 'zone-masina');
 
-      
       final landslide = assessments.singleWhere(
         (assessment) => assessment.hazard == HazardType.landslide,
       );

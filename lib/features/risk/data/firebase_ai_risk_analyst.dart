@@ -5,10 +5,6 @@ import '../domain/risk_analyst.dart';
 import '../domain/risk_result.dart';
 
 class FirebaseAiRiskAnalyst implements RiskAnalyst {
-  
-  
-  
-  
   static const String _workerUrl = String.fromEnvironment(
     'AI_PROXY_URL',
     defaultValue: 'http://localhost:8787',
@@ -16,22 +12,16 @@ class FirebaseAiRiskAnalyst implements RiskAnalyst {
 
   final Dio _dio;
 
-  FirebaseAiRiskAnalyst({
-    Dio? dio,
-  }) : _dio = dio ?? Dio();
+  FirebaseAiRiskAnalyst({Dio? dio}) : _dio = dio ?? Dio();
 
   @override
   Future<RiskAnalysis> analyze(RiskResult riskResult) async {
     try {
       final response = await _dio.post(
         _workerUrl,
-        data: {
-          'riskResult': riskResult.toJson(),
-        },
+        data: {'riskResult': riskResult.toJson()},
         options: Options(
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: {'Content-Type': 'application/json'},
           responseType: ResponseType.json,
           validateStatus: (_) => true,
         ),
@@ -40,21 +30,15 @@ class FirebaseAiRiskAnalyst implements RiskAnalyst {
       final data = response.data;
 
       if (response.statusCode != 200) {
-        throw Exception(
-          'AI proxy returned ${response.statusCode}: $data',
-        );
+        throw Exception('AI proxy returned ${response.statusCode}: $data');
       }
 
       if (data is! Map<String, dynamic>) {
-        throw const FormatException(
-          'AI proxy returned an invalid response.',
-        );
+        throw const FormatException('AI proxy returned an invalid response.');
       }
 
       if (data['error'] != null) {
-        throw Exception(
-          'AI proxy error: ${data['error']}',
-        );
+        throw Exception('AI proxy error: ${data['error']}');
       }
 
       return RiskAnalysis.fromJson(
@@ -63,9 +47,7 @@ class FirebaseAiRiskAnalyst implements RiskAnalyst {
         generatedAt: DateTime.now(),
       );
     } on DioException catch (error) {
-      throw Exception(
-        'AI request failed: ${error.message}',
-      );
+      throw Exception('AI request failed: ${error.message}');
     }
   }
 }

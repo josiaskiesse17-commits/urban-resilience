@@ -25,14 +25,9 @@ class RiskMeasurement {
 
   final double? historicalPercentile;
 
-  
-  
-  
   final double? statisticalCriticalValue;
   final String? statisticalCriticalLabel;
 
-  
-  
   final bool isDerived;
   final String? derivationNote;
 
@@ -81,12 +76,6 @@ class RiskMeasurement {
     };
   }
 
-  
-  
-  
-  
-  
-  
   static String humanizeName(String name) {
     if (name.isEmpty) {
       return name;

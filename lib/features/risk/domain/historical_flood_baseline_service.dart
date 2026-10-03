@@ -10,10 +10,8 @@ class HistoricalFloodBaselineService {
 
   const HistoricalFloodBaselineService({
     required this.dataSource,
-    this.baselineCalculator =
-        const HistoricalFloodBaselineCalculator(),
-    this.rainfallWindowCalculator =
-        const RainfallWindowCalculator(),
+    this.baselineCalculator = const HistoricalFloodBaselineCalculator(),
+    this.rainfallWindowCalculator = const RainfallWindowCalculator(),
   });
 
   Future<FloodHistoricalBaseline> generate({
@@ -29,8 +27,7 @@ class HistoricalFloodBaselineService {
       endDate: endDate,
     );
 
-    final sixHourRainfall =
-        rainfallWindowCalculator.rollingSixHourTotals(
+    final sixHourRainfall = rainfallWindowCalculator.rollingSixHourTotals(
       data.hourlyRainfallValues,
     );
 
@@ -41,16 +38,11 @@ class HistoricalFloodBaselineService {
     }
 
     return baselineCalculator.calculate(
-      hourlyRainfallValues:
-          data.hourlyRainfallValues,
-      sixHourRainfallValues:
-          sixHourRainfall,
-      riverDischargeValues:
-          data.riverDischargeValues,
-      referencePeriodStart:
-          data.referencePeriodStart,
-      referencePeriodEnd:
-          data.referencePeriodEnd,
+      hourlyRainfallValues: data.hourlyRainfallValues,
+      sixHourRainfallValues: sixHourRainfall,
+      riverDischargeValues: data.riverDischargeValues,
+      referencePeriodStart: data.referencePeriodStart,
+      referencePeriodEnd: data.referencePeriodEnd,
     );
   }
 }

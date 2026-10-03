@@ -4,7 +4,6 @@ import 'hazard_catalog.dart';
 import 'hazard_historical_data_source.dart';
 import 'hazard_type.dart';
 
-
 class HazardBaselineService {
   const HazardBaselineService({
     required this.dataSource,
@@ -31,9 +30,6 @@ class HazardBaselineService {
       endDate: endDate,
     );
 
-    return calculator.calculate(
-      definition: definition,
-      data: data,
-    );
+    return calculator.calculate(definition: definition, data: data);
   }
 }

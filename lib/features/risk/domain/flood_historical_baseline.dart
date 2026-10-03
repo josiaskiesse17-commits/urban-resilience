@@ -17,9 +17,6 @@ class FloodHistoricalBaseline {
   final int rainfallSampleCount;
   final int riverDischargeSampleCount;
 
-  
-  
-  
   final HistoricalDistribution? rainfallHourlyDistribution;
   final HistoricalDistribution? rainfallSixHourDistribution;
   final HistoricalDistribution? riverDischargeDistribution;
@@ -43,28 +40,17 @@ class FloodHistoricalBaseline {
 
   Map<String, dynamic> toJson() {
     return {
-      'rainfallBaselineMmPerHour':
-          rainfallBaselineMmPerHour,
-      'rainfallCriticalMmPerHour':
-          rainfallCriticalMmPerHour,
-      'rainfallAccumulation6hBaselineMm':
-          rainfallAccumulation6hBaselineMm,
-      'rainfallAccumulation6hCriticalMm':
-          rainfallAccumulation6hCriticalMm,
-      'riverDischargeBaselineM3s':
-          riverDischargeBaselineM3s,
-      'riverDischargeCriticalM3s':
-          riverDischargeCriticalM3s,
-      'referencePeriodStart':
-          referencePeriodStart.toIso8601String(),
-      'referencePeriodEnd':
-          referencePeriodEnd.toIso8601String(),
-      'generatedAt':
-          generatedAt.toIso8601String(),
-      'rainfallSampleCount':
-          rainfallSampleCount,
-      'riverDischargeSampleCount':
-          riverDischargeSampleCount,
+      'rainfallBaselineMmPerHour': rainfallBaselineMmPerHour,
+      'rainfallCriticalMmPerHour': rainfallCriticalMmPerHour,
+      'rainfallAccumulation6hBaselineMm': rainfallAccumulation6hBaselineMm,
+      'rainfallAccumulation6hCriticalMm': rainfallAccumulation6hCriticalMm,
+      'riverDischargeBaselineM3s': riverDischargeBaselineM3s,
+      'riverDischargeCriticalM3s': riverDischargeCriticalM3s,
+      'referencePeriodStart': referencePeriodStart.toIso8601String(),
+      'referencePeriodEnd': referencePeriodEnd.toIso8601String(),
+      'generatedAt': generatedAt.toIso8601String(),
+      'rainfallSampleCount': rainfallSampleCount,
+      'riverDischargeSampleCount': riverDischargeSampleCount,
     };
   }
 }

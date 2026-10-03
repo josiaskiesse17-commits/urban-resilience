@@ -41,14 +41,8 @@ void main() {
       baselineInput: baselineInput,
     );
 
-    expect(
-      result.scenario.riskScore,
-      greaterThan(result.baseline.riskScore),
-    );
+    expect(result.scenario.riskScore, greaterThan(result.baseline.riskScore));
 
-    expect(
-      result.scoreDifference,
-      greaterThan(0),
-    );
+    expect(result.scoreDifference, greaterThan(0));
   });
 }

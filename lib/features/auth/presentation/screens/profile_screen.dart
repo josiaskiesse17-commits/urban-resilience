@@ -125,7 +125,6 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-
 String themeLabel(ThemeMode mode) {
   return switch (mode) {
     ThemeMode.light => 'Clair',
@@ -137,8 +136,6 @@ String themeLabel(ThemeMode mode) {
 void _showMessage(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 }
-
-
 
 Future<void> _runAuthAction(
   BuildContext context,
@@ -212,9 +209,7 @@ Future<void> changePassword(BuildContext context, WidgetRef ref) async {
         controller: controller,
         autofocus: true,
         obscureText: true,
-        decoration: const InputDecoration(
-          labelText: 'Nouveau mot de passe',
-        ),
+        decoration: const InputDecoration(labelText: 'Nouveau mot de passe'),
       ),
       actions: [
         TextButton(
@@ -349,18 +344,10 @@ class _ProfileTile extends StatelessWidget {
     final color = titleColor;
 
     return ListTile(
-      leading: Icon(
-        icon,
-        color: color ?? AppPalette.primary,
-      ),
-      title: Text(
-        title,
-        style: color == null ? null : TextStyle(color: color),
-      ),
+      leading: Icon(icon, color: color ?? AppPalette.primary),
+      title: Text(title, style: color == null ? null : TextStyle(color: color)),
       subtitle: subtitle == null ? null : Text(subtitle!),
-      trailing: onTap == null
-          ? null
-          : const Icon(Icons.chevron_right),
+      trailing: onTap == null ? null : const Icon(Icons.chevron_right),
       onTap: onTap,
     );
   }

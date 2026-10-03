@@ -3,32 +3,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:urban_resilience/features/risk/domain/hazard_series_utils.dart';
 
 HazardSample sample(int hour, double value) {
-  return (
-    time: DateTime.utc(2026, 1, 1, hour),
-    value: value,
-  );
+  return (time: DateTime.utc(2026, 1, 1, hour), value: value);
 }
 
 void main() {
-  test(
-    'align drops unusable entries and sorts by time',
-    () {
-      final samples = HazardSeriesUtils.align(
-        times: [
-          '2026-01-01T02:00Z',
-          'not-a-date',
-          '2026-01-01T01:00Z',
-        ],
-        values: [2.0, null, 1.0],
-      );
+  test('align drops unusable entries and sorts by time', () {
+    final samples = HazardSeriesUtils.align(
+      times: ['2026-01-01T02:00Z', 'not-a-date', '2026-01-01T01:00Z'],
+      values: [2.0, null, 1.0],
+    );
 
-      expect(samples, hasLength(2));
-      expect(samples.first.time.hour, 1);
-      expect(samples.first.value, 1.0);
-      expect(samples.last.time.hour, 2);
-      expect(samples.last.value, 2.0);
-    },
-  );
+    expect(samples, hasLength(2));
+    expect(samples.first.time.hour, 1);
+    expect(samples.first.value, 1.0);
+    expect(samples.last.time.hour, 2);
+    expect(samples.last.value, 2.0);
+  });
 
   test('trailingSums sums contiguous windows only', () {
     final contiguous = HazardSeriesUtils.trailingSums(
@@ -55,7 +45,7 @@ void main() {
         sample(0, 1),
         sample(1, 2),
         sample(2, 3),
-        
+
         sample(4, 4),
         sample(5, 5),
         sample(6, 6),
@@ -72,40 +62,29 @@ void main() {
 
   test('trailing maxima and minima respect the window', () {
     final maxima = HazardSeriesUtils.trailingMaxima(
-      hourly: [
-        sample(0, 3),
-        sample(1, 9),
-        sample(2, 4),
-      ],
+      hourly: [sample(0, 3), sample(1, 9), sample(2, 4)],
       window: 3,
     );
 
     expect(maxima.single.value, 9);
 
     final minima = HazardSeriesUtils.trailingMinima(
-      hourly: [
-        sample(0, 3),
-        sample(1, 9),
-        sample(2, 4),
-      ],
+      hourly: [sample(0, 3), sample(1, 9), sample(2, 4)],
       window: 3,
     );
 
     expect(minima.single.value, 3);
   });
 
-  test(
-    'applyWindow returns the last sample for an instant window',
-    () {
-      final last = HazardSeriesUtils.applyWindow(
-        hourly: [sample(0, 1), sample(1, 7)],
-        window: HazardWindow.instant,
-      );
+  test('applyWindow returns the last sample for an instant window', () {
+    final last = HazardSeriesUtils.applyWindow(
+      hourly: [sample(0, 1), sample(1, 7)],
+      window: HazardWindow.instant,
+    );
 
-      expect(last.single.value, 7);
-      expect(last.single.time.hour, 1);
-    },
-  );
+    expect(last.single.value, 7);
+    expect(last.single.time.hour, 1);
+  });
 
   test('applyWindow produces nothing without a full window', () {
     expect(
@@ -120,14 +99,8 @@ void main() {
   test('byMonth buckets samples per calendar month', () {
     final buckets = HazardSeriesUtils.byMonth([
       sample(0, 1),
-      (
-        time: DateTime.utc(2026, 2, 3),
-        value: 5,
-      ),
-      (
-        time: DateTime.utc(2026, 1, 15),
-        value: 3,
-      ),
+      (time: DateTime.utc(2026, 2, 3), value: 5),
+      (time: DateTime.utc(2026, 1, 15), value: 3),
     ]);
 
     expect(buckets.keys, {1, 2});
@@ -136,9 +109,6 @@ void main() {
   });
 
   test('lastSample returns null for an empty series', () {
-    expect(
-      HazardSeriesUtils.lastSample(const <HazardSample>[]),
-      isNull,
-    );
+    expect(HazardSeriesUtils.lastSample(const <HazardSample>[]), isNull);
   });
 }

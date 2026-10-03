@@ -40,18 +40,11 @@ void main() {
       updatedAt: DateTime.utc(2026, 9, 28),
     );
 
-    final restored =
-        FloodRiskExposureProfile.fromJson(original.toJson());
+    final restored = FloodRiskExposureProfile.fromJson(original.toJson());
 
     expect(restored.zoneId, original.zoneId);
-    expect(
-      restored.populationExposureScore,
-      original.populationExposureScore,
-    );
-    expect(
-      restored.vulnerabilityScore,
-      original.vulnerabilityScore,
-    );
+    expect(restored.populationExposureScore, original.populationExposureScore);
+    expect(restored.vulnerabilityScore, original.vulnerabilityScore);
     expect(restored.historicalFloodExposureScore, 40);
   });
 }

@@ -23,10 +23,7 @@ class _ReportCategory {
   final String label;
   final List<_ReportType> types;
 
-  const _ReportCategory({
-    required this.label,
-    required this.types,
-  });
+  const _ReportCategory({required this.label, required this.types});
 }
 
 const _categories = [
@@ -275,7 +272,8 @@ class _NewReportScreenState extends ConsumerState<NewReportScreen> {
                               _TypeRow(
                                 type: type,
                                 selected: type.id == _selectedId,
-                                onTap: () => setState(() => _selectedId = type.id),
+                                onTap: () =>
+                                    setState(() => _selectedId = type.id),
                               ),
                               const SizedBox(height: 8),
                             ],
@@ -296,10 +294,9 @@ class _NewReportScreenState extends ConsumerState<NewReportScreen> {
                       final type = _categories
                           .expand((category) => category.types)
                           .firstWhere((item) => item.id == _selectedId);
-                      ref.read(reportDraftProvider.notifier).setType(
-                            title: type.title,
-                            icon: type.icon,
-                          );
+                      ref
+                          .read(reportDraftProvider.notifier)
+                          .setType(title: type.title, icon: type.icon);
                       context.push('/report/description');
                     },
                     style: ElevatedButton.styleFrom(

@@ -3,19 +3,7 @@ import 'hazard_type.dart';
 import 'risk_result.dart';
 import 'risk_zone.dart';
 
-
-
-
-
-
-
 bool isIdentifiedRisk(RiskResult result) => result.riskScore > 0;
-
-
-
-
-
-
 
 class ZoneActiveRisk {
   const ZoneActiveRisk({
@@ -36,10 +24,6 @@ class ZoneActiveRisk {
   final RiskLevel riskLevel;
   final DateTime updatedAt;
 
-  
-  
-  
-  
   static ZoneActiveRisk? fromResult(RiskResult result) {
     if (!isIdentifiedRisk(result)) {
       return null;
@@ -57,24 +41,7 @@ class ZoneActiveRisk {
   }
 }
 
-
-
-
-
-
-
-
-enum ZoneHazardStatus {
-  identified,
-  notIdentified,
-  notAssessed,
-}
-
-
-
-
-
-
+enum ZoneHazardStatus { identified, notIdentified, notAssessed }
 
 class ZoneHazardAssessment {
   const ZoneHazardAssessment({
@@ -99,35 +66,28 @@ class ZoneHazardAssessment {
 
   DateTime? get updatedAt => activeRisk?.updatedAt;
 
-  
-  
   factory ZoneHazardAssessment.fromResult({
     required String zoneId,
     required HazardType hazard,
     required RiskResult? result,
   }) {
-    final activeRisk =
-        result == null ? null : ZoneActiveRisk.fromResult(result);
+    final activeRisk = result == null
+        ? null
+        : ZoneActiveRisk.fromResult(result);
 
     return ZoneHazardAssessment(
       zoneId: zoneId,
-      riskId: HazardRiskId.forZone(
-        zoneId: zoneId,
-        hazard: hazard,
-      ),
+      riskId: HazardRiskId.forZone(zoneId: zoneId, hazard: hazard),
       hazard: hazard,
       status: activeRisk != null
           ? ZoneHazardStatus.identified
           : result == null
-              ? ZoneHazardStatus.notAssessed
-              : ZoneHazardStatus.notIdentified,
+          ? ZoneHazardStatus.notAssessed
+          : ZoneHazardStatus.notIdentified,
       activeRisk: activeRisk,
     );
   }
 }
-
-
-
 
 List<ZoneHazardAssessment> zoneHazardAssessmentsFrom(
   String zoneId,
@@ -150,14 +110,10 @@ List<ZoneHazardAssessment> zoneHazardAssessmentsFrom(
     }
   }
 
-  identified.sort(
-    (a, b) => b.riskScore!.compareTo(a.riskScore!),
-  );
+  identified.sort((a, b) => b.riskScore!.compareTo(a.riskScore!));
 
   return <ZoneHazardAssessment>[...identified, ...remaining];
 }
-
-
 
 List<ZoneActiveRisk> identifiedRisksOf(
   Iterable<ZoneHazardAssessment> assessments,
@@ -167,8 +123,6 @@ List<ZoneActiveRisk> identifiedRisksOf(
       if (assessment.activeRisk != null) assessment.activeRisk!,
   ];
 }
-
-
 
 RiskLevel? highestIdentifiedLevel(Iterable<ZoneActiveRisk> risks) {
   RiskLevel? highest;

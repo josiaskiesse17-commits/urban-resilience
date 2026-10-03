@@ -43,15 +43,9 @@ void main() {
         input.rainfallIntensityMmPerHour,
       );
 
-      expect(
-        enriched.riverDischargeM3s,
-        input.riverDischargeM3s,
-      );
+      expect(enriched.riverDischargeM3s, input.riverDischargeM3s);
 
-      expect(
-        enriched.observationCount,
-        input.observationCount,
-      );
+      expect(enriched.observationCount, input.observationCount);
 
       expect(
         enriched.confirmedObservationCount,

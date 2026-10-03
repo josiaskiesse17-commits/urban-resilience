@@ -74,8 +74,6 @@ void main() {
 
     final evidence = result.evidence;
 
-    
-    
     expect(
       evidence.measurements.map((item) => item.name),
       containsAll(<String>[
@@ -91,19 +89,12 @@ void main() {
     expect(indicators, contains('(ERA5)'));
     expect(indicators, contains('pas des seuils de sécurité officiels'));
     expect(indicators, contains('même mois calendaire'));
-    expect(
-      indicators,
-      contains('Non mesuré : Maximum apparent temperature'),
-    );
+    expect(indicators, contains('Non mesuré : Maximum apparent temperature'));
     expect(indicators, contains('jamais comme un zéro'));
     expect(indicators, contains('provider note'));
-    expect(
-      indicators,
-      contains('Limite du modèle : No official heat-health'),
-    );
+    expect(indicators, contains('Limite du modèle : No official heat-health'));
     expect(indicators, contains('Poids du score appliqués'));
 
-    
     expect(evidence.collectedAt, DateTime.utc(2026, 1, 15, 12));
     expect(evidence.observationCount, 0);
   });

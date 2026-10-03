@@ -1,23 +1,9 @@
-
-
-
-
 typedef RiskZoneTarget = ({
   String id,
   String name,
   double latitude,
   double longitude,
 });
-
-
-
-
-
-
-
-
-
-
 
 class RiskZoneCatalog {
   const RiskZoneCatalog._();
@@ -39,9 +25,6 @@ class RiskZoneCatalog {
     (id: 'zone-barumbu', name: 'Barumbu', latitude: -4.32, longitude: 15.31),
   ];
 
-  
-  
-  
   static final DateTime historicalBaselineStart = DateTime.utc(2018, 1, 1);
 
   static final DateTime historicalBaselineEnd = DateTime.utc(2022, 7, 31);

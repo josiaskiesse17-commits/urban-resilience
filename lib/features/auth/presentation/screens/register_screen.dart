@@ -43,7 +43,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       _error = null;
     });
 
-    await ref.read(authNotifierProvider.notifier).register(
+    await ref
+        .read(authNotifierProvider.notifier)
+        .register(
           email: _emailController.text.trim(),
           password: _passwordController.text,
           displayName: _nameController.text.trim(),
@@ -69,7 +71,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget build(BuildContext context) {
     return AuthScaffold(
       title: 'Créer un compte',
-      subtitle: 'Rejoignez-nous pour rester informé(e) des risques dans votre zone.',
+      subtitle:
+          'Rejoignez-nous pour rester informé(e) des risques dans votre zone.',
       footer: Column(
         children: [
           const AuthPrivacyNote(),

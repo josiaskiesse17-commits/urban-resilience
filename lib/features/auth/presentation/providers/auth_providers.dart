@@ -59,11 +59,9 @@ final adminStatusProvider = StreamProvider<bool>((ref) {
     return Stream.value(false);
   }
 
-  return firestore
-      .collection('admins')
-      .doc(user.uid)
-      .snapshots()
-      .map((snapshot) {
+  return firestore.collection('admins').doc(user.uid).snapshots().map((
+    snapshot,
+  ) {
     debugPrint('ADMIN DOC EXISTS: ${snapshot.exists}');
     debugPrint('ADMIN DOC DATA: ${snapshot.data()}');
 
@@ -108,33 +106,23 @@ class AuthNotifier extends AsyncNotifier<AppUser?> {
   }) async {
     state = const AsyncLoading();
 
-    state = await AsyncValue.guard(
-      () {
-        return _repository.register(
-          email: email,
-          password: password,
-          displayName: displayName,
-        );
-      },
-    );
+    state = await AsyncValue.guard(() {
+      return _repository.register(
+        email: email,
+        password: password,
+        displayName: displayName,
+      );
+    });
 
     _refreshAuthState();
   }
 
-  Future<void> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> login({required String email, required String password}) async {
     state = const AsyncLoading();
 
-    state = await AsyncValue.guard(
-      () {
-        return _repository.login(
-          email: email,
-          password: password,
-        );
-      },
-    );
+    state = await AsyncValue.guard(() {
+      return _repository.login(email: email, password: password);
+    });
 
     _refreshAuthState();
   }
@@ -142,64 +130,44 @@ class AuthNotifier extends AsyncNotifier<AppUser?> {
   Future<void> logout() async {
     state = const AsyncLoading();
 
-    state = await AsyncValue.guard(
-      () async {
-        await _repository.logout();
-        return null;
-      },
-    );
+    state = await AsyncValue.guard(() async {
+      await _repository.logout();
+      return null;
+    });
 
     _refreshAuthState();
   }
 
-  Future<void> sendPasswordResetEmail({
-    required String email,
-  }) async {
+  Future<void> sendPasswordResetEmail({required String email}) async {
     state = const AsyncLoading();
 
-    state = await AsyncValue.guard(
-      () async {
-        await _repository.sendPasswordResetEmail(
-          email: email,
-        );
+    state = await AsyncValue.guard(() async {
+      await _repository.sendPasswordResetEmail(email: email);
 
-        return _repository.currentUser;
-      },
-    );
+      return _repository.currentUser;
+    });
   }
 
-  Future<void> changePassword({
-    required String newPassword,
-  }) async {
+  Future<void> changePassword({required String newPassword}) async {
     state = const AsyncLoading();
 
-    state = await AsyncValue.guard(
-      () async {
-        await _repository.changePassword(
-          newPassword: newPassword,
-        );
+    state = await AsyncValue.guard(() async {
+      await _repository.changePassword(newPassword: newPassword);
 
-        return _repository.currentUser;
-      },
-    );
+      return _repository.currentUser;
+    });
 
     _refreshAuthState();
   }
 
-  Future<void> changeDisplayName({
-    required String displayName,
-  }) async {
+  Future<void> changeDisplayName({required String displayName}) async {
     state = const AsyncLoading();
 
-    state = await AsyncValue.guard(
-      () async {
-        await _repository.changeDisplayName(
-          displayName: displayName,
-        );
+    state = await AsyncValue.guard(() async {
+      await _repository.changeDisplayName(displayName: displayName);
 
-        return _repository.currentUser;
-      },
-    );
+      return _repository.currentUser;
+    });
 
     _refreshAuthState();
   }
@@ -207,29 +175,21 @@ class AuthNotifier extends AsyncNotifier<AppUser?> {
   Future<void> sendEmailVerification() async {
     state = const AsyncLoading();
 
-    state = await AsyncValue.guard(
-      () async {
-        await _repository.sendEmailVerification();
+    state = await AsyncValue.guard(() async {
+      await _repository.sendEmailVerification();
 
-        return _repository.currentUser;
-      },
-    );
+      return _repository.currentUser;
+    });
   }
 
-  Future<void> reauthenticate({
-    required String password,
-  }) async {
+  Future<void> reauthenticate({required String password}) async {
     state = const AsyncLoading();
 
-    state = await AsyncValue.guard(
-      () async {
-        await _repository.reauthenticate(
-          password: password,
-        );
+    state = await AsyncValue.guard(() async {
+      await _repository.reauthenticate(password: password);
 
-        return _repository.currentUser;
-      },
-    );
+      return _repository.currentUser;
+    });
 
     _refreshAuthState();
   }
@@ -237,11 +197,9 @@ class AuthNotifier extends AsyncNotifier<AppUser?> {
   Future<void> refreshUser() async {
     state = const AsyncLoading();
 
-    state = await AsyncValue.guard(
-      () async {
-        return _repository.currentUser;
-      },
-    );
+    state = await AsyncValue.guard(() async {
+      return _repository.currentUser;
+    });
 
     _refreshAuthState();
   }
@@ -249,13 +207,11 @@ class AuthNotifier extends AsyncNotifier<AppUser?> {
   Future<void> deleteAccount() async {
     state = const AsyncLoading();
 
-    state = await AsyncValue.guard(
-      () async {
-        await _repository.deleteAccount();
+    state = await AsyncValue.guard(() async {
+      await _repository.deleteAccount();
 
-        return null;
-      },
-    );
+      return null;
+    });
 
     _refreshAuthState();
   }
@@ -265,7 +221,6 @@ class AuthNotifier extends AsyncNotifier<AppUser?> {
   }
 }
 
-final authNotifierProvider =
-    AsyncNotifierProvider<AuthNotifier, AppUser?>(
+final authNotifierProvider = AsyncNotifierProvider<AuthNotifier, AppUser?>(
   AuthNotifier.new,
 );

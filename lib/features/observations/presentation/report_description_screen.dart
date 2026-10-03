@@ -15,7 +15,8 @@ class ReportDescriptionScreen extends ConsumerStatefulWidget {
       _ReportDescriptionScreenState();
 }
 
-class _ReportDescriptionScreenState extends ConsumerState<ReportDescriptionScreen> {
+class _ReportDescriptionScreenState
+    extends ConsumerState<ReportDescriptionScreen> {
   late final TextEditingController _description;
   final _picker = ImagePicker();
 
@@ -98,7 +99,11 @@ class _ReportDescriptionScreenState extends ConsumerState<ReportDescriptionScree
                                   color: AppPalette.infoBoxBg,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: SvgPicture.asset(draft.typeIcon, width: 20, height: 20),
+                                child: SvgPicture.asset(
+                                  draft.typeIcon,
+                                  width: 20,
+                                  height: 20,
+                                ),
                               ),
                               const SizedBox(width: 10),
                               Expanded(
@@ -145,14 +150,19 @@ class _ReportDescriptionScreenState extends ConsumerState<ReportDescriptionScree
                               contentPadding: const EdgeInsets.all(12),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(14),
-                                borderSide: const BorderSide(color: AppPalette.inputBorder),
+                                borderSide: const BorderSide(
+                                  color: AppPalette.inputBorder,
+                                ),
                               ),
                             ),
                           ),
                           const SizedBox(height: 10),
                           const Text(
                             'Décrivez uniquement ce que vous observez.',
-                            style: TextStyle(fontSize: 11, color: AppPalette.textMuted),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppPalette.textMuted,
+                            ),
                           ),
                         ],
                       ),
@@ -195,7 +205,8 @@ class _ReportDescriptionScreenState extends ConsumerState<ReportDescriptionScree
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         draft.photoName!,
@@ -251,7 +262,11 @@ class _ReportDescriptionScreenState extends ConsumerState<ReportDescriptionScree
                       ),
                       child: const Row(
                         children: [
-                          Icon(Icons.info_outline, size: 18, color: AppPalette.infoText),
+                          Icon(
+                            Icons.info_outline,
+                            size: 18,
+                            color: AppPalette.infoText,
+                          ),
                           SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -272,7 +287,9 @@ class _ReportDescriptionScreenState extends ConsumerState<ReportDescriptionScree
               ReportActionButton(
                 label: 'Continuer vers la localisation',
                 onPressed: () {
-                  ref.read(reportDraftProvider.notifier).setDescription(_description.text.trim());
+                  ref
+                      .read(reportDraftProvider.notifier)
+                      .setDescription(_description.text.trim());
                   context.push('/report/location');
                 },
               ),

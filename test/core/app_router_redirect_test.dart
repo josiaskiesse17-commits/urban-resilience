@@ -22,33 +22,21 @@ void main() {
   group('guests', () {
     test('are sent to the login screen', () {
       expect(redirect('/home', isAuthenticated: false), '/login');
-      expect(
-        redirect('/admin/risk', isAuthenticated: false),
-        '/login',
-      );
-      expect(
-        redirect('/risk/zone-masina', isAuthenticated: false),
-        '/login',
-      );
+      expect(redirect('/admin/risk', isAuthenticated: false), '/login');
+      expect(redirect('/risk/zone-masina', isAuthenticated: false), '/login');
     });
 
     test('can stay on the sign-in routes', () {
       expect(redirect('/login', isAuthenticated: false), isNull);
       expect(redirect('/register', isAuthenticated: false), isNull);
-      expect(
-        redirect('/forgot-password', isAuthenticated: false),
-        isNull,
-      );
+      expect(redirect('/forgot-password', isAuthenticated: false), isNull);
     });
   });
 
   group('unverified users', () {
     test('must verify their email before anything else', () {
       expect(redirect('/home', isEmailVerified: false), '/verify-email');
-      expect(
-        redirect('/admin/risk', isEmailVerified: false),
-        '/verify-email',
-      );
+      expect(redirect('/admin/risk', isEmailVerified: false), '/verify-email');
     });
 
     test('can stay on the verification route', () {
@@ -83,14 +71,8 @@ void main() {
     test('are routed into the admin shell', () {
       expect(redirect('/home', isAdmin: true), '/admin/dashboard');
       expect(redirect('/login', isAdmin: true), '/admin/dashboard');
-      expect(
-        redirect('/verify-email', isAdmin: true),
-        '/admin/dashboard',
-      );
-      expect(
-        redirect('/risk/zone-masina', isAdmin: true),
-        '/admin/dashboard',
-      );
+      expect(redirect('/verify-email', isAdmin: true), '/admin/dashboard');
+      expect(redirect('/risk/zone-masina', isAdmin: true), '/admin/dashboard');
     });
 
     test('can stay on every admin route', () {
@@ -104,10 +86,7 @@ void main() {
   group('admin status loading', () {
     test('defers the decision instead of guessing a role', () {
       expect(redirect('/home', isAdminStatusLoading: true), isNull);
-      expect(
-        redirect('/admin/risk', isAdminStatusLoading: true),
-        isNull,
-      );
+      expect(redirect('/admin/risk', isAdminStatusLoading: true), isNull);
     });
   });
 }

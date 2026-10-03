@@ -40,9 +40,7 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
 
     if (_expiresAt == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('La date d’expiration est obligatoire.'),
-        ),
+        const SnackBar(content: Text('La date d’expiration est obligatoire.')),
       );
       return;
     }
@@ -52,9 +50,7 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
     if (!expiry.isAfter(DateTime.now().toUtc())) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'La date d’expiration doit être dans le futur.',
-          ),
+          content: Text('La date d’expiration doit être dans le futur.'),
         ),
       );
       return;
@@ -64,11 +60,9 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
     final zoneId = _zoneId ?? (zones.isEmpty ? null : zones.first.id);
 
     if (zoneId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Aucune zone disponible.'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Aucune zone disponible.')));
       return;
     }
 
@@ -76,9 +70,7 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
 
     if (zone == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Zone sélectionnée introuvable.'),
-        ),
+        const SnackBar(content: Text('Zone sélectionnée introuvable.')),
       );
       return;
     }
@@ -109,18 +101,13 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
       if (mounted) {
         setState(() => _expiresAt = null);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Alerte publiée.'),
-          ),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Alerte publiée.')));
       }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Publication impossible : $error'),
-          ),
+          SnackBar(content: Text('Publication impossible : $error')),
         );
       }
     } finally {
@@ -132,10 +119,9 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
 
   Future<void> _pickExpiry() async {
     final now = DateTime.now();
-    final initialDate =
-        _expiresAt != null && _expiresAt!.isAfter(now)
-            ? _expiresAt!
-            : now.add(const Duration(days: 1));
+    final initialDate = _expiresAt != null && _expiresAt!.isAfter(now)
+        ? _expiresAt!
+        : now.add(const Duration(days: 1));
 
     final pickedDate = await showDatePicker(
       context: context,
@@ -211,23 +197,16 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
     }
 
     try {
-      await ref.read(alertsRepositoryProvider).delete(
-            id: alert.id,
-          );
+      await ref.read(alertsRepositoryProvider).delete(id: alert.id);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Alerte supprimée.'),
-          ),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Alerte supprimée.')));
       }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Suppression impossible : $error'),
-          ),
+          SnackBar(content: Text('Suppression impossible : $error')),
         );
       }
     }
@@ -242,9 +221,7 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Alertes'),
-      ),
+      appBar: AppBar(title: const Text('Alertes')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Center(
@@ -272,27 +249,21 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
       children: [
         Text(
           'Gestion des alertes',
-          style: Theme.of(context)
-              .textTheme
-              .headlineMedium
+          style: Theme.of(context).textTheme.headlineMedium
               ?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 6),
         Text(
           'Créez et publiez manuellement les alertes affichées aux '
           'utilisateurs.',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+          style: Theme.of(context).textTheme.bodyLarge
+              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
       ],
     );
   }
 
-  Widget _buildCreateCard(
-    BuildContext context,
-    List<RiskZoneTarget> zones,
-  ) {
+  Widget _buildCreateCard(BuildContext context, List<RiskZoneTarget> zones) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -303,9 +274,7 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
             children: [
               Text(
                 'Créer une alerte',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
+                style: Theme.of(context).textTheme.titleLarge
                     ?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 16),
@@ -315,10 +284,9 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
                   labelText: 'Titre de l’alerte',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) =>
-                    value == null || value.trim().isEmpty
-                        ? 'Le titre est obligatoire.'
-                        : null,
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? 'Le titre est obligatoire.'
+                    : null,
               ),
               const SizedBox(height: 14),
               DropdownButtonFormField<String>(
@@ -397,10 +365,9 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
                   labelText: 'Message',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) =>
-                    value == null || value.trim().isEmpty
-                        ? 'Le message est obligatoire.'
-                        : null,
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? 'Le message est obligatoire.'
+                    : null,
               ),
               const SizedBox(height: 14),
               Row(
@@ -408,10 +375,7 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: _pickExpiry,
-                      icon: const Icon(
-                        Icons.event,
-                        size: 18,
-                      ),
+                      icon: const Icon(Icons.event, size: 18),
                       label: Text(
                         _expiresAt == null
                             ? 'Définir l’expiration'
@@ -438,14 +402,10 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
                     ? const SizedBox(
                         width: 18,
                         height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                        ),
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.add_alert),
-                label: Text(
-                  _publishing ? 'Publication...' : 'Publier',
-                ),
+                label: Text(_publishing ? 'Publication...' : 'Publier'),
               ),
             ],
           ),
@@ -465,31 +425,24 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
           children: [
             Text(
               'Historique des alertes',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
+              style: Theme.of(context).textTheme.titleLarge
                   ?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 12),
             alerts.when(
               loading: () => const Padding(
                 padding: EdgeInsets.all(24),
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: Center(child: CircularProgressIndicator()),
               ),
               error: (error, _) => Text('Erreur : $error'),
               data: (items) => items.isEmpty
-                  ? const Text(
-                      'Aucune alerte publiée pour le moment.',
-                    )
+                  ? const Text('Aucune alerte publiée pour le moment.')
                   : Column(
                       children: [
                         for (final alert in items)
                           _AlertListTile(
                             alert: alert,
-                            onToggle: (active) =>
-                                _setActive(alert, active),
+                            onToggle: (active) => _setActive(alert, active),
                             onDelete: () => _deleteAlert(alert),
                           ),
                       ],
@@ -501,23 +454,17 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
     );
   }
 
-  Future<void> _setActive(
-    RiskAlert alert,
-    bool active,
-  ) async {
+  Future<void> _setActive(RiskAlert alert, bool active) async {
     try {
-      await ref.read(alertsRepositoryProvider).setActive(
-            id: alert.id,
-            active: active,
-          );
+      await ref
+          .read(alertsRepositoryProvider)
+          .setActive(id: alert.id, active: active);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              active
-                  ? 'Alerte publiée.'
-                  : 'Alerte retirée des utilisateurs.',
+              active ? 'Alerte publiée.' : 'Alerte retirée des utilisateurs.',
             ),
           ),
         );
@@ -525,11 +472,7 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Mise à jour impossible : $error',
-            ),
-          ),
+          SnackBar(content: Text('Mise à jour impossible : $error')),
         );
       }
     }
@@ -558,19 +501,17 @@ class _AlertListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final zoneName =
-        RiskZoneCatalog.byId(alert.zoneId)?.name ?? alert.zoneId;
+    final zoneName = RiskZoneCatalog.byId(alert.zoneId)?.name ?? alert.zoneId;
 
     final hazardLabel =
-        HazardType.fromLabel(alert.hazardType)?.labelFr ??
-            alert.hazardType;
+        HazardType.fromLabel(alert.hazardType)?.labelFr ?? alert.hazardType;
 
     final color = alertSeverityColor(alert.severity);
 
     final subtitle = alert.isExpired
         ? '$zoneName • $hazardLabel • Expirée'
         : '$zoneName • $hazardLabel • '
-            '${_AdminAlertsScreenState._formatDateTime(alert.createdAt)}';
+              '${_AdminAlertsScreenState._formatDateTime(alert.createdAt)}';
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
@@ -586,11 +527,7 @@ class _AlertListTile extends StatelessWidget {
         spacing: 8,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          Chip(
-            label: Text(
-              alertSeverityLabel(alert.severity),
-            ),
-          ),
+          Chip(label: Text(alertSeverityLabel(alert.severity))),
           Switch(
             value: alert.active,
             onChanged: alert.isExpired ? null : onToggle,

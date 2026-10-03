@@ -6,7 +6,6 @@ import 'risk_measurement_label.dart';
 import 'risk_score_utils.dart';
 import 'risk_zone.dart';
 
-
 class HazardVariableScore {
   const HazardVariableScore({
     required this.name,
@@ -19,11 +18,8 @@ class HazardVariableScore {
   final String name;
   final String label;
 
-  
   final double weight;
 
-  
-  
   final bool usedInScore;
 
   final double? score;
@@ -48,20 +44,10 @@ class HazardRiskAssessment {
   final RiskFactors factors;
   final List<HazardVariableScore> variableScores;
 
-  
   final double excludedWeight;
 
-  
   final Map<String, double> factorWeights;
 }
-
-
-
-
-
-
-
-
 
 class HazardRiskCalculator {
   const HazardRiskCalculator();
@@ -72,8 +58,7 @@ class HazardRiskCalculator {
 
   HazardRiskAssessment calculate(HazardRiskInput input) {
     final variableScores = <HazardVariableScore>[];
-    final hazardComponents =
-        <({double value, double weight})>[];
+    final hazardComponents = <({double value, double weight})>[];
     final variableEntries = <RiskFactorScore>[];
 
     var excludedWeight = 0.0;
@@ -82,12 +67,6 @@ class HazardRiskCalculator {
       final score = variable.score;
 
       if (score == null) {
-        
-        
-        
-        
-        
-        
         excludedWeight += variable.weight;
 
         variableScores.add(
@@ -102,12 +81,7 @@ class HazardRiskCalculator {
         continue;
       }
 
-      hazardComponents.add(
-        (
-          value: score,
-          weight: variable.weight,
-        ),
-      );
+      hazardComponents.add((value: score, weight: variable.weight));
 
       variableScores.add(
         HazardVariableScore(
@@ -130,10 +104,6 @@ class HazardRiskCalculator {
       );
     }
 
-    
-    
-    
-    
     final variableNames = input.variables
         .map((variable) => variable.name)
         .toSet();
@@ -160,18 +130,12 @@ class HazardRiskCalculator {
         ? RiskScoreUtils.weightedAverage(hazardComponents)
         : 0.0;
 
-    final overallComponents =
-        <({double value, double weight})>[];
+    final overallComponents = <({double value, double weight})>[];
 
     final factorWeights = <String, double>{};
 
     if (hazardAvailable) {
-      overallComponents.add(
-        (
-          value: hazardScore,
-          weight: hazardWeight,
-        ),
-      );
+      overallComponents.add((value: hazardScore, weight: hazardWeight));
 
       factorWeights['hazard'] = hazardWeight;
     }
@@ -179,40 +143,27 @@ class HazardRiskCalculator {
     final vulnerability = input.vulnerabilityScore;
 
     if (vulnerability != null) {
-      overallComponents.add(
-        (
-          value: RiskScoreUtils.clamp(vulnerability),
-          weight: vulnerabilityWeight,
-        ),
-      );
+      overallComponents.add((
+        value: RiskScoreUtils.clamp(vulnerability),
+        weight: vulnerabilityWeight,
+      ));
 
       factorWeights['vulnerability'] = vulnerabilityWeight;
     }
 
-    final historicalExposure =
-        input.historicalExposureScore;
+    final historicalExposure = input.historicalExposureScore;
 
     if (historicalExposure != null) {
-      overallComponents.add(
-        (
-          value: RiskScoreUtils.clamp(historicalExposure),
-          weight: historicalExposureWeight,
-        ),
-      );
+      overallComponents.add((
+        value: RiskScoreUtils.clamp(historicalExposure),
+        weight: historicalExposureWeight,
+      ));
 
-      factorWeights['historicalExposure'] =
-          historicalExposureWeight;
+      factorWeights['historicalExposure'] = historicalExposureWeight;
     }
 
-    final overallScore =
-        RiskScoreUtils.weightedAverage(overallComponents);
+    final overallScore = RiskScoreUtils.weightedAverage(overallComponents);
 
-    
-    
-    
-    
-    
-    
     final entries = <RiskFactorScore>[
       RiskFactorScore(
         name: 'hazard',
@@ -227,8 +178,8 @@ class HazardRiskCalculator {
         unavailableReason: hazardAvailable
             ? null
             : 'none of the environmental variables of '
-                '${input.hazard.label.toLowerCase()} could be scored for '
-                'this location',
+                  '${input.hazard.label.toLowerCase()} could be scored for '
+                  'this location',
       ),
       ...variableEntries,
       RiskFactorScore(
@@ -239,21 +190,19 @@ class HazardRiskCalculator {
         usedInScore: vulnerability != null,
         unavailableReason: vulnerability == null
             ? 'the stored exposure profile of this zone did not provide a '
-                'vulnerability score'
+                  'vulnerability score'
             : null,
       ),
       RiskFactorScore(
         name: 'historicalExposure',
         label: RiskMeasurementLabel.of(name: 'historicalExposure'),
         score: historicalExposure,
-        weight: historicalExposure == null
-            ? 0
-            : historicalExposureWeight,
+        weight: historicalExposure == null ? 0 : historicalExposureWeight,
         usedInScore: historicalExposure != null,
         unavailableReason: historicalExposure == null
             ? 'no historical exposure of this zone is stored for '
-                '${input.hazard.label.toLowerCase()}, and the flood exposure '
-                'of the same zone is not a measurement of this hazard'
+                  '${input.hazard.label.toLowerCase()}, and the flood exposure '
+                  'of the same zone is not a measurement of this hazard'
             : null,
       ),
     ];
@@ -277,8 +226,6 @@ class HazardRiskCalculator {
     );
   }
 
-  
-  
   static String _factorLabel(HazardVariable variable) {
     return RiskMeasurementLabel.of(
       name: variable.name,

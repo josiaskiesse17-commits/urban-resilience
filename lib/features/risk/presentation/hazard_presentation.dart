@@ -3,11 +3,6 @@ import 'package:flutter/material.dart';
 import '../domain/hazard_type.dart';
 import '../domain/risk_zone.dart';
 
-
-
-
-
-
 IconData hazardIcon(HazardType hazard) {
   switch (hazard) {
     case HazardType.flooding:
@@ -18,8 +13,6 @@ IconData hazardIcon(HazardType hazard) {
       return Icons.terrain;
   }
 }
-
-
 
 Color riskLevelColor(RiskLevel level) {
   switch (level) {
@@ -33,7 +26,5 @@ Color riskLevelColor(RiskLevel level) {
       return Colors.red;
   }
 }
-
-
 
 const Color zoneNeutralColor = Colors.blueGrey;

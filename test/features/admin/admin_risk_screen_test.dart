@@ -80,18 +80,15 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      
       expect(find.text('CRITIQUE'), findsWidgets);
       expect(find.text('64'), findsWidgets);
       expect(find.textContaining('Mis à jour'), findsWidgets);
 
-      
       expect(find.text('Éléments de preuve'), findsOneWidget);
       expect(find.textContaining('observations reçues'), findsOneWidget);
       expect(find.text('Mesures clés'), findsOneWidget);
       expect(find.textContaining('Source : Open-Meteo'), findsWidgets);
 
-      
       expect(generatorCalls, 0);
     },
   );
@@ -138,20 +135,15 @@ void main() {
       await tester.tap(recalculate);
       await tester.pumpAndSettle();
 
-      
       expect(generatorCalls, 1);
       expect(repository.stored, isNotNull);
       expect(repository.stored!.riskScore, 81);
 
-      
       expect(find.text('81'), findsWidgets);
 
-      
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
 
-      
-      
       await tester.pumpWidget(
         buildCitizenHost(
           repository: repository,
@@ -169,8 +161,6 @@ void main() {
       expect(find.text('81/100'), findsOneWidget);
       expect(find.text('CRITIQUE'), findsOneWidget);
 
-      
-      
       expect(generatorCalls, 1);
       expect(analyst.calls, 1);
     },

@@ -6,34 +6,19 @@ import '../../../risk/domain/zone_active_risk.dart';
 import '../../../risk/presentation/hazard_presentation.dart';
 import '../../../risk/presentation/providers/risk_live_providers.dart';
 
-
-
-
-
-
-
-
 class ZoneMapMarker extends ConsumerWidget {
-  const ZoneMapMarker({
-    super.key,
-    required this.zone,
-    required this.onTap,
-  });
+  const ZoneMapMarker({super.key, required this.zone, required this.onTap});
 
   final RiskZoneTarget zone;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final activeRisks = ref.watch(
-      zoneActiveRisksProvider(zone.id),
-    );
+    final activeRisks = ref.watch(zoneActiveRisksProvider(zone.id));
 
     final level = highestIdentifiedLevel(activeRisks);
 
-    final color = level == null
-        ? zoneNeutralColor
-        : riskLevelColor(level);
+    final color = level == null ? zoneNeutralColor : riskLevelColor(level);
 
     return GestureDetector(
       onTap: onTap,
@@ -47,10 +32,7 @@ class ZoneMapMarker extends ConsumerWidget {
             decoration: BoxDecoration(
               color: color,
               shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white,
-                width: 3,
-              ),
+              border: Border.all(color: Colors.white, width: 3),
               boxShadow: [
                 BoxShadow(
                   color: color.withValues(alpha: 0.45),
@@ -62,10 +44,7 @@ class ZoneMapMarker extends ConsumerWidget {
           ),
           const SizedBox(height: 4),
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 8,
-              vertical: 2,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),

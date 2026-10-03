@@ -2,11 +2,6 @@ import 'dart:convert';
 
 import '../domain/hazard_environmental_data.dart';
 
-
-
-
-
-
 class OpenMeteoHourlyParser {
   const OpenMeteoHourlyParser._();
 
@@ -14,30 +9,23 @@ class OpenMeteoHourlyParser {
     final decoded = jsonDecode(body);
 
     if (decoded is! Map<String, dynamic>) {
-      throw const FormatException(
-        'Open-Meteo response is not a JSON object.',
-      );
+      throw const FormatException('Open-Meteo response is not a JSON object.');
     }
 
     if (decoded['error'] == true) {
       throw FormatException(
-        decoded['reason']?.toString() ??
-            'Open-Meteo returned an API error.',
+        decoded['reason']?.toString() ?? 'Open-Meteo returned an API error.',
       );
     }
 
     return decoded;
   }
 
-  static List<DateTime> parseTimes(
-    Map<String, dynamic> json,
-  ) {
+  static List<DateTime> parseTimes(Map<String, dynamic> json) {
     final hourly = json['hourly'];
 
     if (hourly is! Map<String, dynamic>) {
-      throw const FormatException(
-        'Open-Meteo response has no hourly block.',
-      );
+      throw const FormatException('Open-Meteo response has no hourly block.');
     }
 
     final times = hourly['time'];
@@ -71,9 +59,6 @@ class OpenMeteoHourlyParser {
     return parsed;
   }
 
-  
-  
-  
   static HazardSeries? seriesFor({
     required Map<String, dynamic> json,
     required List<DateTime> times,

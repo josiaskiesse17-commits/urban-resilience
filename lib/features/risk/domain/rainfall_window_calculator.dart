@@ -1,9 +1,7 @@
 class RainfallWindowCalculator {
   const RainfallWindowCalculator();
 
-  List<double> rollingSixHourTotals(
-    List<double> hourlyRainfall,
-  ) {
+  List<double> rollingSixHourTotals(List<double> hourlyRainfall) {
     if (hourlyRainfall.length < 6) {
       return [];
     }

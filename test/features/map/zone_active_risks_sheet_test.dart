@@ -32,8 +32,6 @@ RiskResult _identified({
   );
 }
 
-
-
 Widget buildSheetHost({
   required StoredByHazardRepository repository,
   required List<String> generated,
@@ -56,9 +54,8 @@ Widget buildSheetHost({
       ),
       GoRoute(
         path: '/risk/:id',
-        builder: (context, state) => RiskDetailsScreen(
-          riskId: state.pathParameters['id']!,
-        ),
+        builder: (context, state) =>
+            RiskDetailsScreen(riskId: state.pathParameters['id']!),
       ),
     ],
   );
@@ -75,10 +72,7 @@ Widget buildSheetHost({
           generated.add(hazard.id);
 
           final result = _identified(
-            id: HazardRiskId.forZone(
-              zoneId: zone.id,
-              hazard: hazard,
-            ),
+            id: HazardRiskId.forZone(zoneId: zone.id, hazard: hazard),
             hazardType: hazard.label,
             riskScore: 71,
             riskLevel: RiskLevel.critical,
@@ -104,10 +98,7 @@ Future<void> _openSheet(
   addTearDown(tester.view.reset);
 
   await tester.pumpWidget(
-    buildSheetHost(
-      repository: repository,
-      generated: generated,
-    ),
+    buildSheetHost(repository: repository, generated: generated),
   );
   await tester.pumpAndSettle();
 
@@ -116,52 +107,43 @@ Future<void> _openSheet(
 }
 
 void main() {
-  testWidgets(
-    'lists the identified risks of the zone, most severe first',
-    (tester) async {
-      final repository = StoredByHazardRepository()
-        ..stored['zone-masina'] = _identified(
-          id: 'zone-masina',
-          hazardType: 'Flood',
-          riskScore: 62,
-          riskLevel: RiskLevel.high,
-        )
-        ..stored['zone-masina--heat'] = _identified(
-          id: 'zone-masina--heat',
-          hazardType: 'Heat',
-          riskScore: 71,
-          riskLevel: RiskLevel.critical,
-        );
-
-      await _openSheet(
-        tester,
-        repository: repository,
-        generated: <String>[],
+  testWidgets('lists the identified risks of the zone, most severe first', (
+    tester,
+  ) async {
+    final repository = StoredByHazardRepository()
+      ..stored['zone-masina'] = _identified(
+        id: 'zone-masina',
+        hazardType: 'Flood',
+        riskScore: 62,
+        riskLevel: RiskLevel.high,
+      )
+      ..stored['zone-masina--heat'] = _identified(
+        id: 'zone-masina--heat',
+        hazardType: 'Heat',
+        riskScore: 71,
+        riskLevel: RiskLevel.critical,
       );
 
-      expect(find.text('Masina'), findsOneWidget);
-      expect(
-        find.text('2 risques actifs identifiés dans cette zone.'),
-        findsOneWidget,
-      );
-      expect(find.text('Risques actifs'), findsOneWidget);
-      expect(find.text('Autres risques'), findsOneWidget);
+    await _openSheet(tester, repository: repository, generated: <String>[]);
 
-      
-      expect(
-        tester.getTopLeft(find.text(HazardType.heat.labelFr)).dy,
-        lessThan(
-          tester.getTopLeft(find.text(HazardType.flooding.labelFr)).dy,
-        ),
-      );
-      expect(find.text('CRITIQUE'), findsOneWidget);
-      expect(find.text('ÉLEVÉ'), findsOneWidget);
+    expect(find.text('Masina'), findsOneWidget);
+    expect(
+      find.text('2 risques actifs identifiés dans cette zone.'),
+      findsOneWidget,
+    );
+    expect(find.text('Risques actifs'), findsOneWidget);
+    expect(find.text('Autres risques'), findsOneWidget);
 
-      
-      expect(find.text(HazardType.landslide.labelFr), findsOneWidget);
-      expect(find.text('Non évalué'), findsOneWidget);
-    },
-  );
+    expect(
+      tester.getTopLeft(find.text(HazardType.heat.labelFr)).dy,
+      lessThan(tester.getTopLeft(find.text(HazardType.flooding.labelFr)).dy),
+    );
+    expect(find.text('CRITIQUE'), findsOneWidget);
+    expect(find.text('ÉLEVÉ'), findsOneWidget);
+
+    expect(find.text(HazardType.landslide.labelFr), findsOneWidget);
+    expect(find.text('Non évalué'), findsOneWidget);
+  });
 
   testWidgets(
     'a zone without identified risk says so instead of showing zeroes',
@@ -174,11 +156,7 @@ void main() {
           riskLevel: RiskLevel.low,
         );
 
-      await _openSheet(
-        tester,
-        repository: repository,
-        generated: <String>[],
-      );
+      await _openSheet(tester, repository: repository, generated: <String>[]);
 
       expect(
         find.text(
@@ -192,39 +170,33 @@ void main() {
         findsOneWidget,
       );
 
-      
       expect(find.text('Aucun risque'), findsOneWidget);
       expect(find.text('Autres risques'), findsOneWidget);
     },
   );
 
-  testWidgets(
-    'a failed read is reported with an explicit Retry',
-    (tester) async {
-      final repository = StoredByHazardRepository()
-        ..failure = Exception('offline');
+  testWidgets('a failed read is reported with an explicit Retry', (
+    tester,
+  ) async {
+    final repository = StoredByHazardRepository()
+      ..failure = Exception('offline');
 
-      await _openSheet(
-        tester,
-        repository: repository,
-        generated: <String>[],
-      );
+    await _openSheet(tester, repository: repository, generated: <String>[]);
 
-      expect(
-        find.text('Impossible de charger les risques enregistrés de Masina.'),
-        findsOneWidget,
-      );
-      expect(find.textContaining('offline'), findsOneWidget);
+    expect(
+      find.text('Impossible de charger les risques enregistrés de Masina.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('offline'), findsOneWidget);
 
-      repository.failure = null;
+    repository.failure = null;
 
-      await tester.tap(find.text('Réessayer'));
-      await tester.pumpAndSettle();
+    await tester.tap(find.text('Réessayer'));
+    await tester.pumpAndSettle();
 
-      expect(find.text('Autres risques'), findsOneWidget);
-      expect(find.text(HazardType.landslide.labelFr), findsOneWidget);
-    },
-  );
+    expect(find.text('Autres risques'), findsOneWidget);
+    expect(find.text(HazardType.landslide.labelFr), findsOneWidget);
+  });
 
   testWidgets(
     'tapping a hazard opens the risk details of that hazard document',
@@ -238,16 +210,11 @@ void main() {
         );
       final generated = <String>[];
 
-      await _openSheet(
-        tester,
-        repository: repository,
-        generated: generated,
-      );
+      await _openSheet(tester, repository: repository, generated: generated);
 
       await tester.tap(find.text(HazardType.heat.labelFr));
       await tester.pumpAndSettle();
 
-      
       expect(generated, <String>[HazardType.heat.id]);
       expect(
         repository.stored.keys,
@@ -259,37 +226,27 @@ void main() {
     },
   );
 
-  testWidgets(
-    'an evaluation persists when the zone is left and reopened',
-    (tester) async {
-      final repository = StoredByHazardRepository();
-      final generated = <String>[];
+  testWidgets('an evaluation persists when the zone is left and reopened', (
+    tester,
+  ) async {
+    final repository = StoredByHazardRepository();
+    final generated = <String>[];
 
-      await _openSheet(
-        tester,
-        repository: repository,
-        generated: generated,
-      );
+    await _openSheet(tester, repository: repository, generated: generated);
 
-      
-      expect(find.text('Non évalué'), findsNWidgets(3));
+    expect(find.text('Non évalué'), findsNWidgets(3));
 
-      
-      await tester.tap(find.text(HazardType.heat.labelFr));
-      await tester.pumpAndSettle();
+    await tester.tap(find.text(HazardType.heat.labelFr));
+    await tester.pumpAndSettle();
 
-      expect(generated, <String>[HazardType.heat.id]);
-      expect(repository.stored['zone-masina--heat'], isNotNull);
+    expect(generated, <String>[HazardType.heat.id]);
+    expect(repository.stored['zone-masina--heat'], isNotNull);
 
-      
-      GoRouter.of(tester.element(find.byType(RiskDetailsScreen))).pop();
-      await tester.pumpAndSettle();
+    GoRouter.of(tester.element(find.byType(RiskDetailsScreen))).pop();
+    await tester.pumpAndSettle();
 
-      
-      
-      expect(find.text('Non évalué'), findsNWidgets(2));
-      expect(find.text('CRITIQUE'), findsOneWidget);
-      expect(find.textContaining('Score 71/100'), findsOneWidget);
-    },
-  );
+    expect(find.text('Non évalué'), findsNWidgets(2));
+    expect(find.text('CRITIQUE'), findsOneWidget);
+    expect(find.textContaining('Score 71/100'), findsOneWidget);
+  });
 }

@@ -4,9 +4,6 @@ import 'package:urban_resilience/features/auth/data/auth_remote_data_source.dart
 import 'package:urban_resilience/features/auth/domain/app_user.dart';
 import 'package:urban_resilience/features/auth/domain/auth_repository.dart';
 
-
-
-
 class FakeUser implements User {
   FakeUser({
     this.uid = 'test-uid',
@@ -28,10 +25,8 @@ class FakeUser implements User {
   @override
   final bool emailVerified;
 
-  
   final Object? sendEmailVerificationError;
 
-  
   final List<String> calls = [];
 
   int get sendEmailVerificationCalls =>
@@ -60,10 +55,8 @@ class FakeUser implements User {
   }
 
   @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-
 
 class FakeUserCredential implements UserCredential {
   FakeUserCredential(this.user);
@@ -72,10 +65,8 @@ class FakeUserCredential implements UserCredential {
   final User? user;
 
   @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-
 
 class FakeFirebaseAuth implements FirebaseAuth {
   FakeFirebaseAuth({this.currentUser});
@@ -84,20 +75,15 @@ class FakeFirebaseAuth implements FirebaseAuth {
   final User? currentUser;
 
   @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-
 
 class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
   FakeAuthRemoteDataSource({this.currentUser, this.createdUser});
 
-  
   @override
   final User? currentUser;
 
-  
-  
   final User? createdUser;
 
   Object? registerError;
@@ -122,10 +108,8 @@ class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
   Stream<User?> get authStateChanges => const Stream<User?>.empty();
 
   @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-
 
 class FakeAuthRepository implements AuthRepository {
   FakeAuthRepository({
@@ -179,10 +163,7 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<AppUser> login({
-    required String email,
-    required String password,
-  }) {
+  Future<AppUser> login({required String email, required String password}) {
     throw UnimplementedError();
   }
 

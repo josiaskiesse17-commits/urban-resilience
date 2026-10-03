@@ -3,8 +3,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
-final mapControllerProvider =
-    NotifierProvider<MapLocationController, MapState>(
+final mapControllerProvider = NotifierProvider<MapLocationController, MapState>(
   MapLocationController.new,
 );
 
@@ -41,18 +40,8 @@ class MapState {
   }
 }
 
-
-
-
-
-
-
 class MapLocationController extends Notifier<MapState> {
-  
-  static const LatLng defaultLocation = LatLng(
-    -4.3276,
-    15.3142,
-  );
+  static const LatLng defaultLocation = LatLng(-4.3276, 15.3142);
 
   @override
   MapState build() {
@@ -66,14 +55,10 @@ class MapLocationController extends Notifier<MapState> {
   }
 
   Future<void> initialize() async {
-    state = state.copyWith(
-      loading: true,
-      error: null,
-    );
+    state = state.copyWith(loading: true, error: null);
 
     try {
-      final serviceEnabled =
-          await Geolocator.isLocationServiceEnabled();
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
       if (!serviceEnabled) {
         state = state.copyWith(
@@ -85,8 +70,7 @@ class MapLocationController extends Notifier<MapState> {
         return;
       }
 
-      LocationPermission permission =
-          await Geolocator.checkPermission();
+      LocationPermission permission = await Geolocator.checkPermission();
 
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -106,14 +90,8 @@ class MapLocationController extends Notifier<MapState> {
       final position = await Geolocator.getCurrentPosition();
 
       state = state.copyWith(
-        currentLocation: LatLng(
-          position.latitude,
-          position.longitude,
-        ),
-        selectedLocation: LatLng(
-          position.latitude,
-          position.longitude,
-        ),
+        currentLocation: LatLng(position.latitude, position.longitude),
+        selectedLocation: LatLng(position.latitude, position.longitude),
         loading: false,
         locationPermissionDenied: false,
       );
@@ -142,15 +120,11 @@ class MapLocationController extends Notifier<MapState> {
         locations.first.longitude,
       );
 
-      state = state.copyWith(
-        selectedLocation: location,
-      );
+      state = state.copyWith(selectedLocation: location);
 
       return location;
     } catch (_) {
-      state = state.copyWith(
-        error: 'Lieu introuvable.',
-      );
+      state = state.copyWith(error: 'Lieu introuvable.');
 
       return null;
     }

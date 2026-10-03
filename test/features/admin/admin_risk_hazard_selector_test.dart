@@ -13,7 +13,6 @@ import 'package:urban_resilience/features/risk/presentation/providers/risk_live_
 import '../risk/risk_result_test_support.dart';
 import '../risk/risk_test_fakes.dart';
 
-
 class MapRiskResultRepository implements RiskResultRepository {
   final Map<String, RiskResult> stored = <String, RiskResult>{};
 
@@ -21,8 +20,7 @@ class MapRiskResultRepository implements RiskResultRepository {
   Future<RiskResult?> get(String riskId) async => stored[riskId];
 
   @override
-  Future<RiskResult?> getLatestForZone(String zoneId) async =>
-      stored[zoneId];
+  Future<RiskResult?> getLatestForZone(String zoneId) async => stored[zoneId];
 
   @override
   Future<void> save(RiskResult result) async {
@@ -30,11 +28,7 @@ class MapRiskResultRepository implements RiskResultRepository {
   }
 }
 
-RiskResult _resultFor(
-  String zoneName,
-  String zoneId,
-  HazardType hazard,
-) {
+RiskResult _resultFor(String zoneName, String zoneId, HazardType hazard) {
   final isFlooding = hazard == HazardType.flooding;
 
   return buildRiskResult(
@@ -43,8 +37,7 @@ RiskResult _resultFor(
     hazardType: isFlooding ? 'Flood' : hazard.label,
     primaryFactorLabel: isFlooding ? 'Rainfall' : 'Heat',
     riskScore: isFlooding ? 64 : 38,
-    riskLevel:
-        isFlooding ? RiskLevel.high : RiskLevel.medium,
+    riskLevel: isFlooding ? RiskLevel.high : RiskLevel.medium,
   );
 }
 
@@ -54,23 +47,16 @@ Widget buildHost({
 }) {
   return ProviderScope(
     overrides: [
-      riskResultRepositoryProvider
-          .overrideWith((ref) => repository),
+      riskResultRepositoryProvider.overrideWith((ref) => repository),
       riskExposureRepositoryProvider.overrideWith(
         (ref) => FakeRiskExposureRepository(),
       ),
-      riskAnalystProvider.overrideWith(
-        (ref) => FakeRiskAnalyst(),
-      ),
+      riskAnalystProvider.overrideWith((ref) => FakeRiskAnalyst()),
       zoneHazardRiskGeneratorProvider.overrideWith(
         (ref) => (zone, hazard) async {
           generated.add(hazard.id);
 
-          final result = _resultFor(
-            zone.name,
-            zone.id,
-            hazard,
-          );
+          final result = _resultFor(zone.name, zone.id, hazard);
 
           repository.stored[result.id] = result;
 
@@ -78,9 +64,7 @@ Widget buildHost({
         },
       ),
     ],
-    child: const MaterialApp(
-      home: AdminRiskScreen(),
-    ),
+    child: const MaterialApp(home: AdminRiskScreen()),
   );
 }
 
@@ -92,63 +76,32 @@ void main() {
       final generated = <String>[];
 
       await tester.pumpWidget(
-        buildHost(
-          repository: repository,
-          generated: generated,
-        ),
+        buildHost(repository: repository, generated: generated),
       );
       await tester.pumpAndSettle();
 
-      
-      
       expect(generated, <String>[HazardType.flooding.id]);
-      expect(
-        repository.stored.keys,
-        <String>['zone-masina'],
-      );
-      expect(
-        repository.stored['zone-masina']!.hazardType,
-        'Flood',
-      );
+      expect(repository.stored.keys, <String>['zone-masina']);
+      expect(repository.stored['zone-masina']!.hazardType, 'Flood');
 
-      
       expect(find.text('Scénario hypothétique'), findsOneWidget);
 
-      await tester.tap(
-        find.text(HazardType.heat.labelFr),
-      );
+      await tester.tap(find.text(HazardType.heat.labelFr));
       await tester.pumpAndSettle();
 
-      expect(
-        generated,
-        <String>[
-          HazardType.flooding.id,
-          HazardType.heat.id,
-        ],
-      );
+      expect(generated, <String>[HazardType.flooding.id, HazardType.heat.id]);
 
-      
       expect(
         repository.stored.keys,
-        containsAll(<String>[
-          'zone-masina',
-          'zone-masina--heat',
-        ]),
+        containsAll(<String>['zone-masina', 'zone-masina--heat']),
       );
-      expect(
-        repository.stored['zone-masina']!.riskScore,
-        64,
-      );
+      expect(repository.stored['zone-masina']!.riskScore, 64);
       expect(
         repository.stored['zone-masina--heat']!.hazardType,
         HazardType.heat.label,
       );
-      expect(
-        repository.stored['zone-masina--heat']!.riskScore,
-        38,
-      );
+      expect(repository.stored['zone-masina--heat']!.riskScore, 38);
 
-      
       expect(find.text('Scénario hypothétique'), findsNothing);
     },
   );

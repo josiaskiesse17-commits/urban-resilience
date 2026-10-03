@@ -6,16 +6,12 @@ import 'package:urban_resilience/features/risk/domain/flood_risk_input_exposure_
 import 'package:urban_resilience/features/risk/domain/risk_exposure_repository.dart';
 
 class FakeRiskExposureRepository implements RiskExposureRepository {
-  FakeRiskExposureRepository({
-    this.profile,
-  });
+  FakeRiskExposureRepository({this.profile});
 
   final FloodRiskExposureProfile? profile;
 
   @override
-  Future<FloodRiskExposureProfile?> getProfile(
-    String zoneId,
-  ) async {
+  Future<FloodRiskExposureProfile?> getProfile(String zoneId) async {
     if (profile?.zoneId == zoneId) {
       return profile;
     }
@@ -24,9 +20,7 @@ class FakeRiskExposureRepository implements RiskExposureRepository {
   }
 
   @override
-  Future<void> saveProfile(
-    FloodRiskExposureProfile profile,
-  ) async {}
+  Future<void> saveProfile(FloodRiskExposureProfile profile) async {}
 }
 
 void main() {
@@ -57,64 +51,34 @@ void main() {
   );
 
   test('applies stored exposure profile to input', () async {
-    final repository = FakeRiskExposureRepository(
-      profile: profile,
-    );
+    final repository = FakeRiskExposureRepository(profile: profile);
 
-    final enricher = FloodRiskInputExposureEnricher(
-      repository: repository,
-    );
+    final enricher = FloodRiskInputExposureEnricher(repository: repository);
 
-    final result = await enricher.enrich(
-      zoneId: 'zone-1',
-      input: input,
-    );
+    final result = await enricher.enrich(zoneId: 'zone-1', input: input);
 
     expect(result.vulnerabilityScore, 71.5);
     expect(result.historicalExposureScore, 75);
 
-    expect(
-      result.rainfallIntensityMmPerHour,
-      input.rainfallIntensityMmPerHour,
-    );
+    expect(result.rainfallIntensityMmPerHour, input.rainfallIntensityMmPerHour);
 
-    expect(
-      result.riverDischargeM3s,
-      input.riverDischargeM3s,
-    );
+    expect(result.riverDischargeM3s, input.riverDischargeM3s);
 
-    expect(
-      result.observationCount,
-      input.observationCount,
-    );
+    expect(result.observationCount, input.observationCount);
   });
 
   test('keeps original input when profile does not exist', () async {
     final repository = FakeRiskExposureRepository();
 
-    final enricher = FloodRiskInputExposureEnricher(
-      repository: repository,
-    );
+    final enricher = FloodRiskInputExposureEnricher(repository: repository);
 
-    final result = await enricher.enrich(
-      zoneId: 'unknown-zone',
-      input: input,
-    );
+    final result = await enricher.enrich(zoneId: 'unknown-zone', input: input);
 
     expect(result.vulnerabilityScore, input.vulnerabilityScore);
-    expect(
-      result.historicalExposureScore,
-      input.historicalExposureScore,
-    );
+    expect(result.historicalExposureScore, input.historicalExposureScore);
 
-    expect(
-      result.rainfallIntensityMmPerHour,
-      input.rainfallIntensityMmPerHour,
-    );
+    expect(result.rainfallIntensityMmPerHour, input.rainfallIntensityMmPerHour);
 
-    expect(
-      result.riverDischargeM3s,
-      input.riverDischargeM3s,
-    );
+    expect(result.riverDischargeM3s, input.riverDischargeM3s);
   });
 }

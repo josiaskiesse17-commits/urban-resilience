@@ -14,70 +14,49 @@ class HistoricalFloodBaselineCalculator {
     DateTime? generatedAt,
   }) {
     if (hourlyRainfallValues.isEmpty) {
-      throw ArgumentError(
-        'Hourly rainfall values cannot be empty.',
-      );
+      throw ArgumentError('Hourly rainfall values cannot be empty.');
     }
 
     if (sixHourRainfallValues.isEmpty) {
-      throw ArgumentError(
-        'Six-hour rainfall values cannot be empty.',
-      );
+      throw ArgumentError('Six-hour rainfall values cannot be empty.');
     }
 
     if (riverDischargeValues.isEmpty) {
-      throw ArgumentError(
-        'River discharge values cannot be empty.',
-      );
+      throw ArgumentError('River discharge values cannot be empty.');
     }
 
     return FloodHistoricalBaseline(
-      rainfallBaselineMmPerHour:
-          HistoricalStatistics.median(
+      rainfallBaselineMmPerHour: HistoricalStatistics.median(
         hourlyRainfallValues,
       ),
-      rainfallCriticalMmPerHour:
-          HistoricalStatistics.percentile(
+      rainfallCriticalMmPerHour: HistoricalStatistics.percentile(
         hourlyRainfallValues,
         95,
       ),
-      rainfallAccumulation6hBaselineMm:
-          HistoricalStatistics.median(
+      rainfallAccumulation6hBaselineMm: HistoricalStatistics.median(
         sixHourRainfallValues,
       ),
-      rainfallAccumulation6hCriticalMm:
-          HistoricalStatistics.percentile(
+      rainfallAccumulation6hCriticalMm: HistoricalStatistics.percentile(
         sixHourRainfallValues,
         95,
       ),
-      riverDischargeBaselineM3s:
-          HistoricalStatistics.median(
+      riverDischargeBaselineM3s: HistoricalStatistics.median(
         riverDischargeValues,
       ),
-      riverDischargeCriticalM3s:
-          HistoricalStatistics.percentile(
+      riverDischargeCriticalM3s: HistoricalStatistics.percentile(
         riverDischargeValues,
         95,
       ),
-      referencePeriodStart:
-          referencePeriodStart,
-      referencePeriodEnd:
-          referencePeriodEnd,
-      generatedAt:
-          generatedAt ?? DateTime.now().toUtc(),
-      rainfallSampleCount:
-          hourlyRainfallValues.length,
-      riverDischargeSampleCount:
-          riverDischargeValues.length,
-      rainfallHourlyDistribution: HistoricalDistribution(
-        hourlyRainfallValues,
-      ),
+      referencePeriodStart: referencePeriodStart,
+      referencePeriodEnd: referencePeriodEnd,
+      generatedAt: generatedAt ?? DateTime.now().toUtc(),
+      rainfallSampleCount: hourlyRainfallValues.length,
+      riverDischargeSampleCount: riverDischargeValues.length,
+      rainfallHourlyDistribution: HistoricalDistribution(hourlyRainfallValues),
       rainfallSixHourDistribution: HistoricalDistribution(
         sixHourRainfallValues,
       ),
-      riverDischargeDistribution: HistoricalDistribution(
-        riverDischargeValues,
-      ),
+      riverDischargeDistribution: HistoricalDistribution(riverDischargeValues),
     );
   }
 }

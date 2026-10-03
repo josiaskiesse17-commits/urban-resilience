@@ -7,19 +7,12 @@ class FloodEnvironmentalData {
   final String rainfallSource;
   final String riverSource;
 
-  
   final DateTime? rainfallObservedAt;
 
-  
   final DateTime? riverObservedAt;
 
-  
-  
-  
-  
   final int rainfallAccumulationWindowHours;
 
-  
   final List<String> dataNotes;
 
   const FloodEnvironmentalData({

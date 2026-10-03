@@ -1,17 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 enum HazardType {
   flooding(
     id: 'flooding',
@@ -43,26 +29,16 @@ enum HazardType {
     required this.riskNounFr,
   });
 
-  
   final String id;
 
-  
   final String label;
 
-  
-  
   final String labelFr;
 
-  
   final String riskNoun;
 
-  
   final String riskNounFr;
 
-  
-  
-  
-  
   static const HazardType legacyDefault = HazardType.flooding;
 
   static HazardType? fromId(String id) {

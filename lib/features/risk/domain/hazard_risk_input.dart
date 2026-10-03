@@ -1,19 +1,6 @@
 import 'hazard_type.dart';
 import 'hazard_variable.dart';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 class HazardRiskInput {
   const HazardRiskInput({
     required this.hazard,
@@ -37,24 +24,14 @@ class HazardRiskInput {
 
   final HazardType hazard;
 
-  
   final String primaryFactorLabel;
 
   final List<HazardVariable> variables;
 
-  
-  
-  
-  
-  
   final List<HazardVariableGap> gaps;
 
-  
-  
   final double? vulnerabilityScore;
 
-  
-  
   final double? historicalExposureScore;
 
   final double observationScore;
@@ -63,23 +40,16 @@ class HazardRiskInput {
 
   final bool exposureProfileMissing;
 
-  
   final String exposureNote;
 
-  
   final List<String> limitations;
 
-  
-  
-  
   final List<String> notes;
 
   final DateTime? referencePeriodStart;
   final DateTime? referencePeriodEnd;
   final String? referenceSource;
 
-  
-  
   final bool partialReference;
 
   bool get hasReferencePeriod =>

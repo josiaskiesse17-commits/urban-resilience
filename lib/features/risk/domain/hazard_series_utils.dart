@@ -1,11 +1,4 @@
-
 typedef HazardSample = ({DateTime time, double value});
-
-
-
-
-
-
 
 enum HazardWindow {
   instant(hours: 1, label: 'instant'),
@@ -18,48 +11,25 @@ enum HazardWindow {
   max24h(hours: 24, label: '24h'),
   min24h(hours: 24, label: '24h');
 
-  const HazardWindow({
-    required this.hours,
-    required this.label,
-  });
+  const HazardWindow({required this.hours, required this.label});
 
-  
   final int hours;
 
-  
   final String label;
 
-  
   int get requiredLookbackDays => (hours / 24).ceil() + 1;
 }
-
-
-
-
-
-
-
-
-
-
 
 class HazardSeriesUtils {
   const HazardSeriesUtils._();
 
   static const Duration _oneHour = Duration(hours: 1);
 
-  
-  
-  
-  
-  
-  
   static List<HazardSample> align({
     required List<Object?> times,
     required List<Object?> values,
   }) {
-    final length =
-        times.length < values.length ? times.length : values.length;
+    final length = times.length < values.length ? times.length : values.length;
 
     final samples = <HazardSample>[];
 
@@ -83,34 +53,19 @@ class HazardSeriesUtils {
         continue;
       }
 
-      samples.add(
-        (
-          time: parsed.toUtc(),
-          value: value.toDouble(),
-        ),
-      );
+      samples.add((time: parsed.toUtc(), value: value.toDouble()));
     }
 
-    samples.sort(
-      (first, second) => first.time.compareTo(second.time),
-    );
+    samples.sort((first, second) => first.time.compareTo(second.time));
 
     return samples;
   }
 
-  
-  
-  
-  
-  
-  
   static List<int> _runLengths(List<HazardSample> hourly) {
     final runs = List<int>.filled(hourly.length, 0);
 
     for (var index = 1; index < hourly.length; index++) {
-      final gap = hourly[index].time.difference(
-        hourly[index - 1].time,
-      );
+      final gap = hourly[index].time.difference(hourly[index - 1].time);
 
       runs[index] = gap == _oneHour ? runs[index - 1] + 1 : 0;
     }
@@ -118,7 +73,6 @@ class HazardSeriesUtils {
     return runs;
   }
 
-  
   static List<HazardSample> trailingSums({
     required List<HazardSample> hourly,
     required int window,
@@ -144,39 +98,24 @@ class HazardSeriesUtils {
         continue;
       }
 
-      results.add(
-        (
-          time: hourly[index].time,
-          value: windowSum,
-        ),
-      );
+      results.add((time: hourly[index].time, value: windowSum));
     }
 
     return results;
   }
 
-  
   static List<HazardSample> trailingMaxima({
     required List<HazardSample> hourly,
     required int window,
   }) {
-    return _trailingExtreme(
-      hourly: hourly,
-      window: window,
-      keepHigher: true,
-    );
+    return _trailingExtreme(hourly: hourly, window: window, keepHigher: true);
   }
 
-  
   static List<HazardSample> trailingMinima({
     required List<HazardSample> hourly,
     required int window,
   }) {
-    return _trailingExtreme(
-      hourly: hourly,
-      window: window,
-      keepHigher: false,
-    );
+    return _trailingExtreme(hourly: hourly, window: window, keepHigher: false);
   }
 
   static List<HazardSample> _trailingExtreme({
@@ -188,9 +127,7 @@ class HazardSeriesUtils {
 
     final runs = _runLengths(hourly);
 
-    for (var index = window - 1;
-        index < hourly.length;
-        index++) {
+    for (var index = window - 1; index < hourly.length; index++) {
       if (runs[index] < window - 1) {
         continue;
       }
@@ -207,18 +144,12 @@ class HazardSeriesUtils {
         }
       }
 
-      results.add(
-        (
-          time: hourly[index].time,
-          value: extreme,
-        ),
-      );
+      results.add((time: hourly[index].time, value: extreme));
     }
 
     return results;
   }
 
-  
   static List<HazardSample> applyWindow({
     required List<HazardSample> hourly,
     required HazardWindow window,
@@ -227,9 +158,7 @@ class HazardSeriesUtils {
       case HazardWindow.instant:
         final last = lastSample(hourly);
 
-        return last == null
-            ? const <HazardSample>[]
-            : <HazardSample>[last];
+        return last == null ? const <HazardSample>[] : <HazardSample>[last];
 
       case HazardWindow.sum6h:
         return trailingSums(hourly: hourly, window: 6);
@@ -257,9 +186,7 @@ class HazardSeriesUtils {
     }
   }
 
-  static HazardSample? lastSample(
-    List<HazardSample> samples,
-  ) {
+  static HazardSample? lastSample(List<HazardSample> samples) {
     if (samples.isEmpty) {
       return null;
     }
@@ -267,18 +194,12 @@ class HazardSeriesUtils {
     return samples.last;
   }
 
-  
-  static Map<int, List<double>> byMonth(
-    List<HazardSample> samples,
-  ) {
+  static Map<int, List<double>> byMonth(List<HazardSample> samples) {
     final buckets = <int, List<double>>{};
 
     for (final sample in samples) {
       buckets
-          .putIfAbsent(
-            sample.time.month,
-            () => <double>[],
-          )
+          .putIfAbsent(sample.time.month, () => <double>[])
           .add(sample.value);
     }
 

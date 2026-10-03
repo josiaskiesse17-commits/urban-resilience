@@ -46,31 +46,33 @@ void main() {
       );
     });
 
-    test('propagates the exact Firebase error instead of swallowing it',
-        () async {
-      final user = FakeUser(
-        emailVerified: false,
-        sendEmailVerificationError: FirebaseAuthException(
-          code: 'too-many-requests',
-          message: 'TOO_MANY_ATTEMPTS_TRY_LATER',
-        ),
-      );
-      final dataSource = AuthRemoteDataSource(
-        FakeFirebaseAuth(currentUser: user),
-      );
-
-      await expectLater(
-        dataSource.sendEmailVerification(),
-        throwsA(
-          isA<FirebaseAuthException>().having(
-            (error) => error.code,
-            'code',
-            'too-many-requests',
+    test(
+      'propagates the exact Firebase error instead of swallowing it',
+      () async {
+        final user = FakeUser(
+          emailVerified: false,
+          sendEmailVerificationError: FirebaseAuthException(
+            code: 'too-many-requests',
+            message: 'TOO_MANY_ATTEMPTS_TRY_LATER',
           ),
-        ),
-      );
+        );
+        final dataSource = AuthRemoteDataSource(
+          FakeFirebaseAuth(currentUser: user),
+        );
 
-      expect(user.sendEmailVerificationCalls, 1);
-    });
+        await expectLater(
+          dataSource.sendEmailVerification(),
+          throwsA(
+            isA<FirebaseAuthException>().having(
+              (error) => error.code,
+              'code',
+              'too-many-requests',
+            ),
+          ),
+        );
+
+        expect(user.sendEmailVerificationCalls, 1);
+      },
+    );
   });
 }

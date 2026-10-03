@@ -58,7 +58,6 @@ class _FakeExposure implements RiskExposureRepository {
   Future<void> saveProfile(FloodRiskExposureProfile profile) async {}
 }
 
-
 const Map<String, double> _fieldBase = <String, double>{
   'rain': 0.8,
   'soil_moisture_0_to_7cm': 0.30,
@@ -313,14 +312,9 @@ void main() {
         .toSet();
     final factors = result.factors.entries.map((entry) => entry.name).toSet();
 
-    
-    
-    
-    
     expect(measurements, contains('rainfallAccumulation24h'));
     expect(factors, isNot(contains('rainfallAccumulation24h')));
 
-    
     expect(
       result.evidence.qualitativeIndicators.join(' '),
       contains('Non pris en compte : Cumul de pluie — dernières 24 heures'),

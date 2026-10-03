@@ -71,11 +71,7 @@ class ReportProgress extends StatelessWidget {
   final int step;
   final String label;
 
-  const ReportProgress({
-    super.key,
-    required this.step,
-    required this.label,
-  });
+  const ReportProgress({super.key, required this.step, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +92,10 @@ class ReportProgress extends StatelessWidget {
               const Spacer(),
               Text(
                 label,
-                style: const TextStyle(fontSize: 13, color: AppPalette.textMuted),
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppPalette.textMuted,
+                ),
               ),
             ],
           ),

@@ -8,16 +8,12 @@ import 'package:urban_resilience/features/risk/domain/risk_exposure_repository.d
 import 'package:urban_resilience/features/risk/domain/risk_intelligence_service.dart';
 
 class FakeRiskExposureRepository implements RiskExposureRepository {
-  FakeRiskExposureRepository({
-    this.profile,
-  });
+  FakeRiskExposureRepository({this.profile});
 
   final FloodRiskExposureProfile? profile;
 
   @override
-  Future<FloodRiskExposureProfile?> getProfile(
-    String zoneId,
-  ) async {
+  Future<FloodRiskExposureProfile?> getProfile(String zoneId) async {
     if (profile?.zoneId == zoneId) {
       return profile;
     }
@@ -26,9 +22,7 @@ class FakeRiskExposureRepository implements RiskExposureRepository {
   }
 
   @override
-  Future<void> saveProfile(
-    FloodRiskExposureProfile profile,
-  ) async {}
+  Future<void> saveProfile(FloodRiskExposureProfile profile) async {}
 }
 
 void main() {
@@ -58,85 +52,67 @@ void main() {
     historicalFloodExposureScore: 75,
   );
 
-  test(
-    'combines exposure and citizen observations in RiskResult',
-    () async {
-      final repository = FakeRiskExposureRepository(
-        profile: profile,
-      );
+  test('combines exposure and citizen observations in RiskResult', () async {
+    final repository = FakeRiskExposureRepository(profile: profile);
 
-      final exposureEnricher =
-          FloodRiskInputExposureEnricher(
-        repository: repository,
-      );
+    final exposureEnricher = FloodRiskInputExposureEnricher(
+      repository: repository,
+    );
 
-      final service = RiskIntelligenceService(
-        exposureEnricher: exposureEnricher,
-      );
+    final service = RiskIntelligenceService(exposureEnricher: exposureEnricher);
 
-      final now = DateTime.now().toUtc();
+    final now = DateTime.now().toUtc();
 
-      final observations = [
-        Observation(
-          id: 'obs-1',
-          userId: 'user-1',
-          latitude: 0,
-          longitude: 0,
-          type: ObservationType.flooding,
-          status: ObservationStatus.confirmed,
-          createdAt: now,
-        ),
-        Observation(
-          id: 'obs-2',
-          userId: 'user-2',
-          latitude: 0,
-          longitude: 0,
-          type: ObservationType.blockedRoad,
-          status: ObservationStatus.confirmed,
-          createdAt: now,
-        ),
-      ];
-
-      final result =
-          await service.calculateFloodRiskWithExposureAndObservations(
-        id: 'risk-1',
-        zoneId: 'zone-1',
-        locationName: 'Test Zone',
+    final observations = [
+      Observation(
+        id: 'obs-1',
+        userId: 'user-1',
         latitude: 0,
         longitude: 0,
-        input: input,
-        observations: observations,
-      );
+        type: ObservationType.flooding,
+        status: ObservationStatus.confirmed,
+        createdAt: now,
+      ),
+      Observation(
+        id: 'obs-2',
+        userId: 'user-2',
+        latitude: 0,
+        longitude: 0,
+        type: ObservationType.blockedRoad,
+        status: ObservationStatus.confirmed,
+        createdAt: now,
+      ),
+    ];
 
-      final vulnerability =
-          result.evidence.measurements.firstWhere(
-        (measurement) =>
-            measurement.name == 'geographicVulnerability',
-      );
+    final result = await service.calculateFloodRiskWithExposureAndObservations(
+      id: 'risk-1',
+      zoneId: 'zone-1',
+      locationName: 'Test Zone',
+      latitude: 0,
+      longitude: 0,
+      input: input,
+      observations: observations,
+    );
 
-      final historicalExposure =
-          result.evidence.measurements.firstWhere(
-        (measurement) =>
-            measurement.name == 'historicalExposure',
-      );
+    final vulnerability = result.evidence.measurements.firstWhere(
+      (measurement) => measurement.name == 'geographicVulnerability',
+    );
 
-      expect(vulnerability.value, 71.5);
-      expect(historicalExposure.value, 75);
+    final historicalExposure = result.evidence.measurements.firstWhere(
+      (measurement) => measurement.name == 'historicalExposure',
+    );
 
-      
-      
-      expect(
-        result.evidence.measurements.map((measurement) => measurement.name),
-        isNot(contains('citizenObservationRisk')),
-      );
+    expect(vulnerability.value, 71.5);
+    expect(historicalExposure.value, 75);
 
-      expect(result.evidence.observationCount, 2);
-      expect(
-        result.evidence.confirmedObservationCount,
-        2,
-      );
-    },
-  );
+    expect(
+      result.evidence.measurements.map((measurement) => measurement.name),
+      isNot(contains('citizenObservationRisk')),
+    );
+
+    expect(result.evidence.observationCount, 2);
+    expect(result.evidence.confirmedObservationCount, 2);
+  });
 
   test(
     'pending observations are reflected in evidence but do not add risk',
@@ -157,8 +133,7 @@ void main() {
         ),
       ];
 
-      final result =
-          await service.calculateFloodRiskWithObservations(
+      final result = await service.calculateFloodRiskWithObservations(
         id: 'risk-2',
         locationName: 'Test Zone',
         latitude: 0,
@@ -167,18 +142,13 @@ void main() {
         observations: observations,
       );
 
-      
-      
       expect(
         result.evidence.measurements.map((measurement) => measurement.name),
         isNot(contains('citizenObservationRisk')),
       );
 
       expect(result.evidence.observationCount, 1);
-      expect(
-        result.evidence.confirmedObservationCount,
-        0,
-      );
+      expect(result.evidence.confirmedObservationCount, 0);
     },
   );
 }

@@ -16,13 +16,6 @@ class RiskResult {
   final RiskEvidence evidence;
   final DateTime updatedAt;
 
-  
-  
-  
-  
-  
-  
-  
   final RiskAnalysis? analysis;
 
   const RiskResult({
@@ -54,21 +47,10 @@ class RiskResult {
     };
   }
 
-  
-  
-  
-  
-  
   Map<String, dynamic> toStoredJson() {
-    return {
-      ...toJson(),
-      'analysis': analysis?.toJson(),
-    };
+    return {...toJson(), 'analysis': analysis?.toJson()};
   }
 
-  
-  
-  
   RiskResult withAnalysis(RiskAnalysis analysis) {
     return RiskResult(
       id: id,
@@ -86,75 +68,48 @@ class RiskResult {
   }
 
   factory RiskResult.fromJson(Map<String, dynamic> json) {
-    final factorsJson =
-        Map<String, dynamic>.from(
-      json['factors'] as Map,
-    );
+    final factorsJson = Map<String, dynamic>.from(json['factors'] as Map);
 
-    final evidenceJson =
-        Map<String, dynamic>.from(
-      json['evidence'] as Map,
-    );
+    final evidenceJson = Map<String, dynamic>.from(json['evidence'] as Map);
 
     final measurementJson =
         (evidenceJson['measurements'] as List?)
-                ?.map(
-                  (item) => Map<String, dynamic>.from(
-                    item as Map,
-                  ),
-                )
-                .toList() ??
-            <Map<String, dynamic>>[];
+            ?.map((item) => Map<String, dynamic>.from(item as Map))
+            .toList() ??
+        <Map<String, dynamic>>[];
 
     final measurements = measurementJson.map((json) {
       return RiskMeasurement(
         name: json['name'] as String,
         value: (json['value'] as num).toDouble(),
         unit: json['unit'] as String,
-        measurementPeriod:
-            json['measurementPeriod'] as String?,
-        referenceValue:
-            (json['referenceValue'] as num?)?.toDouble(),
-        referenceUnit:
-            json['referenceUnit'] as String?,
-        referenceLabel:
-            json['referenceLabel'] as String?,
-        referenceType: _parseReferenceType(
-          json['referenceType'],
-        ),
-        ratioToReference:
-            (json['ratioToReference'] as num?)?.toDouble(),
-        differenceFromReference:
-            (json['differenceFromReference'] as num?)
-                ?.toDouble(),
-        historicalPercentile:
-            (json['historicalPercentile'] as num?)
-                ?.toDouble(),
-        statisticalCriticalValue:
-            (json['statisticalCriticalValue'] as num?)
-                ?.toDouble(),
-        statisticalCriticalLabel:
-            json['statisticalCriticalLabel'] as String?,
+        measurementPeriod: json['measurementPeriod'] as String?,
+        referenceValue: (json['referenceValue'] as num?)?.toDouble(),
+        referenceUnit: json['referenceUnit'] as String?,
+        referenceLabel: json['referenceLabel'] as String?,
+        referenceType: _parseReferenceType(json['referenceType']),
+        ratioToReference: (json['ratioToReference'] as num?)?.toDouble(),
+        differenceFromReference: (json['differenceFromReference'] as num?)
+            ?.toDouble(),
+        historicalPercentile: (json['historicalPercentile'] as num?)
+            ?.toDouble(),
+        statisticalCriticalValue: (json['statisticalCriticalValue'] as num?)
+            ?.toDouble(),
+        statisticalCriticalLabel: json['statisticalCriticalLabel'] as String?,
         isDerived: json['isDerived'] == true,
-        derivationNote:
-            json['derivationNote'] as String?,
+        derivationNote: json['derivationNote'] as String?,
         source: json['source'] as String?,
-        observedAt: _parseDateTime(
-          json['observedAt'],
-        ),
+        observedAt: _parseDateTime(json['observedAt']),
       );
     }).toList();
 
     final qualitativeIndicators =
         (evidenceJson['qualitativeIndicators'] as List?)
-                ?.map((value) => value.toString())
-                .toList() ??
-            <String>[];
+            ?.map((value) => value.toString())
+            .toList() ??
+        <String>[];
 
-    final analysis = _parseAnalysis(
-      json['analysis'],
-      json['id'] as String,
-    );
+    final analysis = _parseAnalysis(json['analysis'], json['id'] as String);
 
     return RiskResult(
       id: json['id'] as String,
@@ -163,42 +118,25 @@ class RiskResult {
       longitude: (json['longitude'] as num).toDouble(),
       hazardType: json['hazardType'] as String,
       riskScore: (json['riskScore'] as num).toDouble(),
-      riskLevel: _parseRiskLevel(
-        json['riskLevel'],
-      ),
+      riskLevel: _parseRiskLevel(json['riskLevel']),
       factors: RiskFactors.fromJson(factorsJson),
       evidence: RiskEvidence(
         measurements: measurements,
         qualitativeIndicators: qualitativeIndicators,
         observationCount:
-            (evidenceJson['observationCount'] as num?)?.toInt() ??
-                0,
+            (evidenceJson['observationCount'] as num?)?.toInt() ?? 0,
         confirmedObservationCount:
-            (evidenceJson['confirmedObservationCount'] as num?)
-                    ?.toInt() ??
-                0,
-        collectedAt: _parseDateTime(
-          evidenceJson['collectedAt'],
-        ) ??
+            (evidenceJson['confirmedObservationCount'] as num?)?.toInt() ?? 0,
+        collectedAt:
+            _parseDateTime(evidenceJson['collectedAt']) ??
             DateTime.now().toUtc(),
       ),
-      updatedAt:
-          _parseDateTime(json['updatedAt']) ??
-              DateTime.now().toUtc(),
+      updatedAt: _parseDateTime(json['updatedAt']) ?? DateTime.now().toUtc(),
       analysis: analysis,
     );
   }
 
-  
-  
-  
-  
-  
-  
-  static RiskAnalysis? _parseAnalysis(
-    Object? value,
-    String riskId,
-  ) {
+  static RiskAnalysis? _parseAnalysis(Object? value, String riskId) {
     if (value is! Map) {
       return null;
     }
@@ -209,17 +147,15 @@ class RiskResult {
       return RiskAnalysis.fromJson(
         json,
         riskId: json['riskId'] as String? ?? riskId,
-        generatedAt: _parseDateTime(json['generatedAt']) ??
-            DateTime.now().toUtc(),
+        generatedAt:
+            _parseDateTime(json['generatedAt']) ?? DateTime.now().toUtc(),
       );
     } catch (_) {
       return null;
     }
   }
 
-  static RiskLevel _parseRiskLevel(
-    Object? value,
-  ) {
+  static RiskLevel _parseRiskLevel(Object? value) {
     final name = value?.toString();
 
     return RiskLevel.values.firstWhere(
@@ -228,9 +164,7 @@ class RiskResult {
     );
   }
 
-  static RiskReferenceType? _parseReferenceType(
-    Object? value,
-  ) {
+  static RiskReferenceType? _parseReferenceType(Object? value) {
     if (value == null) {
       return null;
     }
@@ -243,9 +177,7 @@ class RiskResult {
     );
   }
 
-  static DateTime? _parseDateTime(
-    Object? value,
-  ) {
+  static DateTime? _parseDateTime(Object? value) {
     if (value == null) {
       return null;
     }

@@ -25,7 +25,6 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
 
   String? _selectedZoneId;
 
-  
   HazardType _selectedHazard = HazardType.flooding;
 
   double _rainfallMultiplier = 1.0;
@@ -37,8 +36,6 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
   Object? _simulationError;
   RiskScenarioResult? _simulation;
 
-  
-  
   String? _updateAttemptedForZoneId;
 
   String _riskIdFor(RiskZoneTarget zone) {
@@ -133,7 +130,9 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
     if (zones.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: const Text('Intelligence des risques')),
-        body: const Center(child: Text('Aucune zone à risque n’est configurée.')),
+        body: const Center(
+          child: Text('Aucune zone à risque n’est configurée.'),
+        ),
       );
     }
 
@@ -346,9 +345,11 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(riskResult?.hazardType == null
-                    ? _selectedHazard.labelFr
-                    : (_hazardLabelOf(riskResult!.hazardType))),
+                Text(
+                  riskResult?.hazardType == null
+                      ? _selectedHazard.labelFr
+                      : (_hazardLabelOf(riskResult!.hazardType)),
+                ),
                 const SizedBox(height: 6),
                 Text(
                   riskResult == null
@@ -517,9 +518,9 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
             if (measurements.isEmpty)
               const Text('Aucune mesure enregistrée.')
             else
-              for (final measurement in measurements
-                  .where((measurement) =>
-                      measurement.name != 'citizenObservationRisk'))
+              for (final measurement in measurements.where(
+                (measurement) => measurement.name != 'citizenObservationRisk',
+              ))
                 _MeasurementTile(
                   title: _measurementTitle(measurement.name),
                   value:
@@ -641,10 +642,7 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
                         style: TextStyle(fontWeight: FontWeight.w700),
                       ),
                     )
-                  : _FactorBar(
-                      title: entry.label,
-                      value: entry.score!,
-                    ),
+                  : _FactorBar(title: entry.label, value: entry.score!),
           ];
 
     return Card(

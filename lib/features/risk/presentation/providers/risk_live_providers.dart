@@ -35,58 +35,47 @@ final httpClientProvider = Provider<http.Client>((ref) {
   return client;
 });
 
-final riskExposureRepositoryProvider =
-    Provider<RiskExposureRepository>((ref) {
-  return FirestoreRiskExposureRepository(
-    firestore: FirebaseFirestore.instance,
-  );
+final riskExposureRepositoryProvider = Provider<RiskExposureRepository>((ref) {
+  return FirestoreRiskExposureRepository(firestore: FirebaseFirestore.instance);
 });
 
-final riskExposureEnricherProvider =
-    Provider<FloodRiskInputExposureEnricher>((ref) {
+final riskExposureEnricherProvider = Provider<FloodRiskInputExposureEnricher>((
+  ref,
+) {
   return FloodRiskInputExposureEnricher(
-    repository: ref.read(
-      riskExposureRepositoryProvider,
-    ),
+    repository: ref.read(riskExposureRepositoryProvider),
   );
 });
 
-final riskIntelligenceServiceProvider =
-    Provider<RiskIntelligenceService>((ref) {
+final riskIntelligenceServiceProvider = Provider<RiskIntelligenceService>((
+  ref,
+) {
   return RiskIntelligenceService(
-    exposureEnricher: ref.read(
-      riskExposureEnricherProvider,
-    ),
+    exposureEnricher: ref.read(riskExposureEnricherProvider),
   );
 });
 
 final floodEnvironmentalDataSourceProvider =
     Provider<FloodEnvironmentalDataSource>((ref) {
-  return OpenMeteoRiskDataSource(
-    client: ref.read(httpClientProvider),
-  );
-});
-
-
+      return OpenMeteoRiskDataSource(client: ref.read(httpClientProvider));
+    });
 
 final hazardEnvironmentalDataSourceProvider =
     Provider<HazardEnvironmentalDataSource>((ref) {
-  return OpenMeteoHazardDataSource(
-    client: ref.read(httpClientProvider),
-  );
-});
+      return OpenMeteoHazardDataSource(client: ref.read(httpClientProvider));
+    });
 
+final hazardHistoricalDataSourceProvider = Provider<HazardHistoricalDataSource>(
+  (ref) {
+    return OpenMeteoHazardHistoricalDataSource(
+      client: ref.read(httpClientProvider),
+    );
+  },
+);
 
-
-final hazardHistoricalDataSourceProvider =
-    Provider<HazardHistoricalDataSource>((ref) {
-  return OpenMeteoHazardHistoricalDataSource(
-    client: ref.read(httpClientProvider),
-  );
-});
-
-final historicalFloodDataSourceProvider =
-    Provider<HistoricalFloodDataSource>((ref) {
+final historicalFloodDataSourceProvider = Provider<HistoricalFloodDataSource>((
+  ref,
+) {
   return OpenMeteoHistoricalFloodDataSource(
     client: ref.read(httpClientProvider),
   );
@@ -94,165 +83,96 @@ final historicalFloodDataSourceProvider =
 
 final historicalFloodBaselineServiceProvider =
     Provider<HistoricalFloodBaselineService>((ref) {
-  return HistoricalFloodBaselineService(
-    dataSource: ref.read(
-      historicalFloodDataSourceProvider,
-    ),
-  );
+      return HistoricalFloodBaselineService(
+        dataSource: ref.read(historicalFloodDataSourceProvider),
+      );
+    });
+
+final riskResultRepositoryProvider = Provider<RiskResultRepository>((ref) {
+  return FirestoreRiskResultRepository(firestore: FirebaseFirestore.instance);
 });
 
-final riskResultRepositoryProvider =
-    Provider<RiskResultRepository>((ref) {
-  return FirestoreRiskResultRepository(
-    firestore: FirebaseFirestore.instance,
-  );
-});
-
-final liveFloodRiskServiceProvider =
-    Provider<LiveFloodRiskService>((ref) {
+final liveFloodRiskServiceProvider = Provider<LiveFloodRiskService>((ref) {
   return LiveFloodRiskService(
-    dataSource: ref.read(
-      floodEnvironmentalDataSourceProvider,
-    ),
-    riskIntelligenceService: ref.read(
-      riskIntelligenceServiceProvider,
-    ),
-    riskResultRepository: ref.read(
-      riskResultRepositoryProvider,
-    ),
-    historicalBaselineService: ref.read(
-      historicalFloodBaselineServiceProvider,
-    ),
+    dataSource: ref.read(floodEnvironmentalDataSourceProvider),
+    riskIntelligenceService: ref.read(riskIntelligenceServiceProvider),
+    riskResultRepository: ref.read(riskResultRepositoryProvider),
+    historicalBaselineService: ref.read(historicalFloodBaselineServiceProvider),
   );
 });
 
-final hazardRiskServiceProvider =
-    Provider<HazardRiskService>((ref) {
+final hazardRiskServiceProvider = Provider<HazardRiskService>((ref) {
   return HazardRiskService(
-    liveDataSource: ref.read(
-      hazardEnvironmentalDataSourceProvider,
-    ),
-    historicalDataSource: ref.read(
-      hazardHistoricalDataSourceProvider,
-    ),
-    referencePeriodStart:
-        RiskZoneCatalog.historicalBaselineStart,
-    referencePeriodEnd:
-        RiskZoneCatalog.historicalBaselineEnd,
-    exposureRepository: ref.read(
-      riskExposureRepositoryProvider,
-    ),
-    riskResultRepository: ref.read(
-      riskResultRepositoryProvider,
-    ),
-    riskIntelligenceService: ref.read(
-      riskIntelligenceServiceProvider,
-    ),
+    liveDataSource: ref.read(hazardEnvironmentalDataSourceProvider),
+    historicalDataSource: ref.read(hazardHistoricalDataSourceProvider),
+    referencePeriodStart: RiskZoneCatalog.historicalBaselineStart,
+    referencePeriodEnd: RiskZoneCatalog.historicalBaselineEnd,
+    exposureRepository: ref.read(riskExposureRepositoryProvider),
+    riskResultRepository: ref.read(riskResultRepositoryProvider),
+    riskIntelligenceService: ref.read(riskIntelligenceServiceProvider),
   );
 });
 
-final riskResultProvider =
-    FutureProvider.family<RiskResult?, String>(
-  (ref, riskId) async {
-    final repository =
-        ref.read(riskResultRepositoryProvider);
+final riskResultProvider = FutureProvider.family<RiskResult?, String>((
+  ref,
+  riskId,
+) async {
+  final repository = ref.read(riskResultRepositoryProvider);
 
-    return repository.get(riskId);
-  },
-);
+  return repository.get(riskId);
+});
 
-
-final riskZoneCatalogProvider =
-    Provider<List<RiskZoneTarget>>((ref) {
+final riskZoneCatalogProvider = Provider<List<RiskZoneTarget>>((ref) {
   return RiskZoneCatalog.zones;
 });
 
-
-
-
-
-
 final riskExposureProfileProvider =
-    FutureProvider.family<FloodRiskExposureProfile?, String>(
-  (ref, zoneId) async {
-    final repository =
-        ref.read(riskExposureRepositoryProvider);
+    FutureProvider.family<FloodRiskExposureProfile?, String>((
+      ref,
+      zoneId,
+    ) async {
+      final repository = ref.read(riskExposureRepositoryProvider);
 
-    return repository.getProfile(zoneId);
-  },
-);
-
-
-
-
-
-
-
-
-
+      return repository.getProfile(zoneId);
+    });
 
 final zoneHazardAssessmentsProvider = FutureProvider.autoDispose
-    .family<List<ZoneHazardAssessment>, String>(
-  (ref, zoneId) async {
-    final repository =
-        ref.watch(riskResultRepositoryProvider);
+    .family<List<ZoneHazardAssessment>, String>((ref, zoneId) async {
+      final repository = ref.watch(riskResultRepositoryProvider);
 
-    final storedByHazard = Map.fromEntries(
-      await Future.wait(
-        HazardType.values.map(
-          (hazard) => repository
-              .get(
-                HazardRiskId.forZone(
-                  zoneId: zoneId,
-                  hazard: hazard,
-                ),
-              )
-              .then((result) => MapEntry(hazard, result)),
+      final storedByHazard = Map.fromEntries(
+        await Future.wait(
+          HazardType.values.map(
+            (hazard) => repository
+                .get(HazardRiskId.forZone(zoneId: zoneId, hazard: hazard))
+                .then((result) => MapEntry(hazard, result)),
+          ),
         ),
-      ),
-    );
+      );
 
-    return zoneHazardAssessmentsFrom(zoneId, storedByHazard);
-  },
-);
+      return zoneHazardAssessmentsFrom(zoneId, storedByHazard);
+    });
 
+final zoneActiveRisksProvider = Provider.autoDispose
+    .family<List<ZoneActiveRisk>, String>((ref, zoneId) {
+      final assessments = ref.watch(zoneHazardAssessmentsProvider(zoneId));
 
-
-
-
-
-
-final zoneActiveRisksProvider =
-    Provider.autoDispose.family<List<ZoneActiveRisk>, String>(
-  (ref, zoneId) {
-    final assessments =
-        ref.watch(zoneHazardAssessmentsProvider(zoneId));
-
-    return assessments.maybeWhen(
-      data: identifiedRisksOf,
-      orElse: () => const <ZoneActiveRisk>[],
-    );
-  },
-);
-
-
-
-
+      return assessments.maybeWhen(
+        data: identifiedRisksOf,
+        orElse: () => const <ZoneActiveRisk>[],
+      );
+    });
 
 typedef ZoneHazardRiskGenerator = Future<RiskResult> Function(
   RiskZoneTarget zone,
   HazardType hazard,
 );
 
+typedef ZoneRiskGenerator = Future<RiskResult> Function(RiskZoneTarget zone);
 
-typedef ZoneRiskGenerator = Future<RiskResult> Function(
-  RiskZoneTarget zone,
-);
-
-
-
-final zoneHazardRiskGeneratorProvider =
-    Provider<ZoneHazardRiskGenerator>((ref) {
+final zoneHazardRiskGeneratorProvider = Provider<ZoneHazardRiskGenerator>((
+  ref,
+) {
   final floodService = ref.watch(liveFloodRiskServiceProvider);
   final hazardService = ref.watch(hazardRiskServiceProvider);
 
@@ -280,11 +200,7 @@ final zoneHazardRiskGeneratorProvider =
   };
 });
 
-
-
-
-final zoneRiskGeneratorProvider =
-    Provider<ZoneRiskGenerator>((ref) {
+final zoneRiskGeneratorProvider = Provider<ZoneRiskGenerator>((ref) {
   final generator = ref.watch(zoneHazardRiskGeneratorProvider);
 
   return (zone) => generator(zone, HazardType.flooding);

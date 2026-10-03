@@ -5,14 +5,10 @@ import 'package:http/testing.dart';
 import 'package:urban_resilience/features/risk/data/open_meteo_risk_data_source.dart';
 
 void main() {
-  test(
-    'parses live rainfall and river discharge',
-    () async {
-      final client = MockClient((request) async {
-        if (request.url.host ==
-            'api.open-meteo.com') {
-          return http.Response(
-            '''
+  test('parses live rainfall and river discharge', () async {
+    final client = MockClient((request) async {
+      if (request.url.host == 'api.open-meteo.com') {
+        return http.Response('''
             {
               "hourly": {
                 "time": [
@@ -33,15 +29,11 @@ void main() {
                 ]
               }
             }
-            ''',
-            200,
-          );
-        }
+            ''', 200);
+      }
 
-        if (request.url.host ==
-            'flood-api.open-meteo.com') {
-          return http.Response(
-            '''
+      if (request.url.host == 'flood-api.open-meteo.com') {
+        return http.Response('''
             {
               "daily": {
                 "time": [
@@ -54,51 +46,24 @@ void main() {
                 ]
               }
             }
-            ''',
-            200,
-          );
-        }
+            ''', 200);
+      }
 
-        return http.Response(
-          'Not found',
-          404,
-        );
-      });
+      return http.Response('Not found', 404);
+    });
 
-      final source =
-          OpenMeteoRiskDataSource(
-        client: client,
-      );
+    final source = OpenMeteoRiskDataSource(client: client);
 
-      final result = await source.fetch(
-        latitude: -4.30,
-        longitude: 15.35,
-      );
+    final result = await source.fetch(latitude: -4.30, longitude: 15.35);
 
-      expect(
-        result.rainfallLastHourMm,
-        4.0,
-      );
+    expect(result.rainfallLastHourMm, 4.0);
 
-      expect(
-        result.rainfallAccumulation6hMm,
-        11.0,
-      );
+    expect(result.rainfallAccumulation6hMm, 11.0);
 
-      expect(
-        result.riverDischargeM3s,
-        410.0,
-      );
+    expect(result.riverDischargeM3s, 410.0);
 
-      expect(
-        result.rainfallSource,
-        'Open-Meteo Weather API',
-      );
+    expect(result.rainfallSource, 'Open-Meteo Weather API');
 
-      expect(
-        result.riverSource,
-        'Open-Meteo Global Flood API / GloFAS',
-      );
-    },
-  );
+    expect(result.riverSource, 'Open-Meteo Global Flood API / GloFAS');
+  });
 }

@@ -2,11 +2,6 @@ import 'historical_distribution.dart';
 import 'risk_measurement.dart';
 import 'risk_score_utils.dart';
 
-
-
-
-
-
 class HazardVariable {
   const HazardVariable({
     required this.name,
@@ -28,55 +23,36 @@ class HazardVariable {
     this.informational = false,
   });
 
-  
   final String name;
 
-  
   final String label;
 
   final double value;
   final String unit;
 
-  
   final String measurementPeriod;
 
-  
   final double weight;
 
-  
-  
-  
   final double? referenceValue;
 
-  
-  
-  
-  
   final double? statisticalCriticalValue;
 
   final String? referenceLabel;
   final RiskReferenceType? referenceType;
 
-  
   final double? historicalPercentile;
 
-  
-  
   final bool inverted;
 
   final String? source;
   final DateTime? observedAt;
 
-  
-  
   final bool isDerived;
   final String? derivationNote;
 
-  
-  
   final bool informational;
 
-  
   bool get isScorable {
     if (informational) {
       return false;
@@ -89,13 +65,9 @@ class HazardVariable {
       return false;
     }
 
-    
-    
     return inverted ? central > outer : outer > central;
   }
 
-  
-  
   double? get score {
     if (!isScorable) {
       return null;
@@ -119,8 +91,6 @@ class HazardVariable {
     );
   }
 
-  
-  
   static HazardVariable fromDistribution({
     required String name,
     required String label,
@@ -147,12 +117,10 @@ class HazardVariable {
       measurementPeriod: measurementPeriod,
       weight: weight,
       referenceValue: distribution.percentile(centralPercentile),
-      statisticalCriticalValue:
-          distribution.percentile(outerPercentile),
+      statisticalCriticalValue: distribution.percentile(outerPercentile),
       referenceLabel: referenceLabel,
       referenceType: referenceType,
-      historicalPercentile:
-          distribution.percentileRankOf(value),
+      historicalPercentile: distribution.percentileRankOf(value),
       inverted: inverted,
       source: source,
       observedAt: observedAt,
@@ -161,10 +129,6 @@ class HazardVariable {
     );
   }
 }
-
-
-
-
 
 class HazardVariableGap {
   const HazardVariableGap({
@@ -176,6 +140,5 @@ class HazardVariableGap {
   final String name;
   final String label;
 
-  
   final String reason;
 }

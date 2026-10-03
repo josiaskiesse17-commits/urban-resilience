@@ -3,11 +3,7 @@ import 'risk_zone.dart';
 class RiskScoreUtils {
   const RiskScoreUtils._();
 
-  static double clamp(
-    double value, {
-    double min = 0,
-    double max = 100,
-  }) {
+  static double clamp(double value, {double min = 0, double max = 100}) {
     if (value < min) {
       return min;
     }
@@ -25,9 +21,7 @@ class RiskScoreUtils {
     required double critical,
   }) {
     if (critical <= baseline) {
-      throw ArgumentError(
-        'Critical value must be greater than baseline.',
-      );
+      throw ArgumentError('Critical value must be greater than baseline.');
     }
 
     if (value <= baseline) {
@@ -38,19 +32,9 @@ class RiskScoreUtils {
       return 100;
     }
 
-    return clamp(
-      ((value - baseline) / (critical - baseline)) * 100,
-    );
+    return clamp(((value - baseline) / (critical - baseline)) * 100);
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
   static double invertedLinearScore({
     required double value,
     required double statisticalLow,

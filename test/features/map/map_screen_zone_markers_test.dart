@@ -14,25 +14,21 @@ import 'package:urban_resilience/features/risk/presentation/providers/risk_live_
 import '../risk/risk_result_test_support.dart';
 import '../risk/risk_test_fakes.dart';
 
-
-
 class _FakeLocationController extends MapLocationController {
   @override
   MapState build() => const MapState(
-        currentLocation: null,
-        selectedLocation: MapLocationController.defaultLocation,
-        loading: false,
-        locationPermissionDenied: false,
-        error: null,
-      );
+    currentLocation: null,
+    selectedLocation: MapLocationController.defaultLocation,
+    loading: false,
+    locationPermissionDenied: false,
+    error: null,
+  );
 
   @override
   Future<void> initialize() async {}
 }
 
-Widget buildMapHost({
-  required StoredByHazardRepository repository,
-}) {
+Widget buildMapHost({required StoredByHazardRepository repository}) {
   return ProviderScope(
     overrides: [
       mapControllerProvider.overrideWith(_FakeLocationController.new),
@@ -47,9 +43,7 @@ Widget buildMarkerHost({
   required RiskZoneTarget zone,
 }) {
   return ProviderScope(
-    overrides: [
-      riskResultRepositoryProvider.overrideWith((ref) => repository),
-    ],
+    overrides: [riskResultRepositoryProvider.overrideWith((ref) => repository)],
     child: MaterialApp(
       home: Scaffold(
         body: Center(
@@ -60,15 +54,13 @@ Widget buildMarkerHost({
   );
 }
 
-
 Color? _dotColor(WidgetTester tester) {
   for (final container in tester.widgetList<Container>(
     find.byType(Container),
   )) {
     final decoration = container.decoration;
 
-    if (decoration is BoxDecoration &&
-        decoration.shape == BoxShape.circle) {
+    if (decoration is BoxDecoration && decoration.shape == BoxShape.circle) {
       return decoration.color;
     }
   }
@@ -82,95 +74,80 @@ void _useLargeView(WidgetTester tester) {
   addTearDown(tester.view.reset);
 }
 
-
 void main() {
-  testWidgets(
-    'paints one named marker per configured zone',
-    (tester) async {
-      _useLargeView(tester);
+  testWidgets('paints one named marker per configured zone', (tester) async {
+    _useLargeView(tester);
 
-      await tester.pumpWidget(
-        buildMapHost(repository: StoredByHazardRepository()),
+    await tester.pumpWidget(
+      buildMapHost(repository: StoredByHazardRepository()),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byType(ZoneMapMarker),
+      findsNWidgets(RiskZoneCatalog.zones.length),
+    );
+
+    for (final zone in RiskZoneCatalog.zones) {
+      expect(find.text(zone.name), findsOneWidget);
+    }
+  });
+
+  testWidgets('the marker colour is the highest risk identified in the zone', (
+    tester,
+  ) async {
+    final zone = RiskZoneCatalog.byId('zone-masina')!;
+    final repository = StoredByHazardRepository()
+      ..stored['zone-masina'] = buildRiskResult(
+        riskScore: 20,
+        riskLevel: RiskLevel.medium,
+      )
+      ..stored['zone-masina--heat'] = buildRiskResult(
+        id: 'zone-masina--heat',
+        hazardType: 'Heat',
+        riskScore: 88,
+        riskLevel: RiskLevel.critical,
       );
-      await tester.pumpAndSettle();
 
-      expect(
-        find.byType(ZoneMapMarker),
-        findsNWidgets(RiskZoneCatalog.zones.length),
-      );
+    await tester.pumpWidget(
+      buildMarkerHost(repository: repository, zone: zone),
+    );
+    await tester.pumpAndSettle();
 
-      for (final zone in RiskZoneCatalog.zones) {
-        expect(find.text(zone.name), findsOneWidget);
-      }
-    },
-  );
+    expect(find.text('Masina'), findsOneWidget);
+    expect(_dotColor(tester), riskLevelColor(RiskLevel.critical));
+  });
 
-  testWidgets(
-    'the marker colour is the highest risk identified in the zone',
-    (tester) async {
-      final zone = RiskZoneCatalog.byId('zone-masina')!;
-      final repository = StoredByHazardRepository()
-        ..stored['zone-masina'] = buildRiskResult(
-          riskScore: 20,
-          riskLevel: RiskLevel.medium,
-        )
-        ..stored['zone-masina--heat'] = buildRiskResult(
-          id: 'zone-masina--heat',
-          hazardType: 'Heat',
-          riskScore: 88,
-          riskLevel: RiskLevel.critical,
-        );
+  testWidgets('a zone with nothing stored stays neutral instead of green', (
+    tester,
+  ) async {
+    final zone = RiskZoneCatalog.byId('zone-masina')!;
 
-      await tester.pumpWidget(
-        buildMarkerHost(repository: repository, zone: zone),
-      );
-      await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      buildMarkerHost(repository: StoredByHazardRepository(), zone: zone),
+    );
+    await tester.pumpAndSettle();
 
-      expect(find.text('Masina'), findsOneWidget);
-      expect(
-        _dotColor(tester),
-        riskLevelColor(RiskLevel.critical),
-      );
-    },
-  );
+    expect(_dotColor(tester), zoneNeutralColor);
+  });
 
-  testWidgets(
-    'a zone with nothing stored stays neutral instead of green',
-    (tester) async {
-      final zone = RiskZoneCatalog.byId('zone-masina')!;
+  testWidgets('tapping a zone opens its Zone Active Risks sheet', (
+    tester,
+  ) async {
+    _useLargeView(tester);
 
-      await tester.pumpWidget(
-        buildMarkerHost(
-          repository: StoredByHazardRepository(),
-          zone: zone,
-        ),
-      );
-      await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      buildMapHost(repository: StoredByHazardRepository()),
+    );
+    await tester.pumpAndSettle();
 
-      expect(_dotColor(tester), zoneNeutralColor);
-    },
-  );
+    await tester.tap(find.text('Masina'));
+    await tester.pumpAndSettle();
 
-  testWidgets(
-    'tapping a zone opens its Zone Active Risks sheet',
-    (tester) async {
-      _useLargeView(tester);
-
-      await tester.pumpWidget(
-        buildMapHost(repository: StoredByHazardRepository()),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Masina'));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(ZoneActiveRisksSheet), findsOneWidget);
-      expect(
-        find.text(
-          'Aucun risque actif identifié dans cette zone pour le moment.',
-        ),
-        findsOneWidget,
-      );
-    },
-  );
+    expect(find.byType(ZoneActiveRisksSheet), findsOneWidget);
+    expect(
+      find.text('Aucun risque actif identifié dans cette zone pour le moment.'),
+      findsOneWidget,
+    );
+  });
 }

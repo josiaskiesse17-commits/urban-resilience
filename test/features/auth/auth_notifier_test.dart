@@ -17,9 +17,7 @@ void main() {
 
   ProviderContainer createContainer(FakeAuthRepository repository) {
     final container = ProviderContainer(
-      overrides: [
-        authRepositoryProvider.overrideWithValue(repository),
-      ],
+      overrides: [authRepositoryProvider.overrideWithValue(repository)],
     );
     addTearDown(container.dispose);
     return container;
@@ -34,7 +32,9 @@ void main() {
       final container = createContainer(repository);
 
       await container.read(authNotifierProvider.future);
-      await container.read(authNotifierProvider.notifier).register(
+      await container
+          .read(authNotifierProvider.notifier)
+          .register(
             email: 'user@example.com',
             password: 'password123',
             displayName: 'Test User',
@@ -48,30 +48,34 @@ void main() {
       expect(state.value, same(user));
     });
 
-    test('keeps registration errors visible on the state the UI reads',
-        () async {
-      final error = FirebaseAuthException(
-        code: 'too-many-requests',
-        message: 'TOO_MANY_ATTEMPTS_TRY_LATER',
-      );
-      final repository = FakeAuthRepository(
-        currentUser: user,
-        registerError: error,
-      );
-      final container = createContainer(repository);
+    test(
+      'keeps registration errors visible on the state the UI reads',
+      () async {
+        final error = FirebaseAuthException(
+          code: 'too-many-requests',
+          message: 'TOO_MANY_ATTEMPTS_TRY_LATER',
+        );
+        final repository = FakeAuthRepository(
+          currentUser: user,
+          registerError: error,
+        );
+        final container = createContainer(repository);
 
-      await container.read(authNotifierProvider.future);
-      await container.read(authNotifierProvider.notifier).register(
-            email: 'user@example.com',
-            password: 'password123',
-            displayName: 'Test User',
-          );
+        await container.read(authNotifierProvider.future);
+        await container
+            .read(authNotifierProvider.notifier)
+            .register(
+              email: 'user@example.com',
+              password: 'password123',
+              displayName: 'Test User',
+            );
 
-      final state = container.read(authNotifierProvider);
+        final state = container.read(authNotifierProvider);
 
-      expect(state.hasError, isTrue);
-      expect(state.error, same(error));
-    });
+        expect(state.hasError, isTrue);
+        expect(state.error, same(error));
+      },
+    );
   });
 
   group('AuthNotifier.sendEmailVerification', () {

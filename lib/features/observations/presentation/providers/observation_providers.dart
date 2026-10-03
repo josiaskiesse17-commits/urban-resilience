@@ -29,9 +29,6 @@ final pendingObservationsProvider =
       (ref) => ref.watch(observationsRepositoryProvider).watchPending(),
     );
 
-
-
-
 final myObservationsProvider = StreamProvider.autoDispose<List<Observation>>((
   ref,
 ) {

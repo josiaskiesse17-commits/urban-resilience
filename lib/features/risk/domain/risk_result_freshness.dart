@@ -1,22 +1,11 @@
 import 'risk_result.dart';
 
-
-
-
-
-
-
-
 class RiskResultFreshness {
   const RiskResultFreshness._();
 
-  
   static const Duration maxAge = Duration(hours: 6);
 
-  static bool needsUpdate(
-    RiskResult? result, {
-    DateTime? now,
-  }) {
+  static bool needsUpdate(RiskResult? result, {DateTime? now}) {
     if (result == null) {
       return true;
     }

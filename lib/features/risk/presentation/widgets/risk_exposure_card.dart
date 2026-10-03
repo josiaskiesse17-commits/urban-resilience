@@ -4,25 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/flood_risk_exposure_profile.dart';
 import '../providers/risk_live_providers.dart';
 
-
-
-
-
-
-
 class RiskExposureCard extends ConsumerWidget {
   final String zoneId;
 
-  const RiskExposureCard({
-    super.key,
-    required this.zoneId,
-  });
+  const RiskExposureCard({super.key, required this.zoneId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final profileAsync =
-        ref.watch(riskExposureProfileProvider(zoneId));
+    final profileAsync = ref.watch(riskExposureProfileProvider(zoneId));
 
     return Card(
       child: Padding(
@@ -51,10 +41,7 @@ class RiskExposureCard extends ConsumerWidget {
                   child: CircularProgressIndicator(),
                 ),
               ),
-              error: (error, _) => _buildMissing(
-                context,
-                '$error',
-              ),
+              error: (error, _) => _buildMissing(context, '$error'),
               data: (profile) {
                 if (profile == null) {
                   return _buildMissing(context, null);
@@ -69,10 +56,7 @@ class RiskExposureCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildMissing(
-    BuildContext context,
-    String? error,
-  ) {
+  Widget _buildMissing(BuildContext context, String? error) {
     final theme = Theme.of(context);
 
     return Column(
@@ -81,10 +65,7 @@ class RiskExposureCard extends ConsumerWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              Icons.warning_amber_rounded,
-              color: theme.colorScheme.error,
-            ),
+            Icon(Icons.warning_amber_rounded, color: theme.colorScheme.error),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -117,10 +98,7 @@ class RiskExposureCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildProfile(
-    BuildContext context,
-    FloodRiskExposureProfile profile,
-  ) {
+  Widget _buildProfile(BuildContext context, FloodRiskExposureProfile profile) {
     final theme = Theme.of(context);
     final updatedAt = profile.updatedAt;
     final source = profile.source;
@@ -190,10 +168,7 @@ class _ExposureBar extends StatelessWidget {
   final String label;
   final double value;
 
-  const _ExposureBar({
-    required this.label,
-    required this.value,
-  });
+  const _ExposureBar({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -211,9 +186,7 @@ class _ExposureBar extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          LinearProgressIndicator(
-            value: clamped / 100,
-          ),
+          LinearProgressIndicator(value: clamped / 100),
         ],
       ),
     );
@@ -223,8 +196,7 @@ class _ExposureBar extends StatelessWidget {
 String _formatDateTime(DateTime dateTime) {
   final local = dateTime.toLocal();
 
-  String twoDigits(int value) =>
-      value.toString().padLeft(2, '0');
+  String twoDigits(int value) => value.toString().padLeft(2, '0');
 
   return '${local.year}-'
       '${twoDigits(local.month)}-'

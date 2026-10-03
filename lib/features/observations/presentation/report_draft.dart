@@ -47,8 +47,8 @@ class ReportDraftData {
 
 final reportDraftProvider =
     NotifierProvider<ReportDraftNotifier, ReportDraftData>(
-  ReportDraftNotifier.new,
-);
+      ReportDraftNotifier.new,
+    );
 
 class ReportDraftNotifier extends Notifier<ReportDraftData> {
   @override
@@ -74,10 +74,7 @@ class ReportDraftNotifier extends Notifier<ReportDraftData> {
   }
 
   void setPhoto(String? name) {
-    state = state.copyWith(
-      photoName: name,
-      clearPhoto: name == null,
-    );
+    state = state.copyWith(photoName: name, clearPhoto: name == null);
   }
 
   void setPlace({

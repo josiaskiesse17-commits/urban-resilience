@@ -59,33 +59,20 @@ void main() {
       observations: const [],
     );
 
-    expect(
-      result.rainfallIntensityMmPerHour,
-      input.rainfallIntensityMmPerHour,
-    );
+    expect(result.rainfallIntensityMmPerHour, input.rainfallIntensityMmPerHour);
 
-    expect(
-      result.riverDischargeM3s,
-      input.riverDischargeM3s,
-    );
+    expect(result.riverDischargeM3s, input.riverDischargeM3s);
 
-    expect(
-      result.vulnerabilityScore,
-      input.vulnerabilityScore,
-    );
+    expect(result.vulnerabilityScore, input.vulnerabilityScore);
 
-    expect(
-      result.historicalExposureScore,
-      input.historicalExposureScore,
-    );
+    expect(result.historicalExposureScore, input.historicalExposureScore);
 
     expect(result.observationScore, 0);
     expect(result.observationCount, 0);
     expect(result.confirmedObservationCount, 0);
   });
 
-  test('pending observations do not increase observation risk',
-      () {
+  test('pending observations do not increase observation risk', () {
     final now = DateTime.now().toUtc();
 
     final observations = [

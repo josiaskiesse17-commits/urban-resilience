@@ -47,11 +47,7 @@ const HazardDefinition _definition = HazardDefinition(
   ],
 );
 
-HazardSeries _series(
-  String field,
-  List<DateTime> times,
-  List<double?> values,
-) {
+HazardSeries _series(String field, List<DateTime> times, List<double?> values) {
   return HazardSeries(
     field: field,
     unit: 'u',
@@ -90,127 +86,93 @@ HazardBaseline _baseline({required bool seasonal}) {
 void main() {
   const builder = HazardVariableBuilder();
 
-  test(
-    'scores a variable against its seasonal reference and reports gaps',
-    () {
-      final liveData = HazardLiveData(
-        hazard: HazardType.heat,
-        series: <String, HazardSeries>{
-          'soil': _series(
-            'soil',
-            [
-              DateTime.utc(2026, 1, 5, 10),
-              DateTime.utc(2026, 1, 5, 11),
-            ],
-            <double?>[0.2, 0.3],
-          ),
-          
-          'rain': _series(
-            'rain',
-            [
-              DateTime.utc(2026, 1, 5, 9),
-              DateTime.utc(2026, 1, 5, 10),
-              DateTime.utc(2026, 1, 5, 11),
-            ],
-            <double?>[1, 2, 3],
-          ),
-          'cape': _series(
-            'cape',
-            [DateTime.utc(2026, 1, 5, 11)],
-            <double?>[400],
-          ),
-        },
-        observedAt: DateTime.utc(2026, 1, 5, 11),
-        sources: const <String>['test-provider'],
-      );
+  test('scores a variable against its seasonal reference and reports gaps', () {
+    final liveData = HazardLiveData(
+      hazard: HazardType.heat,
+      series: <String, HazardSeries>{
+        'soil': _series(
+          'soil',
+          [DateTime.utc(2026, 1, 5, 10), DateTime.utc(2026, 1, 5, 11)],
+          <double?>[0.2, 0.3],
+        ),
 
-      final result = builder.build(
-        definition: _definition,
-        liveData: liveData,
-        baseline: _baseline(seasonal: true),
-      );
+        'rain': _series(
+          'rain',
+          [
+            DateTime.utc(2026, 1, 5, 9),
+            DateTime.utc(2026, 1, 5, 10),
+            DateTime.utc(2026, 1, 5, 11),
+          ],
+          <double?>[1, 2, 3],
+        ),
+        'cape': _series('cape', [DateTime.utc(2026, 1, 5, 11)], <double?>[400]),
+      },
+      observedAt: DateTime.utc(2026, 1, 5, 11),
+      sources: const <String>['test-provider'],
+    );
 
-      expect(
-        result.variables.map((item) => item.name),
-        <String>['soilMoisture', 'capeLike'],
-      );
+    final result = builder.build(
+      definition: _definition,
+      liveData: liveData,
+      baseline: _baseline(seasonal: true),
+    );
 
-      final soil = result.variables.first;
+    expect(result.variables.map((item) => item.name), <String>[
+      'soilMoisture',
+      'capeLike',
+    ]);
 
-      expect(soil.isScorable, isTrue);
-      expect(soil.score, isNotNull);
-      expect(soil.historicalPercentile, isNotNull);
-      expect(soil.measurementPeriod, 'instant');
-      expect(soil.source, 'test-provider');
-      expect(
-        soil.referenceLabel,
-        contains('du mois de janvier'),
-      );
+    final soil = result.variables.first;
 
-      final cape = result.variables.last;
+    expect(soil.isScorable, isTrue);
+    expect(soil.score, isNotNull);
+    expect(soil.historicalPercentile, isNotNull);
+    expect(soil.measurementPeriod, 'instant');
+    expect(soil.source, 'test-provider');
+    expect(soil.referenceLabel, contains('du mois de janvier'));
 
-      expect(cape.informational, isTrue);
-      expect(cape.score, isNull);
-      expect(cape.observedAt, DateTime.utc(2026, 1, 5, 11));
+    final cape = result.variables.last;
 
-      expect(
-        result.gaps.map((gap) => gap.name),
-        containsAll(<String>['rain6h']),
-      );
+    expect(cape.informational, isTrue);
+    expect(cape.score, isNull);
+    expect(cape.observedAt, DateTime.utc(2026, 1, 5, 11));
 
-      final windowGap = result.gaps.firstWhere(
-        (gap) => gap.name == 'rain6h',
-      );
+    expect(result.gaps.map((gap) => gap.name), containsAll(<String>['rain6h']));
 
-      expect(
-        windowGap.reason,
-        contains('aucune fenêtre 6h complète'),
-      );
-    },
-  );
+    final windowGap = result.gaps.firstWhere((gap) => gap.name == 'rain6h');
 
-  test(
-    'a missing provider field becomes an explicit gap, never a zero',
-    () {
-      final liveData = HazardLiveData(
-        hazard: HazardType.heat,
-        series: <String, HazardSeries>{
-          'soil': _series(
-            'soil',
-            [DateTime.utc(2026, 1, 5, 11)],
-            <double?>[0.3],
-          ),
-          'cape': _series(
-            'cape',
-            [DateTime.utc(2026, 1, 5, 11)],
-            <double?>[400],
-          ),
-        },
-        observedAt: DateTime.utc(2026, 1, 5, 11),
-        sources: const <String>['test-provider'],
-        missingFields: const <String, String>{
-          'rain': 'the live provider returned no value',
-        },
-      );
+    expect(windowGap.reason, contains('aucune fenêtre 6h complète'));
+  });
 
-      final result = builder.build(
-        definition: _definition,
-        liveData: liveData,
-        baseline: _baseline(seasonal: true),
-      );
+  test('a missing provider field becomes an explicit gap, never a zero', () {
+    final liveData = HazardLiveData(
+      hazard: HazardType.heat,
+      series: <String, HazardSeries>{
+        'soil': _series('soil', [DateTime.utc(2026, 1, 5, 11)], <double?>[0.3]),
+        'cape': _series('cape', [DateTime.utc(2026, 1, 5, 11)], <double?>[400]),
+      },
+      observedAt: DateTime.utc(2026, 1, 5, 11),
+      sources: const <String>['test-provider'],
+      missingFields: const <String, String>{
+        'rain': 'the live provider returned no value',
+      },
+    );
 
-      expect(
-        result.variables.map((item) => item.name),
-        isNot(contains('rain6h')),
-      );
+    final result = builder.build(
+      definition: _definition,
+      liveData: liveData,
+      baseline: _baseline(seasonal: true),
+    );
 
-      final gap = result.gaps.singleWhere(
-        (item) => item.name == 'rain6h',
-      );
+    expect(
+      result.variables.map((item) => item.name),
+      isNot(contains('rain6h')),
+    );
 
-      expect(gap.reason, contains('no value'));
-    },
-  );
+    final gap = result.gaps.singleWhere((item) => item.name == 'rain6h');
+
+    expect(gap.reason, contains('no value'));
+  });
 
   test(
     'falls back to the whole reference period without a seasonal bucket',
@@ -253,10 +215,7 @@ void main() {
 
       final soil = result.variables.first;
 
-      expect(
-        soil.referenceLabel,
-        contains('toute la période de référence'),
-      );
+      expect(soil.referenceLabel, contains('toute la période de référence'));
     },
   );
 }

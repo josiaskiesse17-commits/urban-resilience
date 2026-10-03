@@ -128,9 +128,8 @@ class ObservationsScreen extends ConsumerWidget {
   Widget _sectionTitle(BuildContext context, String title) {
     return Text(
       title,
-      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+      style: Theme.of(context).textTheme.titleMedium
+          ?.copyWith(fontWeight: FontWeight.w700),
     );
   }
 
@@ -293,8 +292,6 @@ class _ObservationTile extends StatelessWidget {
   }
 }
 
-
-
 class _MyObservationCard extends StatelessWidget {
   const _MyObservationCard({required this.observation});
 
@@ -352,20 +349,20 @@ class _MyObservationCard extends StatelessWidget {
 
     final (label, color, icon) = switch (status) {
       ObservationStatus.pending => (
-          'En attente de validation',
-          Colors.amber.shade800,
-          Icons.hourglass_top,
-        ),
+        'En attente de validation',
+        Colors.amber.shade800,
+        Icons.hourglass_top,
+      ),
       ObservationStatus.confirmed => (
-          '✓ Vérifié',
-          Colors.green.shade700,
-          Icons.check_circle_outline,
-        ),
+        '✓ Vérifié',
+        Colors.green.shade700,
+        Icons.check_circle_outline,
+      ),
       ObservationStatus.rejected => (
-          'Rejeté',
-          theme.colorScheme.error,
-          Icons.close,
-        ),
+        'Rejeté',
+        theme.colorScheme.error,
+        Icons.close,
+      ),
     };
 
     return Container(

@@ -35,8 +35,7 @@ class _FakeLive implements HazardEnvironmentalDataSource {
   }
 }
 
-class _FakeHistorical
-    implements HazardHistoricalDataSource {
+class _FakeHistorical implements HazardHistoricalDataSource {
   _FakeHistorical(this.data);
 
   final HazardHistoricalData data;
@@ -56,22 +55,16 @@ class _FakeHistorical
   }
 }
 
-class _FakeExposureRepository
-    implements RiskExposureRepository {
+class _FakeExposureRepository implements RiskExposureRepository {
   _FakeExposureRepository(this.profile);
 
   FloodRiskExposureProfile? profile;
 
   @override
-  Future<FloodRiskExposureProfile?> getProfile(
-    String zoneId,
-  ) async =>
-      profile;
+  Future<FloodRiskExposureProfile?> getProfile(String zoneId) async => profile;
 
   @override
-  Future<void> saveProfile(
-    FloodRiskExposureProfile profile,
-  ) async {
+  Future<void> saveProfile(FloodRiskExposureProfile profile) async {
     this.profile = profile;
   }
 }
@@ -83,8 +76,7 @@ class _FakeResultRepository implements RiskResultRepository {
   Future<RiskResult?> get(String riskId) async => saved;
 
   @override
-  Future<RiskResult?> getLatestForZone(String zoneId) async =>
-      saved;
+  Future<RiskResult?> getLatestForZone(String zoneId) async => saved;
 
   @override
   Future<void> save(RiskResult result) async {
@@ -92,22 +84,15 @@ class _FakeResultRepository implements RiskResultRepository {
   }
 }
 
-
 HazardLiveData _liveHeatData() {
   final times = <DateTime>[];
   final temperatures = <double?>[];
   final apparent = <double?>[];
 
   for (var hour = 0; hour < 30; hour++) {
-    times.add(DateTime.utc(2026, 1, 5).add(
-      Duration(hours: hour),
-    ));
-    temperatures.add(
-      30 + ((hour ~/ 24) % 10).toDouble(),
-    );
-    apparent.add(
-      33 + ((hour ~/ 24) % 10).toDouble(),
-    );
+    times.add(DateTime.utc(2026, 1, 5).add(Duration(hours: hour)));
+    temperatures.add(30 + ((hour ~/ 24) % 10).toDouble());
+    apparent.add(33 + ((hour ~/ 24) % 10).toDouble());
   }
 
   return HazardLiveData(
@@ -134,7 +119,6 @@ HazardLiveData _liveHeatData() {
   );
 }
 
-
 HazardHistoricalData _historicalHeatData() {
   final times = <DateTime>[];
   final temperatures = <double?>[];
@@ -144,12 +128,8 @@ HazardHistoricalData _historicalHeatData() {
 
   for (var hour = 0; hour < 24 * 45; hour++) {
     times.add(cursor);
-    temperatures.add(
-      28 + ((hour ~/ 24) % 8).toDouble(),
-    );
-    apparent.add(
-      30 + ((hour ~/ 24) % 8).toDouble(),
-    );
+    temperatures.add(28 + ((hour ~/ 24) % 8).toDouble());
+    apparent.add(30 + ((hour ~/ 24) % 8).toDouble());
     cursor = cursor.add(const Duration(hours: 1));
   }
 
@@ -177,20 +157,10 @@ HazardHistoricalData _historicalHeatData() {
   );
 }
 
-
-
-
-
-
-
-http.Response _openMeteoResponse({
-  required Map<String, List<double?>> series,
-}) {
+http.Response _openMeteoResponse({required Map<String, List<double?>> series}) {
   final times = <String>[
     for (var hour = 0; hour < 30; hour++)
-      DateTime.utc(2026, 1, 5)
-          .add(Duration(hours: hour))
-          .toIso8601String(),
+      DateTime.utc(2026, 1, 5).add(Duration(hours: hour)).toIso8601String(),
   ];
 
   return http.Response(
@@ -198,10 +168,7 @@ http.Response _openMeteoResponse({
       'hourly_units': <String, String>{
         for (final field in series.keys) field: '°C',
       },
-      'hourly': <String, dynamic>{
-        'time': times,
-        ...series,
-      },
+      'hourly': <String, dynamic>{'time': times, ...series},
     }),
     200,
   );
@@ -239,77 +206,65 @@ void main() {
     );
   });
 
-  test(
-    'generates a hazard-aware assessment for a zone',
-    () async {
-      final result = await service.calculate(
+  test('generates a hazard-aware assessment for a zone', () async {
+    final result = await service.calculate(
+      zoneId: 'zone-test',
+      locationName: 'Test Zone',
+      latitude: -4.30,
+      longitude: 15.35,
+      hazard: HazardType.heat,
+    );
+
+    expect(result.id, 'zone-test--heat');
+    expect(result.hazardType, 'Heat');
+    expect(result.locationName, 'Test Zone');
+    expect(result.updatedAt, DateTime.utc(2026, 1, 6, 5));
+    expect(result.factors.primaryFactorLabel, 'Heat');
+    expect(result.riskScore, greaterThan(0));
+
+    expect(result.factors.geographicVulnerability, closeTo(49.5, 0.001));
+
+    expect(result.factors.historicalExposure, 0);
+
+    final names = result.evidence.measurements
+        .map((item) => item.name)
+        .toList();
+
+    expect(names, contains('temperature2mMax24h'));
+    expect(names, contains('apparentTemperatureMax24h'));
+
+    final indicators = result.evidence.qualitativeIndicators.join('\n');
+
+    expect(indicators, contains('Référence statistique :'));
+    expect(indicators, contains('même mois calendaire'));
+    expect(
+      indicators,
+      contains('La vulnérabilité combine l’exposition de la population'),
+    );
+    expect(indicators, contains('live provider note'));
+  });
+
+  test('refuses to score flooding with the generic engine', () {
+    expect(
+      service.calculate(
         zoneId: 'zone-test',
         locationName: 'Test Zone',
         latitude: -4.30,
         longitude: 15.35,
-        hazard: HazardType.heat,
-      );
-
-      expect(result.id, 'zone-test--heat');
-      expect(result.hazardType, 'Heat');
-      expect(result.locationName, 'Test Zone');
-      expect(result.updatedAt, DateTime.utc(2026, 1, 6, 5));
-      expect(result.factors.primaryFactorLabel, 'Heat');
-      expect(result.riskScore, greaterThan(0));
-
-      
-      expect(
-        result.factors.geographicVulnerability,
-        closeTo(49.5, 0.001),
-      );
-
-      
-      expect(result.factors.historicalExposure, 0);
-
-      final names = result.evidence.measurements
-          .map((item) => item.name)
-          .toList();
-
-      expect(names, contains('temperature2mMax24h'));
-      expect(names, contains('apparentTemperatureMax24h'));
-
-      final indicators =
-          result.evidence.qualitativeIndicators.join('\n');
-
-      expect(indicators, contains('Référence statistique :'));
-      expect(indicators, contains('même mois calendaire'));
-      expect(
-        indicators,
-        contains('La vulnérabilité combine l’exposition de la population'),
-      );
-      expect(indicators, contains('live provider note'));
-    },
-  );
-
-  test(
-    'refuses to score flooding with the generic engine',
-    () {
-      expect(
-        service.calculate(
-          zoneId: 'zone-test',
-          locationName: 'Test Zone',
-          latitude: -4.30,
-          longitude: 15.35,
-          hazard: HazardType.flooding,
-        ),
-        throwsA(isA<StateError>()),
-      );
-    },
-  );
+        hazard: HazardType.flooding,
+      ),
+      throwsA(isA<StateError>()),
+    );
+  });
 
   test('reuses the cached baseline between assessments', () async {
     Future<RiskResult> run() => service.calculate(
-          zoneId: 'zone-test',
-          locationName: 'Test Zone',
-          latitude: -4.30,
-          longitude: 15.35,
-          hazard: HazardType.heat,
-        );
+      zoneId: 'zone-test',
+      locationName: 'Test Zone',
+      latitude: -4.30,
+      longitude: 15.35,
+      hazard: HazardType.heat,
+    );
 
     await run();
     await run();
@@ -347,8 +302,7 @@ void main() {
       hazard: HazardType.heat,
     );
 
-    final indicators =
-        result.evidence.qualitativeIndicators.join('\n');
+    final indicators = result.evidence.qualitativeIndicators.join('\n');
 
     expect(
       indicators,
@@ -366,23 +320,21 @@ void main() {
 
         return _openMeteoResponse(
           series: <String, List<double?>>{
-            
-            
             'temperature_2m': <double?>[
               for (var hour = 0; hour < 30; hour++)
                 hour < 6
                     ? 20.0
                     : hour == 29
-                        ? 41.0
-                        : 30.0,
+                    ? 41.0
+                    : 30.0,
             ],
             'apparent_temperature': <double?>[
               for (var hour = 0; hour < 30; hour++)
                 hour < 6
                     ? 20.0
                     : hour == 29
-                        ? 44.0
-                        : 35.0,
+                    ? 44.0
+                    : 35.0,
             ],
           },
         );
@@ -404,7 +356,6 @@ void main() {
         hazard: HazardType.heat,
       );
 
-      
       expect(requested.host, 'api.open-meteo.com');
       expect(
         requested.queryParameters['hourly'],
@@ -413,12 +364,9 @@ void main() {
 
       final measurements = result.evidence.measurements;
 
-      RiskMeasurement measurement(String name) => measurements.firstWhere(
-            (item) => item.name == name,
-          );
+      RiskMeasurement measurement(String name) =>
+          measurements.firstWhere((item) => item.name == name);
 
-      
-      
       expect(measurement('temperature2mMax24h').value, 41.0);
       expect(measurement('temperature2mMin24h').value, 30.0);
       expect(measurement('apparentTemperatureMax24h').value, 44.0);
@@ -430,8 +378,6 @@ void main() {
         'Open-Meteo Weather API',
       );
 
-      
-      
       expect(measurement('temperature2mMax24h').referenceValue, isNotNull);
       expect(
         measurement('temperature2mMax24h').historicalPercentile,
@@ -477,25 +423,18 @@ void main() {
       expect(names, contains('temperature2mMax24h'));
       expect(names, isNot(contains('apparentTemperatureMax24h')));
 
-      final indicators =
-          result.evidence.qualitativeIndicators.join('\n');
+      final indicators = result.evidence.qualitativeIndicators.join('\n');
 
-      expect(
-        indicators,
-        contains('Non mesuré : Maximum apparent temperature'),
-      );
+      expect(indicators, contains('Non mesuré : Maximum apparent temperature'));
       expect(indicators, contains('jamais comme un zéro'));
 
-      
       expect(
         result.evidence.measurements.where(
-          (item) =>
-              item.name == 'apparentTemperatureMax24h' && item.value == 0,
+          (item) => item.name == 'apparentTemperatureMax24h' && item.value == 0,
         ),
         isEmpty,
       );
 
-      
       expect(
         result.evidence.measurements
             .firstWhere((item) => item.name == 'temperature2mMax24h')

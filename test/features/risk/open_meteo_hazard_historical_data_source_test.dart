@@ -16,8 +16,7 @@ void main() {
       final client = MockClient((request) async {
         requested = request.url;
 
-        return http.Response(
-          '''
+        return http.Response('''
           {
             "hourly": {
               "time": [
@@ -29,15 +28,10 @@ void main() {
               "apparent_temperature": [30.0, 31.0, 32.0]
             }
           }
-          ''',
-          200,
-        );
+          ''', 200);
       });
 
-      final source =
-          OpenMeteoHazardHistoricalDataSource(
-        client: client,
-      );
+      final source = OpenMeteoHazardHistoricalDataSource(client: client);
 
       final data = await source.fetch(
         hazard: HazardType.heat,
@@ -48,76 +42,49 @@ void main() {
       );
 
       expect(requested.host, 'archive-api.open-meteo.com');
-      expect(
-        requested.queryParameters['start_date'],
-        '2021-01-01',
-      );
-      expect(
-        requested.queryParameters['end_date'],
-        '2021-02-14',
-      );
+      expect(requested.queryParameters['start_date'], '2021-01-01');
+      expect(requested.queryParameters['end_date'], '2021-02-14');
       expect(requested.queryParameters['models'], 'era5');
       expect(
         requested.queryParameters['hourly'],
         'temperature_2m,apparent_temperature',
       );
 
-      expect(
-        data.series.keys,
-        <String>['temperature_2m', 'apparent_temperature'],
-      );
-      expect(
-        data.series['temperature_2m']!.sampleCount,
-        2,
-      );
-      expect(
-        data.referencePeriodStart,
-        DateTime.utc(2021, 1, 1),
-      );
-      expect(
-        data.referencePeriodEnd,
-        DateTime.utc(2021, 2, 14),
-      );
+      expect(data.series.keys, <String>[
+        'temperature_2m',
+        'apparent_temperature',
+      ]);
+      expect(data.series['temperature_2m']!.sampleCount, 2);
+      expect(data.referencePeriodStart, DateTime.utc(2021, 1, 1));
+      expect(data.referencePeriodEnd, DateTime.utc(2021, 2, 14));
       expect(data.source, contains('ERA5'));
     },
   );
 
-  test(
-    'a field absent from the archive is skipped, not invented',
-    () async {
-      final client = MockClient((request) async {
-        return http.Response(
-          '''
+  test('a field absent from the archive is skipped, not invented', () async {
+    final client = MockClient((request) async {
+      return http.Response('''
           {
             "hourly": {
               "time": ["2021-01-01T00:00"],
               "temperature_2m": [28.0]
             }
           }
-          ''',
-          200,
-        );
-      });
+          ''', 200);
+    });
 
-      final source =
-          OpenMeteoHazardHistoricalDataSource(
-        client: client,
-      );
+    final source = OpenMeteoHazardHistoricalDataSource(client: client);
 
-      final data = await source.fetch(
-        hazard: HazardType.heat,
-        latitude: -4.30,
-        longitude: 15.35,
-        startDate: DateTime.utc(2021, 1, 1),
-        endDate: DateTime.utc(2021, 1, 31),
-      );
+    final data = await source.fetch(
+      hazard: HazardType.heat,
+      latitude: -4.30,
+      longitude: 15.35,
+      startDate: DateTime.utc(2021, 1, 1),
+      endDate: DateTime.utc(2021, 1, 31),
+    );
 
-      expect(
-        data.series.keys,
-        <String>['temperature_2m'],
-      );
-    },
-  );
+    expect(data.series.keys, <String>['temperature_2m']);
+  });
 
   test('an inverted date range is rejected', () async {
     final source = OpenMeteoHazardHistoricalDataSource(
@@ -141,10 +108,7 @@ void main() {
   test('an API error is reported as a FormatException', () async {
     final source = OpenMeteoHazardHistoricalDataSource(
       client: MockClient((request) async {
-        return http.Response(
-          '{"error": true, "reason": "No data"}',
-          200,
-        );
+        return http.Response('{"error": true, "reason": "No data"}', 200);
       }),
     );
 

@@ -6,19 +6,11 @@ import '../domain/risk_alert.dart';
 import 'alert_presentation.dart';
 import 'providers/alert_providers.dart';
 
-
-
-
-
-
 class AlertsScreen extends ConsumerWidget {
   const AlertsScreen({super.key, this.zoneId, this.hazardType});
 
-  
   final String? zoneId;
 
-  
-  
   final String? hazardType;
 
   String? get _hazardLabel {
@@ -59,14 +51,15 @@ class AlertsScreen extends ConsumerWidget {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 720),
                   child: ref
-                      .watch(alertsForContextProvider((
-                        zoneId: zone,
-                        hazardType: hazard,
-                      )))
+                      .watch(
+                        alertsForContextProvider((
+                          zoneId: zone,
+                          hazardType: hazard,
+                        )),
+                      )
                       .when(
-                        loading: () => const Center(
-                          child: CircularProgressIndicator(),
-                        ),
+                        loading: () =>
+                            const Center(child: CircularProgressIndicator()),
                         error: (error, _) => _ErrorView(error: error),
                         data: (alerts) => alerts.isEmpty
                             ? const Center(

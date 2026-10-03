@@ -7,11 +7,9 @@ import 'risk_scenario_result.dart';
 class RiskScenarioService {
   final RiskIntelligenceService _riskIntelligenceService;
 
-  const RiskScenarioService({
-    RiskIntelligenceService? riskIntelligenceService,
-  }) : _riskIntelligenceService =
-            riskIntelligenceService ??
-                const RiskIntelligenceService();
+  const RiskScenarioService({RiskIntelligenceService? riskIntelligenceService})
+    : _riskIntelligenceService =
+          riskIntelligenceService ?? const RiskIntelligenceService();
 
   RiskScenarioResult simulateFloodRisk({
     required RiskScenario scenario,
@@ -25,8 +23,7 @@ class RiskScenarioService {
     DateTime? observedAt,
     FloodHistoricalBaseline? baseline,
   }) {
-    final baselineResult =
-        _riskIntelligenceService.calculateFloodRisk(
+    final baselineResult = _riskIntelligenceService.calculateFloodRisk(
       id: id,
       locationName: locationName,
       latitude: latitude,
@@ -41,29 +38,24 @@ class RiskScenarioService {
     final scenarioInput = baselineInput.copyWith(
       rainfallIntensityMmPerHour:
           baselineInput.rainfallIntensityMmPerHour *
-              scenario.rainfallMultiplier,
+          scenario.rainfallMultiplier,
       rainfallAccumulation6hMm:
           baselineInput.rainfallAccumulation6hMm *
-              scenario.rainfallAccumulationMultiplier,
+          scenario.rainfallAccumulationMultiplier,
       riverDischargeM3s:
-          baselineInput.riverDischargeM3s +
-              scenario.riverDischargeDeltaM3s,
+          baselineInput.riverDischargeM3s + scenario.riverDischargeDeltaM3s,
       vulnerabilityScore:
-          baselineInput.vulnerabilityScore +
-              scenario.vulnerabilityDelta,
+          baselineInput.vulnerabilityScore + scenario.vulnerabilityDelta,
       observationScore:
-          baselineInput.observationScore +
-              scenario.observationScoreDelta,
+          baselineInput.observationScore + scenario.observationScoreDelta,
       observationCount:
-          baselineInput.observationCount +
-              scenario.additionalObservationCount,
+          baselineInput.observationCount + scenario.additionalObservationCount,
       confirmedObservationCount:
           baselineInput.confirmedObservationCount +
-              scenario.additionalConfirmedObservationCount,
+          scenario.additionalConfirmedObservationCount,
     );
 
-    final scenarioResult =
-        _riskIntelligenceService.calculateFloodRisk(
+    final scenarioResult = _riskIntelligenceService.calculateFloodRisk(
       id: id,
       locationName: locationName,
       latitude: latitude,
@@ -78,12 +70,8 @@ class RiskScenarioService {
     return RiskScenarioResult(
       baseline: baselineResult,
       scenario: scenarioResult,
-      scoreDifference:
-          scenarioResult.riskScore -
-              baselineResult.riskScore,
-      riskLevelChanged:
-          scenarioResult.riskLevel !=
-              baselineResult.riskLevel,
+      scoreDifference: scenarioResult.riskScore - baselineResult.riskScore,
+      riskLevelChanged: scenarioResult.riskLevel != baselineResult.riskLevel,
     );
   }
 }

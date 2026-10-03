@@ -6,17 +6,8 @@ class RiskFactors {
   final double historicalExposure;
   final double currentObservations;
 
-  
-  
-  
   final String primaryFactorLabel;
 
-  
-  
-  
-  
-  
-  
   final List<RiskFactorScore> entries;
 
   const RiskFactors({
@@ -40,21 +31,21 @@ class RiskFactors {
 
     return RiskFactors(
       rainfall: read('rainfall'),
-      geographicVulnerability:
-          read('geographicVulnerability'),
+      geographicVulnerability: read('geographicVulnerability'),
       historicalExposure: read('historicalExposure'),
       currentObservations: read('currentObservations'),
-      primaryFactorLabel:
-          label is String && label.isNotEmpty ? label : 'Rainfall',
+      primaryFactorLabel: label is String && label.isNotEmpty
+          ? label
+          : 'Rainfall',
       entries: entries is List
           ? entries
-              .whereType<Map>()
-              .map(
-                (entry) => RiskFactorScore.fromJson(
-                  Map<String, dynamic>.from(entry),
-                ),
-              )
-              .toList(growable: false)
+                .whereType<Map>()
+                .map(
+                  (entry) => RiskFactorScore.fromJson(
+                    Map<String, dynamic>.from(entry),
+                  ),
+                )
+                .toList(growable: false)
           : const <RiskFactorScore>[],
     );
   }
@@ -66,9 +57,7 @@ class RiskFactors {
       'historicalExposure': historicalExposure,
       'currentObservations': currentObservations,
       'primaryFactorLabel': primaryFactorLabel,
-      'entries': entries
-          .map((entry) => entry.toJson())
-          .toList(growable: false),
+      'entries': entries.map((entry) => entry.toJson()).toList(growable: false),
     };
   }
 }

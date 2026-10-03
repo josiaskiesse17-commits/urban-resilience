@@ -14,7 +14,8 @@ class ReportLocationScreen extends ConsumerStatefulWidget {
   const ReportLocationScreen({super.key});
 
   @override
-  ConsumerState<ReportLocationScreen> createState() => _ReportLocationScreenState();
+  ConsumerState<ReportLocationScreen> createState() =>
+      _ReportLocationScreenState();
 }
 
 class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
@@ -36,7 +37,9 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
     );
     if (place != null) {
       Future.microtask(() {
-        ref.read(reportDraftProvider.notifier).setPlace(
+        ref
+            .read(reportDraftProvider.notifier)
+            .setPlace(
               street: place.label,
               cityLine: place.label,
               latitude: place.latitude,
@@ -65,14 +68,18 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
     final position = await Geolocator.getCurrentPosition();
     final point = LatLng(position.latitude, position.longitude);
     _mapController.move(point, 15);
-    ref.read(reportDraftProvider.notifier).setPlace(
+    ref
+        .read(reportDraftProvider.notifier)
+        .setPlace(
           street: 'Ma position',
-          cityLine: '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}',
+          cityLine:
+              '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}',
           latitude: position.latitude,
           longitude: position.longitude,
         );
     _street.text = 'Ma position';
-    _city.text = '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
+    _city.text =
+        '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
   }
 
   @override
@@ -104,7 +111,11 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                     const SizedBox(height: 4),
                     const Text(
                       'Placez le repère au plus près du lieu observé.',
-                      style: TextStyle(fontSize: 13, height: 1.35, color: AppPalette.textMuted),
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.35,
+                        color: AppPalette.textMuted,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     ClipRRect(
@@ -116,12 +127,17 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                             FlutterMap(
                               mapController: _mapController,
                               options: MapOptions(
-                                initialCenter: LatLng(draft.latitude, draft.longitude),
+                                initialCenter: LatLng(
+                                  draft.latitude,
+                                  draft.longitude,
+                                ),
                                 initialZoom: 15,
                                 onMapEvent: (event) {
                                   if (event is MapEventMoveEnd) {
                                     final center = event.camera.center;
-                                    ref.read(reportDraftProvider.notifier).setPlace(
+                                    ref
+                                        .read(reportDraftProvider.notifier)
+                                        .setPlace(
                                           street: _street.text,
                                           cityLine: _city.text,
                                           latitude: center.latitude,
@@ -133,7 +149,8 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                               children: [
                                 TileLayer(
                                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                  userAgentPackageName: 'com.namegmail.urban_resilience',
+                                  userAgentPackageName:
+                                      'com.namegmail.urban_resilience',
                                 ),
                               ],
                             ),
@@ -141,7 +158,10 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                               left: 12,
                               top: 12,
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 7,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(999),
@@ -167,7 +187,11 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                               ),
                             ),
                             const Center(
-                              child: Icon(Icons.location_on, color: AppPalette.primary, size: 40),
+                              child: Icon(
+                                Icons.location_on,
+                                color: AppPalette.primary,
+                                size: 40,
+                              ),
                             ),
                             const Positioned(
                               left: 12,
@@ -176,7 +200,9 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                               child: DecoratedBox(
                                 decoration: BoxDecoration(
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.all(Radius.circular(14)),
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(14),
+                                  ),
                                 ),
                                 child: Padding(
                                   padding: EdgeInsets.all(8),
@@ -235,7 +261,8 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         _street.text,
@@ -259,7 +286,9 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                             ),
                           const SizedBox(height: 10),
                           GestureDetector(
-                            onTap: () => setState(() => _editingAddress = !_editingAddress),
+                            onTap: () => setState(
+                              () => _editingAddress = !_editingAddress,
+                            ),
                             child: const Text(
                               'Corriger l’adresse',
                               style: TextStyle(
@@ -279,7 +308,9 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                         minimumSize: const Size.fromHeight(52),
                         foregroundColor: AppPalette.primary,
                         side: const BorderSide(color: AppPalette.inputBorder),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                       icon: SvgPicture.asset(
                         'assets/icons/report-locate.svg',
@@ -288,13 +319,20 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                       ),
                       label: const Text(
                         'Utiliser ma position',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
                     const Text(
                       'Votre position peut être différente du lieu de l’événement. Vérifiez le repère avant de continuer.',
-                      style: TextStyle(fontSize: 11, height: 1.4, color: AppPalette.textMuted),
+                      style: TextStyle(
+                        fontSize: 11,
+                        height: 1.4,
+                        color: AppPalette.textMuted,
+                      ),
                     ),
                   ],
                 ),
@@ -302,7 +340,9 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
               ReportActionButton(
                 label: 'Continuer vers le récapitulatif',
                 onPressed: () {
-                  ref.read(reportDraftProvider.notifier).setPlace(
+                  ref
+                      .read(reportDraftProvider.notifier)
+                      .setPlace(
                         street: _street.text.trim(),
                         cityLine: _city.text.trim(),
                         latitude: draft.latitude,

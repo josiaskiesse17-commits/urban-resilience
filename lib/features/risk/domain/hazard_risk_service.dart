@@ -16,33 +16,12 @@ import 'risk_intelligence_service.dart';
 import 'risk_result.dart';
 import 'risk_result_repository.dart';
 
-
 class _CachedBaseline {
-  const _CachedBaseline({
-    required this.baseline,
-    required this.cachedAt,
-  });
+  const _CachedBaseline({required this.baseline, required this.cachedAt});
 
   final HazardBaseline baseline;
   final DateTime cachedAt;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 class HazardRiskService {
   HazardRiskService({
@@ -52,19 +31,17 @@ class HazardRiskService {
     required this.referencePeriodEnd,
     this.exposureRepository,
     this.riskResultRepository,
-    this.riskIntelligenceService =
-        const RiskIntelligenceService(),
+    this.riskIntelligenceService = const RiskIntelligenceService(),
     this.variableBuilder = const HazardVariableBuilder(),
     this.exposureExtractor = const HazardExposureExtractor(),
     this.baselineMaxAge = const Duration(hours: 24),
   }) : _baselineService = HazardBaselineService(
-          dataSource: historicalDataSource,
-        );
+         dataSource: historicalDataSource,
+       );
 
   final HazardEnvironmentalDataSource liveDataSource;
   final HazardHistoricalDataSource historicalDataSource;
 
-  
   final DateTime referencePeriodStart;
   final DateTime referencePeriodEnd;
 
@@ -74,14 +51,12 @@ class HazardRiskService {
   final HazardVariableBuilder variableBuilder;
   final HazardExposureExtractor exposureExtractor;
 
-  
   final Duration baselineMaxAge;
 
   final HazardBaselineService _baselineService;
   final Map<String, _CachedBaseline> _baselineCache =
       <String, _CachedBaseline>{};
 
-  
   Future<RiskResult> calculate({
     required String zoneId,
     required String locationName,
@@ -130,10 +105,7 @@ class HazardRiskService {
       profile: profile,
     );
 
-    final notes = <String>[
-      ...live.providerNotes,
-      ...baseline.notes,
-    ];
+    final notes = <String>[...live.providerNotes, ...baseline.notes];
 
     final input = HazardRiskInput(
       hazard: hazard,
@@ -157,10 +129,7 @@ class HazardRiskService {
     );
 
     return riskIntelligenceService.calculateHazardRisk(
-      id: HazardRiskId.forZone(
-        zoneId: zoneId,
-        hazard: hazard,
-      ),
+      id: HazardRiskId.forZone(zoneId: zoneId, hazard: hazard),
       locationName: locationName,
       latitude: latitude,
       longitude: longitude,
@@ -168,8 +137,6 @@ class HazardRiskService {
     );
   }
 
-  
-  
   Future<RiskResult> calculateAndSave({
     required String zoneId,
     required String locationName,
@@ -196,8 +163,6 @@ class HazardRiskService {
     return result;
   }
 
-  
-  
   void clearBaselineCache() {
     _baselineCache.clear();
   }
@@ -208,7 +173,8 @@ class HazardRiskService {
     required double longitude,
     required bool useCache,
   }) async {
-    final key = '${hazard.id}|'
+    final key =
+        '${hazard.id}|'
         '${latitude.toStringAsFixed(4)},${longitude.toStringAsFixed(4)}|'
         '${referencePeriodStart.toUtc().toIso8601String()}|'
         '${referencePeriodEnd.toUtc().toIso8601String()}';
@@ -217,8 +183,7 @@ class HazardRiskService {
       final cached = _baselineCache[key];
 
       if (cached != null &&
-          DateTime.now().difference(cached.cachedAt) <
-              baselineMaxAge) {
+          DateTime.now().difference(cached.cachedAt) < baselineMaxAge) {
         return cached.baseline;
       }
     }
@@ -239,8 +204,6 @@ class HazardRiskService {
     return baseline;
   }
 
-  
-  
   bool _partialReference({
     required HazardDefinition definition,
     required HazardBaseline baseline,

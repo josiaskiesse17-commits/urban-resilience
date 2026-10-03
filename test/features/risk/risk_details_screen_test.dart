@@ -57,26 +57,18 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      
       expect(find.text('Masina'), findsWidgets);
       expect(find.text('62/100'), findsOneWidget);
       expect(find.text('ÉLEVÉ'), findsOneWidget);
-      
+
       expect(generatorCalls, 0);
 
-      
       expect(analyst.calls, 1);
       expect(find.text('AI summary for Masina.'), findsOneWidget);
 
-      
-      
       expect(repository.stored!.analysis, isNotNull);
-      expect(
-        repository.stored!.analysis!.summary,
-        'AI summary for Masina.',
-      );
+      expect(repository.stored!.analysis!.summary, 'AI summary for Masina.');
 
-      
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
       expect(analyst.calls, 1);
@@ -107,7 +99,6 @@ void main() {
               riskLevel: RiskLevel.high,
             );
 
-            
             await repository.save(generated);
 
             return generated;
@@ -117,20 +108,15 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      
-      
       expect(generatorCalls, 1);
       expect(repository.stored, isNotNull);
       expect(repository.stored!.id, 'zone-masina');
 
-      
       expect(find.text('71/100'), findsOneWidget);
       expect(find.text('ÉLEVÉ'), findsOneWidget);
 
-      
       expect(analyst.calls, 1);
 
-      
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
       expect(generatorCalls, 1);
@@ -158,7 +144,6 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      
       expect(analyst.calls, 1);
       expect(
         find.text('L’analyse IA n’a pas pu être générée.'),
@@ -167,12 +152,10 @@ void main() {
       expect(find.textContaining('proxy unavailable'), findsWidgets);
       expect(find.text('Réessayer l’analyse IA'), findsOneWidget);
 
-      
       await tester.pump(const Duration(seconds: 30));
       await tester.pump(const Duration(seconds: 30));
       expect(analyst.calls, 1);
 
-      
       analyst.failure = null;
 
       final retry = find.text('Réessayer l’analyse IA');
@@ -251,21 +234,17 @@ void main() {
       await tester.tap(refresh);
       await tester.pumpAndSettle();
 
-      
       expect(generatorCalls, 1);
       expect(repository.stored, isNotNull);
       expect(repository.stored!.riskScore, 79);
 
-      
       expect(find.text('79/100'), findsOneWidget);
       expect(find.text('CRITIQUE'), findsOneWidget);
 
-      
       expect(analyst.calls, 2);
       await tester.pump();
       expect(analyst.calls, 2);
 
-      
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
     },
@@ -277,15 +256,15 @@ void main() {
       final repository = FakeRiskResultRepository()
         ..stored = buildRiskResult(riskScore: 62, riskLevel: RiskLevel.high)
             .withAnalysis(
-          RiskAnalysis(
-            riskId: 'zone-masina',
-            summary: 'Interprétation enregistrée pour Masina.',
-            explanation: 'Elle est réutilisée telle quelle.',
-            mainFactors: const <String>['Températures élevées'],
-            recommendations: const <String>['Boire de l’eau'],
-            generatedAt: DateTime.utc(2026, 1, 5, 6),
-          ),
-        );
+              RiskAnalysis(
+                riskId: 'zone-masina',
+                summary: 'Interprétation enregistrée pour Masina.',
+                explanation: 'Elle est réutilisée telle quelle.',
+                mainFactors: const <String>['Températures élevées'],
+                recommendations: const <String>['Boire de l’eau'],
+                generatedAt: DateTime.utc(2026, 1, 5, 6),
+              ),
+            );
       final exposureRepository = FakeRiskExposureRepository();
       final analyst = FakeRiskAnalyst();
 
@@ -300,15 +279,12 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      
-      
       expect(analyst.calls, 0);
       expect(
         find.text('Interprétation enregistrée pour Masina.'),
         findsOneWidget,
       );
 
-      
       await tester.pump(const Duration(seconds: 30));
       await tester.pumpAndSettle();
       expect(analyst.calls, 0);

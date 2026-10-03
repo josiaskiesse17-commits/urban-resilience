@@ -28,82 +28,44 @@ class FloodRiskCalculation {
 class FloodRiskCalculator {
   const FloodRiskCalculator();
 
-  FloodRiskCalculation calculate(
-    FloodRiskInput input,
-  ) {
+  FloodRiskCalculation calculate(FloodRiskInput input) {
     final rainfallScore = RiskScoreUtils.linearScore(
       value: input.rainfallIntensityMmPerHour,
       baseline: input.rainfallBaselineMmPerHour,
       critical: input.rainfallCriticalMmPerHour,
     );
 
-    final rainfallAccumulationScore =
-        RiskScoreUtils.linearScore(
+    final rainfallAccumulationScore = RiskScoreUtils.linearScore(
       value: input.rainfallAccumulation6hMm,
-      baseline:
-          input.rainfallAccumulation6hBaselineMm,
-      critical:
-          input.rainfallAccumulation6hCriticalMm,
+      baseline: input.rainfallAccumulation6hBaselineMm,
+      critical: input.rainfallAccumulation6hCriticalMm,
     );
 
-    final riverDischargeScore =
-        RiskScoreUtils.linearScore(
+    final riverDischargeScore = RiskScoreUtils.linearScore(
       value: input.riverDischargeM3s,
-      baseline:
-          input.riverDischargeBaselineM3s,
-      critical:
-          input.riverDischargeCriticalM3s,
+      baseline: input.riverDischargeBaselineM3s,
+      critical: input.riverDischargeCriticalM3s,
     );
 
-    final hazardScore =
-        RiskScoreUtils.weightedAverage([
-      (
-        value: rainfallScore,
-        weight: 0.40,
-      ),
-      (
-        value: rainfallAccumulationScore,
-        weight: 0.30,
-      ),
-      (
-        value: riverDischargeScore,
-        weight: 0.30,
-      ),
+    final hazardScore = RiskScoreUtils.weightedAverage([
+      (value: rainfallScore, weight: 0.40),
+      (value: rainfallAccumulationScore, weight: 0.30),
+      (value: riverDischargeScore, weight: 0.30),
     ]);
 
-    final vulnerability =
-        RiskScoreUtils.clamp(
-      input.vulnerabilityScore,
-    );
+    final vulnerability = RiskScoreUtils.clamp(input.vulnerabilityScore);
 
-    final historicalExposure =
-        RiskScoreUtils.clamp(
+    final historicalExposure = RiskScoreUtils.clamp(
       input.historicalExposureScore,
     );
 
-    
-    
-    
-    final overallScore =
-        RiskScoreUtils.weightedAverage([
-      (
-        value: hazardScore,
-        weight: 0.40,
-      ),
-      (
-        value: vulnerability,
-        weight: 0.25,
-      ),
-      (
-        value: historicalExposure,
-        weight: 0.15,
-      ),
+    final overallScore = RiskScoreUtils.weightedAverage([
+      (value: hazardScore, weight: 0.40),
+      (value: vulnerability, weight: 0.25),
+      (value: historicalExposure, weight: 0.15),
     ]);
 
-    final riskLevel =
-        RiskScoreUtils.riskLevelFromScore(
-      overallScore,
-    );
+    final riskLevel = RiskScoreUtils.riskLevelFromScore(overallScore);
 
     final factors = RiskFactors(
       rainfall: rainfallScore,
@@ -121,10 +83,8 @@ class FloodRiskCalculator {
 
     return FloodRiskCalculation(
       rainfallScore: rainfallScore,
-      rainfallAccumulationScore:
-          rainfallAccumulationScore,
-      riverDischargeScore:
-          riverDischargeScore,
+      rainfallAccumulationScore: rainfallAccumulationScore,
+      riverDischargeScore: riverDischargeScore,
       hazardScore: hazardScore,
       overallScore: overallScore,
       riskLevel: riskLevel,
@@ -132,11 +92,6 @@ class FloodRiskCalculator {
     );
   }
 
-  
-  
-  
-  
-  
   List<RiskFactorScore> _entries({
     required double rainfallScore,
     required double rainfallAccumulationScore,
@@ -173,9 +128,7 @@ class FloodRiskCalculator {
       ),
       RiskFactorScore(
         name: 'rainfallAccumulation6h',
-        label: RiskMeasurementLabel.of(
-          name: 'rainfallAccumulation6h',
-        ),
+        label: RiskMeasurementLabel.of(name: 'rainfallAccumulation6h'),
         score: rainfallAccumulationScore,
         weight: 0.30,
         usedInScore: true,

@@ -9,22 +9,13 @@ import '../domain/hazard_historical_data_source.dart';
 import '../domain/hazard_type.dart';
 import 'open_meteo_hourly_parser.dart';
 
-
-
-
-
-
-
 class OpenMeteoHazardHistoricalDataSource
     implements HazardHistoricalDataSource {
-  OpenMeteoHazardHistoricalDataSource({
-    required this.client,
-  });
+  OpenMeteoHazardHistoricalDataSource({required this.client});
 
   final http.Client client;
 
-  static const String sourceLabel =
-      'Open-Meteo Historical Weather API / ERA5';
+  static const String sourceLabel = 'Open-Meteo Historical Weather API / ERA5';
 
   @override
   Future<HazardHistoricalData> fetch({
@@ -38,9 +29,7 @@ class OpenMeteoHazardHistoricalDataSource
     final normalizedEnd = _normalizeDate(endDate);
 
     if (normalizedEnd.isBefore(normalizedStart)) {
-      throw ArgumentError(
-        'End date cannot be before start date.',
-      );
+      throw ArgumentError('End date cannot be before start date.');
     }
 
     final definition = HazardCatalog.of(hazard);
@@ -48,27 +37,21 @@ class OpenMeteoHazardHistoricalDataSource
     final fields = definition.historicalApiFields;
 
     if (fields.isEmpty) {
-      throw ArgumentError(
-        '${hazard.label} declares no historical field.',
-      );
+      throw ArgumentError('${hazard.label} declares no historical field.');
     }
 
-    final uri = Uri.https(
-      'archive-api.open-meteo.com',
-      '/v1/archive',
-      {
-        'latitude': latitude.toString(),
-        'longitude': longitude.toString(),
-        'start_date': _formatDate(normalizedStart),
-        'end_date': _formatDate(normalizedEnd),
-        'hourly': fields.join(','),
-        'timezone': 'UTC',
-        'models': 'era5',
-        'temperature_unit': 'celsius',
-        'wind_speed_unit': 'kmh',
-        'precipitation_unit': 'mm',
-      },
-    );
+    final uri = Uri.https('archive-api.open-meteo.com', '/v1/archive', {
+      'latitude': latitude.toString(),
+      'longitude': longitude.toString(),
+      'start_date': _formatDate(normalizedStart),
+      'end_date': _formatDate(normalizedEnd),
+      'hourly': fields.join(','),
+      'timezone': 'UTC',
+      'models': 'era5',
+      'temperature_unit': 'celsius',
+      'wind_speed_unit': 'kmh',
+      'precipitation_unit': 'mm',
+    });
 
     final response = await client.get(uri);
 
@@ -80,8 +63,7 @@ class OpenMeteoHazardHistoricalDataSource
       );
     }
 
-    final json =
-        OpenMeteoHourlyParser.decodeObject(response.body);
+    final json = OpenMeteoHourlyParser.decodeObject(response.body);
 
     final times = OpenMeteoHourlyParser.parseTimes(json);
 
@@ -112,11 +94,7 @@ class OpenMeteoHazardHistoricalDataSource
   }
 
   DateTime _normalizeDate(DateTime date) {
-    return DateTime.utc(
-      date.year,
-      date.month,
-      date.day,
-    );
+    return DateTime.utc(date.year, date.month, date.day);
   }
 
   String _formatDate(DateTime date) {

@@ -12,19 +12,14 @@ class FloodRiskExposureProfile {
 
   final String zoneId;
 
-  
   final double populationExposureScore;
 
-  
   final double infrastructureExposureScore;
 
-  
   final double drainageVulnerabilityScore;
 
-  
   final double criticalFacilityExposureScore;
 
-  
   final double historicalFloodExposureScore;
 
   final String? source;
@@ -54,9 +49,7 @@ class FloodRiskExposureProfile {
     };
   }
 
-  factory FloodRiskExposureProfile.fromJson(
-    Map<String, dynamic> json,
-  ) {
+  factory FloodRiskExposureProfile.fromJson(Map<String, dynamic> json) {
     return FloodRiskExposureProfile(
       zoneId: json['zoneId'] as String,
       populationExposureScore:

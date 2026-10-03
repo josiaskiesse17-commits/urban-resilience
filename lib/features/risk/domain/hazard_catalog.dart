@@ -2,36 +2,14 @@ import 'hazard_definition.dart';
 import 'hazard_series_utils.dart';
 import 'hazard_type.dart';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 class HazardCatalog {
   const HazardCatalog._();
 
-  
-  
-  
-  
-  
-  
-  static const List<HazardType> genericHazards =
-      <HazardType>[
+  static const List<HazardType> genericHazards = <HazardType>[
     HazardType.landslide,
     HazardType.heat,
   ];
 
-  
-  
   static bool usesLegacyPipeline(HazardType hazard) =>
       hazard == HazardType.flooding;
 
@@ -50,12 +28,6 @@ class HazardCatalog {
     }
   }
 
-  
-  
-  
-  
-  
-  
   static const HazardDefinition flooding = HazardDefinition(
     hazard: HazardType.flooding,
     primaryFactorLabel: 'Rainfall',
@@ -111,11 +83,6 @@ class HazardCatalog {
     ],
   );
 
-  
-  
-  
-  
-  
   static const HazardDefinition landslide = HazardDefinition(
     hazard: HazardType.landslide,
     primaryFactorLabel: 'Rainfall (24 h)',
@@ -168,13 +135,6 @@ class HazardCatalog {
     ],
   );
 
-  
-  
-  
-  
-  
-  
-  
   static const HazardDefinition heat = HazardDefinition(
     hazard: HazardType.heat,
     primaryFactorLabel: 'Heat',

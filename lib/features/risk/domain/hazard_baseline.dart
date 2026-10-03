@@ -2,13 +2,11 @@ import 'hazard_series_utils.dart';
 import 'hazard_type.dart';
 import 'historical_distribution.dart';
 
-
 typedef HazardBaselineSlice = ({
   HistoricalDistribution distribution,
   int? month,
   bool usedSeasonalBucket,
 });
-
 
 class HazardBaselineVariable {
   const HazardBaselineVariable({
@@ -20,39 +18,28 @@ class HazardBaselineVariable {
     required this.seasonal,
   });
 
-  
-  
   static const int minimumSeasonalSamples = 30;
 
   final String name;
   final String unit;
   final HazardWindow window;
 
-  
   final HistoricalDistribution overall;
 
-  
   final Map<int, HistoricalDistribution> byMonth;
 
-  
   final bool seasonal;
 
   int get sampleCount => overall.sampleCount;
 
-  
   HazardBaselineSlice sliceFor(DateTime? observedAt) {
     if (!seasonal || observedAt == null) {
-      return (
-        distribution: overall,
-        month: null,
-        usedSeasonalBucket: false,
-      );
+      return (distribution: overall, month: null, usedSeasonalBucket: false);
     }
 
     final monthly = byMonth[observedAt.month];
 
-    if (monthly == null ||
-        monthly.sampleCount < minimumSeasonalSamples) {
+    if (monthly == null || monthly.sampleCount < minimumSeasonalSamples) {
       return (
         distribution: overall,
         month: observedAt.month,
@@ -68,7 +55,6 @@ class HazardBaselineVariable {
   }
 }
 
-
 class HazardBaseline {
   const HazardBaseline({
     required this.hazard,
@@ -82,7 +68,6 @@ class HazardBaseline {
 
   final HazardType hazard;
 
-  
   final Map<String, HazardBaselineVariable> variables;
 
   final DateTime referencePeriodStart;
@@ -90,9 +75,7 @@ class HazardBaseline {
   final DateTime generatedAt;
   final String source;
 
-  
   final List<String> notes;
 
-  HazardBaselineVariable? variableFor(String name) =>
-      variables[name];
+  HazardBaselineVariable? variableFor(String name) => variables[name];
 }

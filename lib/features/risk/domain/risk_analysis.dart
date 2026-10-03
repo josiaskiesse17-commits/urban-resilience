@@ -29,30 +29,19 @@ class RiskAnalysis {
         explanation is! String ||
         mainFactors is! List ||
         recommendations is! List) {
-      throw const FormatException(
-        'Invalid AI risk analysis format.',
-      );
+      throw const FormatException('Invalid AI risk analysis format.');
     }
 
     return RiskAnalysis(
       riskId: riskId,
       summary: summary,
       explanation: explanation,
-      mainFactors: mainFactors
-          .map((item) => item.toString())
-          .toList(),
-      recommendations: recommendations
-          .map((item) => item.toString())
-          .toList(),
+      mainFactors: mainFactors.map((item) => item.toString()).toList(),
+      recommendations: recommendations.map((item) => item.toString()).toList(),
       generatedAt: generatedAt,
     );
   }
 
-  
-  
-  
-  
-  
   Map<String, dynamic> toJson() {
     return {
       'riskId': riskId,

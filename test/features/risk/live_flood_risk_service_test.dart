@@ -24,79 +24,53 @@ class _FakeFloodEnvironmentalDataSource
 }
 
 void main() {
-  test(
-    'produces a RiskResult from live environmental data',
-    () async {
-      final service = LiveFloodRiskService(
-        dataSource: _FakeFloodEnvironmentalDataSource(),
-      );
+  test('produces a RiskResult from live environmental data', () async {
+    final service = LiveFloodRiskService(
+      dataSource: _FakeFloodEnvironmentalDataSource(),
+    );
 
-      final result = await service.calculate(
-        id: 'zone-masina',
-        locationName: 'Masina',
-        latitude: -4.30,
-        longitude: 15.35,
-        baseline: FloodHistoricalBaseline(
-          rainfallBaselineMmPerHour: 1.5,
-          rainfallCriticalMmPerHour: 8.0,
-          rainfallAccumulation6hBaselineMm: 10.0,
-          rainfallAccumulation6hCriticalMm: 45.0,
-          riverDischargeBaselineM3s: 250.0,
-          riverDischargeCriticalM3s: 600.0,
-          referencePeriodStart:
-              DateTime.utc(2018, 1, 1),
-          referencePeriodEnd:
-              DateTime.utc(2022, 7, 31),
-          generatedAt:
-              DateTime.utc(2026, 9, 28),
-          rainfallSampleCount: 100000,
-          riverDischargeSampleCount: 1600,
-        ),
-        vulnerabilityScore: 70,
-        historicalExposureScore: 65,
-        observationScore: 60,
-        observationCount: 5,
-        confirmedObservationCount: 3,
-      );
+    final result = await service.calculate(
+      id: 'zone-masina',
+      locationName: 'Masina',
+      latitude: -4.30,
+      longitude: 15.35,
+      baseline: FloodHistoricalBaseline(
+        rainfallBaselineMmPerHour: 1.5,
+        rainfallCriticalMmPerHour: 8.0,
+        rainfallAccumulation6hBaselineMm: 10.0,
+        rainfallAccumulation6hCriticalMm: 45.0,
+        riverDischargeBaselineM3s: 250.0,
+        riverDischargeCriticalM3s: 600.0,
+        referencePeriodStart: DateTime.utc(2018, 1, 1),
+        referencePeriodEnd: DateTime.utc(2022, 7, 31),
+        generatedAt: DateTime.utc(2026, 9, 28),
+        rainfallSampleCount: 100000,
+        riverDischargeSampleCount: 1600,
+      ),
+      vulnerabilityScore: 70,
+      historicalExposureScore: 65,
+      observationScore: 60,
+      observationCount: 5,
+      confirmedObservationCount: 3,
+    );
 
-      expect(
-        result.locationName,
-        'Masina',
-      );
+    expect(result.locationName, 'Masina');
 
-      expect(
-        result.hazardType,
-        'Flooding',
-      );
+    expect(result.hazardType, 'Flooding');
 
-      expect(
-        result.riskScore,
-        greaterThan(0),
-      );
+    expect(result.riskScore, greaterThan(0));
 
-      expect(
-        result.riskScore,
-        lessThanOrEqualTo(100),
-      );
+    expect(result.riskScore, lessThanOrEqualTo(100));
 
-      expect(
-        result.evidence.measurements.length,
-        5,
-      );
+    expect(result.evidence.measurements.length, 5);
 
-      expect(
-        result.evidence.measurements.first.source,
-        'Fake Weather',
-      );
+    expect(result.evidence.measurements.first.source, 'Fake Weather');
 
-      
-      expect(
-        result.evidence.measurements.any(
-          (measurement) =>
-              measurement.name == 'citizenObservationRisk',
-        ),
-        isFalse,
-      );
-    },
-  );
+    expect(
+      result.evidence.measurements.any(
+        (measurement) => measurement.name == 'citizenObservationRisk',
+      ),
+      isFalse,
+    );
+  });
 }

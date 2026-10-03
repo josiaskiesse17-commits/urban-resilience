@@ -1,23 +1,12 @@
-enum AlertSeverity {
-  info,
-  warning,
-  danger,
-  critical,
-}
-
-
-
-
+enum AlertSeverity { info, warning, danger, critical }
 
 class RiskAlert {
   final String id;
   final String title;
   final String message;
 
-  
   final String zoneId;
 
-  
   final String hazardType;
 
   final AlertSeverity severity;
@@ -25,10 +14,8 @@ class RiskAlert {
   final double longitude;
   final DateTime createdAt;
 
-  
   final DateTime? expiresAt;
 
-  
   final bool active;
 
   const RiskAlert({
@@ -79,7 +66,8 @@ class RiskAlert {
       ),
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
-      createdAt: _parseDateTime(json['createdAt']) ??
+      createdAt:
+          _parseDateTime(json['createdAt']) ??
           DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
       expiresAt: _parseDateTime(json['expiresAt']),
       active: json['active'] != false,

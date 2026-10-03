@@ -5,18 +5,10 @@ import 'hazard_series_utils.dart';
 import 'hazard_variable.dart';
 import 'risk_measurement.dart';
 
-
-
 typedef HazardVariableBuildResult = ({
   List<HazardVariable> variables,
   List<HazardVariableGap> gaps,
 });
-
-
-
-
-
-
 
 class HazardVariableBuilder {
   const HazardVariableBuilder();
@@ -34,14 +26,15 @@ class HazardVariableBuilder {
 
       if (series == null || series.isEmpty) {
         gaps.add(
-        HazardVariableGap(
-          name: spec.name,
-          label: spec.label,
-          reason: liveData.missingFields[spec.apiField] ??
-              'le fournisseur n’a renvoyé aucune valeur pour '
-                  '« ${spec.apiField} » à cet endroit',
-        ),
-      );
+          HazardVariableGap(
+            name: spec.name,
+            label: spec.label,
+            reason:
+                liveData.missingFields[spec.apiField] ??
+                'le fournisseur n’a renvoyé aucune valeur pour '
+                    '« ${spec.apiField} » à cet endroit',
+          ),
+        );
 
         continue;
       }
@@ -58,7 +51,8 @@ class HazardVariableBuilder {
           HazardVariableGap(
             name: spec.name,
             label: spec.label,
-            reason: 'la série de « ${spec.apiField} » comporte une '
+            reason:
+                'la série de « ${spec.apiField} » comporte une '
                 'interruption et aucune fenêtre ${spec.window.label} '
                 'complète ne se termine à son dernier horodatage',
           ),
@@ -94,7 +88,8 @@ class HazardVariableBuilder {
           HazardVariableGap(
             name: spec.name,
             label: spec.label,
-            reason: 'aucune référence statistique n’a pu être construite '
+            reason:
+                'aucune référence statistique n’a pu être construite '
                 'à partir de la série historique de « ${spec.apiField} » '
                 'pour cet endroit',
           ),
@@ -131,10 +126,7 @@ class HazardVariableBuilder {
       );
     }
 
-    return (
-      variables: variables,
-      gaps: gaps,
-    );
+    return (variables: variables, gaps: gaps);
   }
 
   String _referenceLabel({

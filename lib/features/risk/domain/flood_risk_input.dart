@@ -47,41 +47,23 @@ class FloodRiskInput {
   }) {
     return FloodRiskInput(
       rainfallIntensityMmPerHour:
-          rainfallIntensityMmPerHour ??
-              this.rainfallIntensityMmPerHour,
-      rainfallBaselineMmPerHour:
-          rainfallBaselineMmPerHour,
-      rainfallCriticalMmPerHour:
-          rainfallCriticalMmPerHour,
+          rainfallIntensityMmPerHour ?? this.rainfallIntensityMmPerHour,
+      rainfallBaselineMmPerHour: rainfallBaselineMmPerHour,
+      rainfallCriticalMmPerHour: rainfallCriticalMmPerHour,
       rainfallAccumulation6hMm:
-          rainfallAccumulation6hMm ??
-              this.rainfallAccumulation6hMm,
-      rainfallAccumulation6hBaselineMm:
-          rainfallAccumulation6hBaselineMm,
-      rainfallAccumulation6hCriticalMm:
-          rainfallAccumulation6hCriticalMm,
-      riverDischargeM3s:
-          riverDischargeM3s ??
-              this.riverDischargeM3s,
-      riverDischargeBaselineM3s:
-          riverDischargeBaselineM3s,
-      riverDischargeCriticalM3s:
-          riverDischargeCriticalM3s,
-      vulnerabilityScore:
-          vulnerabilityScore ??
-              this.vulnerabilityScore,
+          rainfallAccumulation6hMm ?? this.rainfallAccumulation6hMm,
+      rainfallAccumulation6hBaselineMm: rainfallAccumulation6hBaselineMm,
+      rainfallAccumulation6hCriticalMm: rainfallAccumulation6hCriticalMm,
+      riverDischargeM3s: riverDischargeM3s ?? this.riverDischargeM3s,
+      riverDischargeBaselineM3s: riverDischargeBaselineM3s,
+      riverDischargeCriticalM3s: riverDischargeCriticalM3s,
+      vulnerabilityScore: vulnerabilityScore ?? this.vulnerabilityScore,
       historicalExposureScore:
-          historicalExposureScore ??
-              this.historicalExposureScore,
-      observationScore:
-          observationScore ??
-              this.observationScore,
-      observationCount:
-          observationCount ??
-              this.observationCount,
+          historicalExposureScore ?? this.historicalExposureScore,
+      observationScore: observationScore ?? this.observationScore,
+      observationCount: observationCount ?? this.observationCount,
       confirmedObservationCount:
-          confirmedObservationCount ??
-              this.confirmedObservationCount,
+          confirmedObservationCount ?? this.confirmedObservationCount,
     );
   }
 }

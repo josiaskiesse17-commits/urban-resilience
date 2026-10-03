@@ -26,8 +26,7 @@ class _FakeFloodEnvironmentalDataSource
   }
 }
 
-class _FakeHistoricalFloodDataSource
-    implements HistoricalFloodDataSource {
+class _FakeHistoricalFloodDataSource implements HistoricalFloodDataSource {
   @override
   Future<HistoricalFloodData> fetch({
     required double latitude,
@@ -36,24 +35,8 @@ class _FakeHistoricalFloodDataSource
     required DateTime endDate,
   }) async {
     return HistoricalFloodData(
-      hourlyRainfallValues: [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        8,
-      ],
-      riverDischargeValues: [
-        100,
-        120,
-        150,
-        180,
-        220,
-        300,
-      ],
+      hourlyRainfallValues: [0, 1, 2, 3, 4, 5, 6, 8],
+      riverDischargeValues: [100, 120, 150, 180, 220, 300],
       referencePeriodStart: startDate,
       referencePeriodEnd: endDate,
       rainfallSource: 'Fake',
@@ -62,9 +45,7 @@ class _FakeHistoricalFloodDataSource
   }
 }
 
-LiveFloodRiskService _buildService({
-  bool withBaselineService = true,
-}) {
+LiveFloodRiskService _buildService({bool withBaselineService = true}) {
   return LiveFloodRiskService(
     dataSource: _FakeFloodEnvironmentalDataSource(),
     historicalBaselineService: withBaselineService
@@ -76,86 +57,60 @@ LiveFloodRiskService _buildService({
 }
 
 void main() {
-  test(
-    'simulates a scenario on top of the live risk input',
-    () async {
-      final service = _buildService();
+  test('simulates a scenario on top of the live risk input', () async {
+    final service = _buildService();
 
-      final result = await service.simulateFloodScenario(
-        id: 'zone-masina',
-        locationName: 'Masina',
-        latitude: -4.30,
-        longitude: 15.35,
-        startDate: DateTime.utc(2018, 1, 1),
-        endDate: DateTime.utc(2022, 7, 31),
-        scenario: const RiskScenario(
-          name: 'Heavy rainfall',
-          rainfallMultiplier: 1.5,
-          rainfallAccumulationMultiplier: 1.5,
-        ),
-        vulnerabilityScore: 70,
-        historicalExposureScore: 65,
-        observationScore: 60,
-        observationCount: 5,
-        confirmedObservationCount: 3,
-      );
+    final result = await service.simulateFloodScenario(
+      id: 'zone-masina',
+      locationName: 'Masina',
+      latitude: -4.30,
+      longitude: 15.35,
+      startDate: DateTime.utc(2018, 1, 1),
+      endDate: DateTime.utc(2022, 7, 31),
+      scenario: const RiskScenario(
+        name: 'Heavy rainfall',
+        rainfallMultiplier: 1.5,
+        rainfallAccumulationMultiplier: 1.5,
+      ),
+      vulnerabilityScore: 70,
+      historicalExposureScore: 65,
+      observationScore: 60,
+      observationCount: 5,
+      confirmedObservationCount: 3,
+    );
 
-      expect(
-        result.baseline.locationName,
-        'Masina',
-      );
+    expect(result.baseline.locationName, 'Masina');
 
-      expect(
-        result.baseline.evidence.measurements.length,
-        5,
-      );
+    expect(result.baseline.evidence.measurements.length, 5);
 
-      expect(
-        result.baseline.evidence.measurements.first.source,
-        'Fake Weather',
-      );
+    expect(result.baseline.evidence.measurements.first.source, 'Fake Weather');
 
-      expect(
-        result.scenario.riskScore,
-        greaterThan(result.baseline.riskScore),
-      );
+    expect(result.scenario.riskScore, greaterThan(result.baseline.riskScore));
 
-      expect(
-        result.scoreDifference,
-        greaterThan(0),
-      );
-    },
-  );
+    expect(result.scoreDifference, greaterThan(0));
+  });
 
-  test(
-    'requires the historical baseline service for scenarios',
-    () async {
-      final service = _buildService(
-        withBaselineService: false,
-      );
+  test('requires the historical baseline service for scenarios', () async {
+    final service = _buildService(withBaselineService: false);
 
-      final future = service.simulateFloodScenario(
-        id: 'zone-masina',
-        locationName: 'Masina',
-        latitude: -4.30,
-        longitude: 15.35,
-        startDate: DateTime.utc(2018, 1, 1),
-        endDate: DateTime.utc(2022, 7, 31),
-        scenario: const RiskScenario(
-          name: 'Heavy rainfall',
-          rainfallMultiplier: 1.5,
-        ),
-        vulnerabilityScore: 0,
-        historicalExposureScore: 0,
-        observationScore: 0,
-        observationCount: 0,
-        confirmedObservationCount: 0,
-      );
+    final future = service.simulateFloodScenario(
+      id: 'zone-masina',
+      locationName: 'Masina',
+      latitude: -4.30,
+      longitude: 15.35,
+      startDate: DateTime.utc(2018, 1, 1),
+      endDate: DateTime.utc(2022, 7, 31),
+      scenario: const RiskScenario(
+        name: 'Heavy rainfall',
+        rainfallMultiplier: 1.5,
+      ),
+      vulnerabilityScore: 0,
+      historicalExposureScore: 0,
+      observationScore: 0,
+      observationCount: 0,
+      confirmedObservationCount: 0,
+    );
 
-      await expectLater(
-        future,
-        throwsA(isA<StateError>()),
-      );
-    },
-  );
+    await expectLater(future, throwsA(isA<StateError>()));
+  });
 }

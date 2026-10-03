@@ -71,7 +71,10 @@ class ReportReceivedScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 20),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(999),
@@ -80,7 +83,10 @@ class ReportReceivedScreen extends StatelessWidget {
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text('#', style: TextStyle(fontWeight: FontWeight.w700)),
+                              Text(
+                                '#',
+                                style: TextStyle(fontWeight: FontWeight.w700),
+                              ),
                               SizedBox(width: 8),
                               Text(
                                 'VIG-2026-0942',
@@ -124,7 +130,9 @@ class ReportReceivedScreen extends StatelessWidget {
                                 subtitle: 'Délai moyen : moins de 20 min',
                                 active: true,
                               ),
-                              _Step(title: 'Décision et publication éventuelle'),
+                              _Step(
+                                title: 'Décision et publication éventuelle',
+                              ),
                             ],
                           ),
                         ),
@@ -149,7 +157,10 @@ class ReportReceivedScreen extends StatelessWidget {
                             ),
                             label: const Text(
                               'Voir mes signalements',
-                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
@@ -161,7 +172,9 @@ class ReportReceivedScreen extends StatelessWidget {
                             onPressed: () => context.go('/map'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppPalette.primary,
-                              side: const BorderSide(color: AppPalette.inputBorder),
+                              side: const BorderSide(
+                                color: AppPalette.inputBorder,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
                               ),
@@ -173,7 +186,10 @@ class ReportReceivedScreen extends StatelessWidget {
                             ),
                             label: const Text(
                               'Retour à la carte',
-                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
@@ -218,8 +234,8 @@ class _Step extends StatelessWidget {
               color: done
                   ? AppPalette.primary
                   : active
-                      ? AppPalette.infoBoxBg
-                      : AppPalette.inputBorder,
+                  ? AppPalette.infoBoxBg
+                  : AppPalette.inputBorder,
               shape: BoxShape.circle,
             ),
             child: done
@@ -229,12 +245,12 @@ class _Step extends StatelessWidget {
                     height: 17,
                   )
                 : active
-                    ? SvgPicture.asset(
-                        'assets/icons/report-loader.svg',
-                        width: 17,
-                        height: 17,
-                      )
-                    : null,
+                ? SvgPicture.asset(
+                    'assets/icons/report-loader.svg',
+                    width: 17,
+                    height: 17,
+                  )
+                : null,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -245,14 +261,19 @@ class _Step extends StatelessWidget {
                   title,
                   style: TextStyle(
                     fontSize: 13,
-                    fontWeight: done || active ? FontWeight.w600 : FontWeight.w400,
+                    fontWeight: done || active
+                        ? FontWeight.w600
+                        : FontWeight.w400,
                     color: active ? AppPalette.primary : AppPalette.textDark,
                   ),
                 ),
                 if (subtitle != null)
                   Text(
                     subtitle!,
-                    style: const TextStyle(fontSize: 11, color: AppPalette.textMuted),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppPalette.textMuted,
+                    ),
                   ),
               ],
             ),

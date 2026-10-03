@@ -1,24 +1,11 @@
 import 'hazard_type.dart';
 
-
-
-
-
-
-
-
-
-
-
 class HazardRiskId {
   const HazardRiskId._();
 
   static const String separator = '--';
 
-  static String forZone({
-    required String zoneId,
-    required HazardType hazard,
-  }) {
+  static String forZone({required String zoneId, required HazardType hazard}) {
     if (hazard == HazardType.legacyDefault) {
       return zoneId;
     }
@@ -26,7 +13,6 @@ class HazardRiskId {
     return '$zoneId$separator${hazard.id}';
   }
 
-  
   static HazardType hazardOf(String riskId) {
     final index = riskId.lastIndexOf(separator);
 
@@ -36,11 +22,9 @@ class HazardRiskId {
 
     final suffix = riskId.substring(index + separator.length);
 
-    return HazardType.fromId(suffix) ??
-        HazardType.legacyDefault;
+    return HazardType.fromId(suffix) ?? HazardType.legacyDefault;
   }
 
-  
   static String zoneIdOf(String riskId) {
     final index = riskId.lastIndexOf(separator);
 

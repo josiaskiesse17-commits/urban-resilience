@@ -7,8 +7,6 @@ import 'package:urban_resilience/features/risk/domain/hazard_historical_data.dar
 import 'package:urban_resilience/features/risk/domain/hazard_series_utils.dart';
 import 'package:urban_resilience/features/risk/domain/hazard_type.dart';
 
-
-
 HazardHistoricalData buildRainfallData() {
   final times = <DateTime>[];
   final values = <double?>[];
@@ -42,151 +40,97 @@ void main() {
   const calculator = HazardBaselineCalculator();
   final definition = HazardCatalog.landslide;
 
-  test(
-    'builds seasonal references over matching windows',
-    () {
-      final data = buildRainfallData();
-      final baseline = calculator.calculate(
-        definition: definition,
-        data: data,
-      );
+  test('builds seasonal references over matching windows', () {
+    final data = buildRainfallData();
+    final baseline = calculator.calculate(definition: definition, data: data);
 
-      expect(
-        baseline.variables.keys,
-        containsAll(<String>[
-          'rainfallAccumulation24h',
-          'rainfallAccumulation72h',
-        ]),
-      );
+    expect(
+      baseline.variables.keys,
+      containsAll(<String>[
+        'rainfallAccumulation24h',
+        'rainfallAccumulation72h',
+      ]),
+    );
 
-      final rainfall24h =
-          baseline.variableFor('rainfallAccumulation24h')!;
+    final rainfall24h = baseline.variableFor('rainfallAccumulation24h')!;
 
-      expect(rainfall24h.unit, 'mm');
-      expect(rainfall24h.window, HazardWindow.sum24h);
-      expect(
-        rainfall24h.overall.sampleCount,
-        24 * 45 - 23,
-      );
-      expect(rainfall24h.seasonal, isTrue);
-      expect(
-        rainfall24h.byMonth.keys,
-        <int>{1, 2},
-      );
+    expect(rainfall24h.unit, 'mm');
+    expect(rainfall24h.window, HazardWindow.sum24h);
+    expect(rainfall24h.overall.sampleCount, 24 * 45 - 23);
+    expect(rainfall24h.seasonal, isTrue);
+    expect(rainfall24h.byMonth.keys, <int>{1, 2});
 
-      final rainfall72h =
-          baseline.variableFor('rainfallAccumulation72h')!;
+    final rainfall72h = baseline.variableFor('rainfallAccumulation72h')!;
 
-      expect(
-        rainfall72h.overall.sampleCount,
-        24 * 45 - 71,
-      );
+    expect(rainfall72h.overall.sampleCount, 24 * 45 - 71);
 
-      expect(baseline.referencePeriodStart, data.referencePeriodStart);
-      expect(baseline.referencePeriodEnd, data.referencePeriodEnd);
-      expect(baseline.source, 'test');
-      expect(baseline.hazard, HazardType.landslide);
-    },
-  );
+    expect(baseline.referencePeriodStart, data.referencePeriodStart);
+    expect(baseline.referencePeriodEnd, data.referencePeriodEnd);
+    expect(baseline.source, 'test');
+    expect(baseline.hazard, HazardType.landslide);
+  });
 
-  test(
-    'slices prefer the same calendar month and fall back outside it',
-    () {
-      final baseline = calculator.calculate(
-        definition: definition,
-        data: buildRainfallData(),
-      );
+  test('slices prefer the same calendar month and fall back outside it', () {
+    final baseline = calculator.calculate(
+      definition: definition,
+      data: buildRainfallData(),
+    );
 
-      final reference =
-          baseline.variableFor('rainfallAccumulation24h')!;
+    final reference = baseline.variableFor('rainfallAccumulation24h')!;
 
-      final february = reference.sliceFor(
-        DateTime.utc(2021, 2, 10),
-      );
+    final february = reference.sliceFor(DateTime.utc(2021, 2, 10));
 
-      expect(february.usedSeasonalBucket, isTrue);
-      expect(february.month, 2);
-      expect(
-        february.distribution,
-        same(reference.byMonth[2]),
-      );
+    expect(february.usedSeasonalBucket, isTrue);
+    expect(february.month, 2);
+    expect(february.distribution, same(reference.byMonth[2]));
 
-      final july = reference.sliceFor(
-        DateTime.utc(2021, 7, 10),
-      );
+    final july = reference.sliceFor(DateTime.utc(2021, 7, 10));
 
-      expect(july.usedSeasonalBucket, isFalse);
-      expect(
-        july.distribution,
-        same(reference.overall),
-      );
-    },
-  );
+    expect(july.usedSeasonalBucket, isFalse);
+    expect(july.distribution, same(reference.overall));
+  });
 
-  test(
-    'a variable without a historical series becomes a note, not a zero',
-    () {
-      final baseline = calculator.calculate(
-        definition: definition,
-        data: buildRainfallData(),
-      );
+  test('a variable without a historical series becomes a note, not a zero', () {
+    final baseline = calculator.calculate(
+      definition: definition,
+      data: buildRainfallData(),
+    );
 
-      expect(
-        baseline.variableFor('soilMoisture0to7cm'),
-        isNull,
-      );
-      expect(
-        baseline.notes.join(' '),
-        contains('soil_moisture_0_to_7cm'),
-      );
-    },
-  );
+    expect(baseline.variableFor('soilMoisture0to7cm'), isNull);
+    expect(baseline.notes.join(' '), contains('soil_moisture_0_to_7cm'));
+  });
 
-  test(
-    'reports when no month is large enough for a seasonal reference',
-    () {
-      final baseline = calculator.calculate(
-        definition: definition,
-        data: buildRainfallData(),
-        minimumSeasonalSamples: 100000,
-      );
+  test('reports when no month is large enough for a seasonal reference', () {
+    final baseline = calculator.calculate(
+      definition: definition,
+      data: buildRainfallData(),
+      minimumSeasonalSamples: 100000,
+    );
 
-      final reference =
-          baseline.variableFor('rainfallAccumulation24h')!;
+    final reference = baseline.variableFor('rainfallAccumulation24h')!;
 
-      expect(reference.seasonal, isFalse);
-      expect(reference.byMonth, isEmpty);
-      expect(
-        baseline.notes.join(' '),
-        contains('whole-period statistics'),
-      );
-      expect(
-        reference.sliceFor(DateTime.utc(2021, 2, 10))
-            .usedSeasonalBucket,
-        isFalse,
-      );
-    },
-  );
+    expect(reference.seasonal, isFalse);
+    expect(reference.byMonth, isEmpty);
+    expect(baseline.notes.join(' '), contains('whole-period statistics'));
+    expect(
+      reference.sliceFor(DateTime.utc(2021, 2, 10)).usedSeasonalBucket,
+      isFalse,
+    );
+  });
 
-  test(
-    'a definition without a seasonal reference stays whole-period',
-    () {
-      final baseline = calculator.calculate(
-        definition: HazardCatalog.flooding,
-        data: HazardHistoricalData(
-          hazard: HazardType.flooding,
-          series: <String, HazardSeries>{},
-          referencePeriodStart: DateTime.utc(2018, 1, 1),
-          referencePeriodEnd: DateTime.utc(2022, 7, 31),
-          source: 'test',
-        ),
-      );
+  test('a definition without a seasonal reference stays whole-period', () {
+    final baseline = calculator.calculate(
+      definition: HazardCatalog.flooding,
+      data: HazardHistoricalData(
+        hazard: HazardType.flooding,
+        series: <String, HazardSeries>{},
+        referencePeriodStart: DateTime.utc(2018, 1, 1),
+        referencePeriodEnd: DateTime.utc(2022, 7, 31),
+        source: 'test',
+      ),
+    );
 
-      expect(baseline.variables, isEmpty);
-      expect(
-        HazardCatalog.flooding.seasonalReference,
-        isFalse,
-      );
-    },
-  );
+    expect(baseline.variables, isEmpty);
+    expect(HazardCatalog.flooding.seasonalReference, isFalse);
+  });
 }

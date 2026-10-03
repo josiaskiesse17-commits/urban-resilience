@@ -4,16 +4,6 @@ import 'hazard_historical_data.dart';
 import 'hazard_series_utils.dart';
 import 'historical_distribution.dart';
 
-
-
-
-
-
-
-
-
-
-
 class HazardBaselineCalculator {
   const HazardBaselineCalculator();
 
@@ -21,8 +11,7 @@ class HazardBaselineCalculator {
     required HazardDefinition definition,
     required HazardHistoricalData data,
     DateTime? generatedAt,
-    int minimumSeasonalSamples =
-        HazardBaselineVariable.minimumSeasonalSamples,
+    int minimumSeasonalSamples = HazardBaselineVariable.minimumSeasonalSamples,
   }) {
     final variables = <String, HazardBaselineVariable>{};
     final notes = <String>[];
@@ -74,13 +63,10 @@ class HazardBaselineCalculator {
           continue;
         }
 
-        byMonth[bucket.key] = HistoricalDistribution(
-          bucket.value,
-        );
+        byMonth[bucket.key] = HistoricalDistribution(bucket.value);
       }
 
-      final seasonal =
-          definition.seasonalReference && byMonth.isNotEmpty;
+      final seasonal = definition.seasonalReference && byMonth.isNotEmpty;
 
       if (definition.seasonalReference && !seasonal) {
         notes.add(
@@ -95,9 +81,7 @@ class HazardBaselineCalculator {
         unit: spec.unit,
         window: spec.window,
         overall: HistoricalDistribution(
-          windowed
-              .map((sample) => sample.value)
-              .toList(growable: false),
+          windowed.map((sample) => sample.value).toList(growable: false),
         ),
         byMonth: byMonth,
         seasonal: seasonal,

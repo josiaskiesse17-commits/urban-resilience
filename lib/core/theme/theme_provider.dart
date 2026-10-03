@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-final themeModeProvider =
-    NotifierProvider<ThemeModeNotifier, ThemeMode>(
+final themeModeProvider = NotifierProvider<ThemeModeNotifier, ThemeMode>(
   ThemeModeNotifier.new,
 );
 
@@ -36,13 +35,10 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
 
     final preferences = await SharedPreferences.getInstance();
 
-    await preferences.setString(
-      _themeModeKey,
-      switch (mode) {
-        ThemeMode.light => 'light',
-        ThemeMode.dark => 'dark',
-        ThemeMode.system => 'system',
-      },
-    );
+    await preferences.setString(_themeModeKey, switch (mode) {
+      ThemeMode.light => 'light',
+      ThemeMode.dark => 'dark',
+      ThemeMode.system => 'system',
+    });
   }
 }

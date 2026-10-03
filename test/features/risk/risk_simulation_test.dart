@@ -12,8 +12,6 @@ import 'package:urban_resilience/features/risk/domain/risk_result.dart';
 import 'package:urban_resilience/features/risk/domain/risk_simulation.dart';
 import 'package:urban_resilience/features/risk/domain/risk_zone.dart';
 
-
-
 HazardVariable _heatVariable({
   required String name,
   required String label,
@@ -37,8 +35,6 @@ HazardVariable _heatVariable({
     observedAt: DateTime.utc(2026, 1, 15, 12),
   );
 }
-
-
 
 RiskResult _storedHeatResult() {
   return const RiskIntelligenceService().calculateHazardRisk(
@@ -79,8 +75,6 @@ RiskResult _storedHeatResult() {
     ),
   );
 }
-
-
 
 RiskResult _heatResultWithoutReference() {
   final timestamp = DateTime.utc(2026, 1, 15, 12);
@@ -131,8 +125,6 @@ void main() {
       expect(model.currentScore, result.riskScore);
       expect(model.currentLevel, result.riskLevel);
 
-      
-      
       final outcome = service.simulate(model: model)!;
 
       expect(outcome.score, closeTo(result.riskScore, 0.0001));
@@ -142,104 +134,84 @@ void main() {
     },
   );
 
-  test(
-    'the controls are the hazard-specific variables of this assessment',
-    () {
-      final model = service.modelFrom(_storedHeatResult())!;
+  test('the controls are the hazard-specific variables of this assessment', () {
+    final model = service.modelFrom(_storedHeatResult())!;
 
-      expect(
-        model.variables.map((variable) => variable.name),
-        <String>[
-          'temperature2mMax24h',
-          'apparentTemperatureMax24h',
-          'temperature2mMin24h',
-        ],
-      );
+    expect(model.variables.map((variable) => variable.name), <String>[
+      'temperature2mMax24h',
+      'apparentTemperatureMax24h',
+      'temperature2mMin24h',
+    ]);
 
-      
-      expect(
-        model.variables.map((variable) => variable.name),
-        isNot(contains('riverDischarge')),
-      );
-      expect(
-        model.variables.map((variable) => variable.name),
-        isNot(contains('soilMoisture0to7cm')),
-      );
-      expect(
-        model.variables.map((variable) => variable.name),
-        isNot(contains('rainfallAccumulation6h')),
-      );
+    expect(
+      model.variables.map((variable) => variable.name),
+      isNot(contains('riverDischarge')),
+    );
+    expect(
+      model.variables.map((variable) => variable.name),
+      isNot(contains('soilMoisture0to7cm')),
+    );
+    expect(
+      model.variables.map((variable) => variable.name),
+      isNot(contains('rainfallAccumulation6h')),
+    );
 
-      
-      expect(
-        model.variables.first.label,
-        'Température maximale de l’air — dernières 24 heures',
-      );
-      expect(
-        model.variables.first.label,
-        RiskMeasurementLabel.of(
-          name: 'temperature2mMax24h',
-          measurementPeriod: '24h',
-          unit: '°C',
-        ),
-      );
+    expect(
+      model.variables.first.label,
+      'Température maximale de l’air — dernières 24 heures',
+    );
+    expect(
+      model.variables.first.label,
+      RiskMeasurementLabel.of(
+        name: 'temperature2mMax24h',
+        measurementPeriod: '24h',
+        unit: '°C',
+      ),
+    );
 
-      expect(model.adjustable, hasLength(3));
-    },
-  );
+    expect(model.adjustable, hasLength(3));
+  });
 
-  test(
-    'changing a major input changes only the simulated outcome',
-    () {
-      final result = _storedHeatResult();
-      final storedJson = result.toJson().toString();
-      final model = service.modelFrom(result)!;
+  test('changing a major input changes only the simulated outcome', () {
+    final result = _storedHeatResult();
+    final storedJson = result.toJson().toString();
+    final model = service.modelFrom(result)!;
 
-      final outcome = service.simulate(
-        model: model,
-        values: const <String, double>{
-          'temperature2mMax24h': 44,
-        },
-      )!;
+    final outcome = service.simulate(
+      model: model,
+      values: const <String, double>{'temperature2mMax24h': 44},
+    )!;
 
-      expect(outcome.values['temperature2mMax24h'], 44);
-      expect(outcome.score, greaterThan(result.riskScore));
-      expect(outcome.riskIncreased, isTrue);
+    expect(outcome.values['temperature2mMax24h'], 44);
+    expect(outcome.score, greaterThan(result.riskScore));
+    expect(outcome.riskIncreased, isTrue);
 
-      
-      expect(result.toJson().toString(), storedJson);
-      expect(model.currentScore, result.riskScore);
+    expect(result.toJson().toString(), storedJson);
+    expect(model.currentScore, result.riskScore);
 
-      
-      final again = service.simulate(
-        model: model,
-        values: const <String, double>{
-          'temperature2mMax24h': 44,
-        },
-      )!;
+    final again = service.simulate(
+      model: model,
+      values: const <String, double>{'temperature2mMax24h': 44},
+    )!;
 
-      expect(again.score, outcome.score);
-      expect(again.level, outcome.level);
-    },
-  );
+    expect(again.score, outcome.score);
+    expect(again.level, outcome.level);
+  });
 
-  test(
-    'a measurement without a statistical reference is not adjustable',
-    () {
-      final model = service.modelFrom(_heatResultWithoutReference())!;
+  test('a measurement without a statistical reference is not adjustable', () {
+    final model = service.modelFrom(_heatResultWithoutReference())!;
 
-      expect(
-        model.variables.map((variable) => variable.name),
-        contains('temperature2mMin24h'),
-      );
-      expect(model.adjustable, isEmpty);
-      expect(
-        model.fixed.map((variable) => variable.name),
-        contains('temperature2mMin24h'),
-      );
-      expect(model.isSimulatable, isFalse);
-      expect(model.unavailableReason, isNotNull);
-      expect(service.simulate(model: model), isNull);
-    },
-  );
+    expect(
+      model.variables.map((variable) => variable.name),
+      contains('temperature2mMin24h'),
+    );
+    expect(model.adjustable, isEmpty);
+    expect(
+      model.fixed.map((variable) => variable.name),
+      contains('temperature2mMin24h'),
+    );
+    expect(model.isSimulatable, isFalse);
+    expect(model.unavailableReason, isNotNull);
+    expect(service.simulate(model: model), isNull);
+  });
 }

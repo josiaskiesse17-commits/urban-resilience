@@ -7,8 +7,7 @@ String authErrorMessage(Object? error) {
       'invalid-credential' ||
       'wrong-password' ||
       'user-not-found' ||
-      'invalid-login-credentials' =>
-        'E-mail ou mot de passe incorrect.',
+      'invalid-login-credentials' => 'E-mail ou mot de passe incorrect.',
       'email-already-in-use' => 'Un compte existe déjà avec cette adresse.',
       'weak-password' => 'Le mot de passe doit contenir au moins 6 caractères.',
       'network-request-failed' => 'Connexion impossible. Vérifiez le réseau.',

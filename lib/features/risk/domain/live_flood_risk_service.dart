@@ -19,8 +19,7 @@ class LiveFloodRiskService {
 
   const LiveFloodRiskService({
     required this.dataSource,
-    this.riskIntelligenceService =
-        const RiskIntelligenceService(),
+    this.riskIntelligenceService = const RiskIntelligenceService(),
     this.riskResultRepository,
     this.historicalBaselineService,
   });
@@ -43,29 +42,22 @@ class LiveFloodRiskService {
     );
 
     final context = FloodRiskContext(
-      rainfallBaselineMmPerHour:
-          baseline.rainfallBaselineMmPerHour,
-      rainfallCriticalMmPerHour:
-          baseline.rainfallCriticalMmPerHour,
+      rainfallBaselineMmPerHour: baseline.rainfallBaselineMmPerHour,
+      rainfallCriticalMmPerHour: baseline.rainfallCriticalMmPerHour,
       rainfallAccumulation6hBaselineMm:
           baseline.rainfallAccumulation6hBaselineMm,
       rainfallAccumulation6hCriticalMm:
           baseline.rainfallAccumulation6hCriticalMm,
-      riverDischargeBaselineM3s:
-          baseline.riverDischargeBaselineM3s,
-      riverDischargeCriticalM3s:
-          baseline.riverDischargeCriticalM3s,
+      riverDischargeBaselineM3s: baseline.riverDischargeBaselineM3s,
+      riverDischargeCriticalM3s: baseline.riverDischargeCriticalM3s,
       vulnerabilityScore: vulnerabilityScore,
-      historicalExposureScore:
-          historicalExposureScore,
+      historicalExposureScore: historicalExposureScore,
       observationScore: observationScore,
       observationCount: observationCount,
-      confirmedObservationCount:
-          confirmedObservationCount,
+      confirmedObservationCount: confirmedObservationCount,
     );
 
-    return riskIntelligenceService
-        .calculateFloodRiskFromEnvironmentalData(
+    return riskIntelligenceService.calculateFloodRiskFromEnvironmentalData(
       id: id,
       locationName: locationName,
       latitude: latitude,
@@ -76,8 +68,7 @@ class LiveFloodRiskService {
     );
   }
 
-  Future<RiskResult>
-      calculateWithExposureAndObservations({
+  Future<RiskResult> calculateWithExposureAndObservations({
     required String id,
     required String zoneId,
     required String locationName,
@@ -92,18 +83,14 @@ class LiveFloodRiskService {
     );
 
     final context = FloodRiskContext(
-      rainfallBaselineMmPerHour:
-          baseline.rainfallBaselineMmPerHour,
-      rainfallCriticalMmPerHour:
-          baseline.rainfallCriticalMmPerHour,
+      rainfallBaselineMmPerHour: baseline.rainfallBaselineMmPerHour,
+      rainfallCriticalMmPerHour: baseline.rainfallCriticalMmPerHour,
       rainfallAccumulation6hBaselineMm:
           baseline.rainfallAccumulation6hBaselineMm,
       rainfallAccumulation6hCriticalMm:
           baseline.rainfallAccumulation6hCriticalMm,
-      riverDischargeBaselineM3s:
-          baseline.riverDischargeBaselineM3s,
-      riverDischargeCriticalM3s:
-          baseline.riverDischargeCriticalM3s,
+      riverDischargeBaselineM3s: baseline.riverDischargeBaselineM3s,
+      riverDischargeCriticalM3s: baseline.riverDischargeCriticalM3s,
       vulnerabilityScore: 0,
       historicalExposureScore: 0,
       observationScore: 0,
@@ -113,20 +100,19 @@ class LiveFloodRiskService {
 
     return riskIntelligenceService
         .calculateFloodRiskFromEnvironmentalDataWithExposureAndObservations(
-      id: id,
-      zoneId: zoneId,
-      locationName: locationName,
-      latitude: latitude,
-      longitude: longitude,
-      environmentalData: environmentalData,
-      context: context,
-      observations: observations,
-      baseline: baseline,
-    );
+          id: id,
+          zoneId: zoneId,
+          locationName: locationName,
+          latitude: latitude,
+          longitude: longitude,
+          environmentalData: environmentalData,
+          context: context,
+          observations: observations,
+          baseline: baseline,
+        );
   }
 
-  Future<RiskResult>
-      calculateWithExposureAndObservationsAndSave({
+  Future<RiskResult> calculateWithExposureAndObservationsAndSave({
     required String id,
     required String zoneId,
     required String locationName,
@@ -135,8 +121,7 @@ class LiveFloodRiskService {
     required FloodHistoricalBaseline baseline,
     required List<Observation> observations,
   }) async {
-    final result =
-        await calculateWithExposureAndObservations(
+    final result = await calculateWithExposureAndObservations(
       id: id,
       zoneId: zoneId,
       locationName: locationName,
@@ -155,17 +140,7 @@ class LiveFloodRiskService {
     return result;
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  Future<RiskResult>
-      calculateLiveRiskAndSave({
+  Future<RiskResult> calculateLiveRiskAndSave({
     required String id,
     required String zoneId,
     required String locationName,
@@ -184,8 +159,7 @@ class LiveFloodRiskService {
       );
     }
 
-    final baseline =
-        await baselineService.generate(
+    final baseline = await baselineService.generate(
       latitude: latitude,
       longitude: longitude,
       startDate: startDate,
@@ -203,14 +177,6 @@ class LiveFloodRiskService {
     );
   }
 
-  
-  
-  
-  
-  
-  
-  
-  
   Future<RiskScenarioResult> simulateFloodScenario({
     required String id,
     required String locationName,
@@ -234,8 +200,7 @@ class LiveFloodRiskService {
       );
     }
 
-    final baseline =
-        await baselineService.generate(
+    final baseline = await baselineService.generate(
       latitude: latitude,
       longitude: longitude,
       startDate: startDate,
@@ -248,25 +213,19 @@ class LiveFloodRiskService {
     );
 
     final context = FloodRiskContext(
-      rainfallBaselineMmPerHour:
-          baseline.rainfallBaselineMmPerHour,
-      rainfallCriticalMmPerHour:
-          baseline.rainfallCriticalMmPerHour,
+      rainfallBaselineMmPerHour: baseline.rainfallBaselineMmPerHour,
+      rainfallCriticalMmPerHour: baseline.rainfallCriticalMmPerHour,
       rainfallAccumulation6hBaselineMm:
           baseline.rainfallAccumulation6hBaselineMm,
       rainfallAccumulation6hCriticalMm:
           baseline.rainfallAccumulation6hCriticalMm,
-      riverDischargeBaselineM3s:
-          baseline.riverDischargeBaselineM3s,
-      riverDischargeCriticalM3s:
-          baseline.riverDischargeCriticalM3s,
+      riverDischargeBaselineM3s: baseline.riverDischargeBaselineM3s,
+      riverDischargeCriticalM3s: baseline.riverDischargeCriticalM3s,
       vulnerabilityScore: vulnerabilityScore,
-      historicalExposureScore:
-          historicalExposureScore,
+      historicalExposureScore: historicalExposureScore,
       observationScore: observationScore,
       observationCount: observationCount,
-      confirmedObservationCount:
-          confirmedObservationCount,
+      confirmedObservationCount: confirmedObservationCount,
     );
 
     const factory = FloodRiskInputFactory();
@@ -276,19 +235,18 @@ class LiveFloodRiskService {
       context: context,
     );
 
-    return RiskScenarioService(
-      riskIntelligenceService: riskIntelligenceService,
-    ).simulateFloodRisk(
-      scenario: scenario,
-      id: id,
-      locationName: locationName,
-      latitude: latitude,
-      longitude: longitude,
-      baselineInput: input,
-      rainfallSource: environmentalData.rainfallSource,
-      riverSource: environmentalData.riverSource,
-      observedAt: environmentalData.observedAt,
-      baseline: baseline,
-    );
+    return RiskScenarioService(riskIntelligenceService: riskIntelligenceService)
+        .simulateFloodRisk(
+          scenario: scenario,
+          id: id,
+          locationName: locationName,
+          latitude: latitude,
+          longitude: longitude,
+          baselineInput: input,
+          rainfallSource: environmentalData.rainfallSource,
+          riverSource: environmentalData.riverSource,
+          observedAt: environmentalData.observedAt,
+          baseline: baseline,
+        );
   }
 }

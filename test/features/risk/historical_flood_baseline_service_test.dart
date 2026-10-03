@@ -5,8 +5,7 @@ import 'package:urban_resilience/features/risk/domain/historical_flood_baseline_
 import 'package:urban_resilience/features/risk/domain/historical_flood_data.dart';
 import 'package:urban_resilience/features/risk/domain/historical_flood_data_source.dart';
 
-class _FakeHistoricalFloodDataSource
-    implements HistoricalFloodDataSource {
+class _FakeHistoricalFloodDataSource implements HistoricalFloodDataSource {
   @override
   Future<HistoricalFloodData> fetch({
     required double latitude,
@@ -15,24 +14,8 @@ class _FakeHistoricalFloodDataSource
     required DateTime endDate,
   }) async {
     return HistoricalFloodData(
-      hourlyRainfallValues: [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        8,
-      ],
-      riverDischargeValues: [
-        100,
-        120,
-        150,
-        180,
-        220,
-        300,
-      ],
+      hourlyRainfallValues: [0, 1, 2, 3, 4, 5, 6, 8],
+      riverDischargeValues: [100, 120, 150, 180, 220, 300],
       referencePeriodStart: startDate,
       referencePeriodEnd: endDate,
       rainfallSource: 'Fake',
@@ -42,42 +25,24 @@ class _FakeHistoricalFloodDataSource
 }
 
 void main() {
-  test(
-    'generates a historical flood baseline',
-    () async {
-      final service =
-          HistoricalFloodBaselineService(
-        dataSource:
-            _FakeHistoricalFloodDataSource(),
-      );
+  test('generates a historical flood baseline', () async {
+    final service = HistoricalFloodBaselineService(
+      dataSource: _FakeHistoricalFloodDataSource(),
+    );
 
-      final FloodHistoricalBaseline result =
-          await service.generate(
-        latitude: -4.30,
-        longitude: 15.35,
-        startDate: DateTime.utc(2018, 1, 1),
-        endDate: DateTime.utc(2022, 7, 31),
-      );
+    final FloodHistoricalBaseline result = await service.generate(
+      latitude: -4.30,
+      longitude: 15.35,
+      startDate: DateTime.utc(2018, 1, 1),
+      endDate: DateTime.utc(2022, 7, 31),
+    );
 
-      expect(
-        result.rainfallSampleCount,
-        8,
-      );
+    expect(result.rainfallSampleCount, 8);
 
-      expect(
-        result.riverDischargeSampleCount,
-        6,
-      );
+    expect(result.riverDischargeSampleCount, 6);
 
-      expect(
-        result.rainfallBaselineMmPerHour,
-        greaterThanOrEqualTo(0),
-      );
+    expect(result.rainfallBaselineMmPerHour, greaterThanOrEqualTo(0));
 
-      expect(
-        result.riverDischargeBaselineM3s,
-        greaterThan(0),
-      );
-    },
-  );
+    expect(result.riverDischargeBaselineM3s, greaterThan(0));
+  });
 }

@@ -19,16 +19,6 @@ import '../../features/map/presentation/map_screen.dart';
 import '../../features/observations/presentation/observations_screen.dart';
 import '../../features/risk/presentation/risk_details_screen.dart';
 
-
-
-
-
-
-
-
-
-
-
 String? appRouteRedirect({
   required String location,
   required bool isAuthenticated,

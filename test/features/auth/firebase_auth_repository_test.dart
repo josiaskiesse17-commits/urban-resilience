@@ -7,35 +7,33 @@ import 'auth_test_fakes.dart';
 
 void main() {
   group('FirebaseAuthRepository.register', () {
-    test('creates the account, sets the name and requests verification',
-        () async {
-      final user = FakeUser(emailVerified: false);
-      final dataSource = FakeAuthRemoteDataSource(
-        currentUser: user,
-        createdUser: user,
-      );
-      final repository = FirebaseAuthRepository(dataSource);
+    test(
+      'creates the account, sets the name and requests verification',
+      () async {
+        final user = FakeUser(emailVerified: false);
+        final dataSource = FakeAuthRemoteDataSource(
+          currentUser: user,
+          createdUser: user,
+        );
+        final repository = FirebaseAuthRepository(dataSource);
 
-      final result = await repository.register(
-        email: 'user@example.com',
-        password: 'password123',
-        displayName: 'Test User',
-      );
+        final result = await repository.register(
+          email: 'user@example.com',
+          password: 'password123',
+          displayName: 'Test User',
+        );
 
-      expect(dataSource.registerCalls, 1);
-      expect(result.id, user.uid);
-      expect(result.email, user.email);
-      expect(result.emailVerified, isFalse);
-      expect(user.sendEmailVerificationCalls, 1);
-      expect(
-        user.calls,
-        equals([
-          'updateDisplayName',
-          'sendEmailVerification',
-          'reload',
-        ]),
-      );
-    });
+        expect(dataSource.registerCalls, 1);
+        expect(result.id, user.uid);
+        expect(result.email, user.email);
+        expect(result.emailVerified, isFalse);
+        expect(user.sendEmailVerificationCalls, 1);
+        expect(
+          user.calls,
+          equals(['updateDisplayName', 'sendEmailVerification']),
+        );
+      },
+    );
 
     test('fails clearly when Firebase returns no user after signup', () async {
       final dataSource = FakeAuthRemoteDataSource(
@@ -60,8 +58,7 @@ void main() {
       );
     });
 
-    test('surfaces verification failures instead of swallowing them',
-        () async {
+    test('surfaces verification failures instead of swallowing them', () async {
       final user = FakeUser(
         emailVerified: false,
         sendEmailVerificationError: FirebaseAuthException(
@@ -90,7 +87,6 @@ void main() {
         ),
       );
 
-      
       expect(user.sendEmailVerificationCalls, 1);
     });
   });

@@ -1,4 +1,3 @@
-
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -13,21 +12,13 @@ import 'firebase_options.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   if (kDebugMode && kIsWeb) {
-    await FirebaseAppCheck.instance.activate(
-      providerWeb: WebDebugProvider(),
-    );
+    await FirebaseAppCheck.instance.activate(providerWeb: WebDebugProvider());
   }
 
-  runApp(
-    const ProviderScope(
-      child: UrbanResilienceApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: UrbanResilienceApp()));
 }
 
 class UrbanResilienceApp extends ConsumerWidget {

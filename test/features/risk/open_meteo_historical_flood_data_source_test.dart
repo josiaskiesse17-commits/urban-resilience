@@ -5,14 +5,11 @@ import 'package:http/testing.dart';
 import 'package:urban_resilience/features/risk/data/open_meteo_historical_flood_data_source.dart';
 
 void main() {
-  test(
-    'parses historical rainfall and river discharge',
-    () async {
-      final client = MockClient((request) async {
-        if (request.url.host ==
-            'archive-api.open-meteo.com') {
-          return http.Response(
-            '''
+  test('parses historical rainfall and river discharge', () async {
+    final client = MockClient((request) async {
+      if (request.url.host == 'archive-api.open-meteo.com') {
+        return http.Response(
+          '''
             {
               "hourly": {
                 "time": [
@@ -24,17 +21,14 @@ void main() {
               }
             }
             ''',
-            200,
-            headers: {
-              'content-type': 'application/json',
-            },
-          );
-        }
+          200,
+          headers: {'content-type': 'application/json'},
+        );
+      }
 
-        if (request.url.host ==
-            'flood-api.open-meteo.com') {
-          return http.Response(
-            '''
+      if (request.url.host == 'flood-api.open-meteo.com') {
+        return http.Response(
+          '''
             {
               "daily": {
                 "time": [
@@ -48,50 +42,29 @@ void main() {
               }
             }
             ''',
-            200,
-            headers: {
-              'content-type': 'application/json',
-            },
-          );
-        }
-
-        return http.Response(
-          'Not found',
-          404,
+          200,
+          headers: {'content-type': 'application/json'},
         );
-      });
+      }
 
-      final source =
-          OpenMeteoHistoricalFloodDataSource(
-        client: client,
-      );
+      return http.Response('Not found', 404);
+    });
 
-      final result = await source.fetch(
-        latitude: -4.30,
-        longitude: 15.35,
-        startDate: DateTime.utc(2022, 1, 1),
-        endDate: DateTime.utc(2022, 1, 2),
-      );
+    final source = OpenMeteoHistoricalFloodDataSource(client: client);
 
-      expect(
-        result.hourlyRainfallValues,
-        [1.0, 2.5, 4.0],
-      );
+    final result = await source.fetch(
+      latitude: -4.30,
+      longitude: 15.35,
+      startDate: DateTime.utc(2022, 1, 1),
+      endDate: DateTime.utc(2022, 1, 2),
+    );
 
-      expect(
-        result.riverDischargeValues,
-        [100.0, 140.0],
-      );
+    expect(result.hourlyRainfallValues, [1.0, 2.5, 4.0]);
 
-      expect(
-        result.referencePeriodStart,
-        DateTime.utc(2022, 1, 1),
-      );
+    expect(result.riverDischargeValues, [100.0, 140.0]);
 
-      expect(
-        result.referencePeriodEnd,
-        DateTime.utc(2022, 1, 2),
-      );
-    },
-  );
+    expect(result.referencePeriodStart, DateTime.utc(2022, 1, 1));
+
+    expect(result.referencePeriodEnd, DateTime.utc(2022, 1, 2));
+  });
 }

@@ -9,9 +9,9 @@ final riskAnalystProvider = Provider<RiskAnalyst>((ref) {
   return FirebaseAiRiskAnalyst();
 });
 
-final riskAnalysisProvider =
-    FutureProvider.family<RiskAnalysis, RiskResult>(
-  (ref, riskResult) {
-    return ref.read(riskAnalystProvider).analyze(riskResult);
-  },
-);
+final riskAnalysisProvider = FutureProvider.family<RiskAnalysis, RiskResult>((
+  ref,
+  riskResult,
+) {
+  return ref.read(riskAnalystProvider).analyze(riskResult);
+});

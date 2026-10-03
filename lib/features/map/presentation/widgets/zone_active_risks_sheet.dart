@@ -8,15 +8,7 @@ import '../../../risk/domain/zone_active_risk.dart';
 import '../../../risk/presentation/hazard_presentation.dart';
 import '../../../risk/presentation/providers/risk_live_providers.dart';
 
-
-
-
-
-
-void showZoneActiveRisksSheet(
-  BuildContext context,
-  RiskZoneTarget zone,
-) {
+void showZoneActiveRisksSheet(BuildContext context, RiskZoneTarget zone) {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -25,22 +17,15 @@ void showZoneActiveRisksSheet(
   );
 }
 
-
-
 class ZoneActiveRisksSheet extends ConsumerWidget {
-  const ZoneActiveRisksSheet({
-    super.key,
-    required this.zone,
-  });
+  const ZoneActiveRisksSheet({super.key, required this.zone});
 
   final RiskZoneTarget zone;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final assessments = ref.watch(
-      zoneHazardAssessmentsProvider(zone.id),
-    );
+    final assessments = ref.watch(zoneHazardAssessmentsProvider(zone.id));
 
     final identifiedCount = assessments.maybeWhen(
       data: (values) => values.where((value) => value.isIdentified).length,
@@ -64,11 +49,13 @@ class ZoneActiveRisksSheet extends ConsumerWidget {
             const SizedBox(height: 4),
             Text(
               switch (identifiedCount) {
-                0 => 'Aucun risque actif identifié dans cette zone pour le '
-                    'moment.',
+                0 =>
+                  'Aucun risque actif identifié dans cette zone pour le '
+                      'moment.',
                 1 => '1 risque actif identifié dans cette zone.',
-                final count => '$count risques actifs identifiés dans cette '
-                    'zone.',
+                final count =>
+                  '$count risques actifs identifiés dans cette '
+                      'zone.',
               },
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
@@ -79,19 +66,10 @@ class ZoneActiveRisksSheet extends ConsumerWidget {
               child: assessments.when(
                 loading: () => const SizedBox(
                   height: 160,
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                  child: Center(child: CircularProgressIndicator()),
                 ),
-                error: (error, _) => _buildError(
-                  context,
-                  ref,
-                  error,
-                ),
-                data: (values) => _buildList(
-                  context,
-                  values,
-                ),
+                error: (error, _) => _buildError(context, ref, error),
+                data: (values) => _buildList(context, values),
               ),
             ),
           ],
@@ -100,11 +78,7 @@ class ZoneActiveRisksSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildError(
-    BuildContext context,
-    WidgetRef ref,
-    Object error,
-  ) {
+  Widget _buildError(BuildContext context, WidgetRef ref, Object error) {
     final theme = Theme.of(context);
 
     return Column(
@@ -127,9 +101,8 @@ class ZoneActiveRisksSheet extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         OutlinedButton.icon(
-          onPressed: () => ref.invalidate(
-            zoneHazardAssessmentsProvider(zone.id),
-          ),
+          onPressed: () =>
+              ref.invalidate(zoneHazardAssessmentsProvider(zone.id)),
           icon: const Icon(Icons.refresh),
           label: const Text('Réessayer'),
         ),
@@ -173,9 +146,8 @@ class ZoneActiveRisksSheet extends ConsumerWidget {
         Text(
           'Les évaluations sont générées et actualisées sur la fiche de '
           'détail du risque sélectionné.',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+          style: Theme.of(context).textTheme.bodySmall
+              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
       ],
     );
@@ -193,10 +165,7 @@ class ZoneActiveRisksSheet extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.info_outline,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
+          Icon(Icons.info_outline, color: theme.colorScheme.onSurfaceVariant),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -211,23 +180,17 @@ class ZoneActiveRisksSheet extends ConsumerWidget {
     );
   }
 
-  Widget _groupTitle(
-    BuildContext context,
-    String title,
-  ) {
+  Widget _groupTitle(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         title,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+        style: Theme.of(context).textTheme.titleSmall
+            ?.copyWith(fontWeight: FontWeight.w700),
       ),
     );
   }
 }
-
-
 
 class _ZoneHazardTile extends StatelessWidget {
   const _ZoneHazardTile({required this.assessment});
@@ -247,10 +210,7 @@ class _ZoneHazardTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         onTap: () => context.push('/risk/${assessment.riskId}'),
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 12,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
             children: [
               Container(
@@ -289,10 +249,7 @@ class _ZoneHazardTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              _StatusChip(
-                label: _statusLabel(assessment),
-                color: color,
-              ),
+              _StatusChip(label: _statusLabel(assessment), color: color),
             ],
           ),
         ),
@@ -344,10 +301,7 @@ class _ZoneHazardTile extends StatelessWidget {
 }
 
 class _StatusChip extends StatelessWidget {
-  const _StatusChip({
-    required this.label,
-    required this.color,
-  });
+  const _StatusChip({required this.label, required this.color});
 
   final String label;
   final Color color;
@@ -355,10 +309,7 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 5,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(999),
@@ -384,4 +335,3 @@ String _formatDateTime(DateTime value) {
   return '${local.year}-${twoDigits(local.month)}-${twoDigits(local.day)} '
       '${twoDigits(local.hour)}:${twoDigits(local.minute)}';
 }
-

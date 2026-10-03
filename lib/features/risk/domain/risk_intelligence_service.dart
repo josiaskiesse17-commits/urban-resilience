@@ -15,7 +15,6 @@ import 'risk_measurement.dart';
 import 'risk_measurement_label.dart';
 import 'risk_result.dart';
 
-
 typedef _FloodReference = ({
   double? median,
   double? critical,
@@ -23,7 +22,6 @@ typedef _FloodReference = ({
   RiskReferenceType type,
   double? percentile,
 });
-
 
 const String _statisticalBoundNote =
     'référence statistique du même endroit et de la même période de '
@@ -40,13 +38,12 @@ class RiskIntelligenceService {
     HazardRiskCalculator? hazardRiskCalculator,
     this._exposureEnricher,
     FloodRiskInputObservationEnricher? observationEnricher,
-  })  : _floodRiskCalculator =
-            floodRiskCalculator ?? const FloodRiskCalculator(),
-        _hazardRiskCalculator =
-            hazardRiskCalculator ?? const HazardRiskCalculator(),
-        _observationEnricher =
-            observationEnricher ??
-            const FloodRiskInputObservationEnricher();
+  }) : _floodRiskCalculator =
+           floodRiskCalculator ?? const FloodRiskCalculator(),
+       _hazardRiskCalculator =
+           hazardRiskCalculator ?? const HazardRiskCalculator(),
+       _observationEnricher =
+           observationEnricher ?? const FloodRiskInputObservationEnricher();
 
   RiskResult calculateFloodRisk({
     required String id,
@@ -79,10 +76,7 @@ class RiskIntelligenceService {
       baseline: baseline,
     );
 
-    final riverReference = _riverReference(
-      input: input,
-      baseline: baseline,
-    );
+    final riverReference = _riverReference(input: input, baseline: baseline);
 
     final evidence = RiskEvidence(
       measurements: [
@@ -96,25 +90,18 @@ class RiskIntelligenceService {
           referenceLabel: rainfallReference.label,
           referenceType: rainfallReference.type,
           ratioToReference:
-              rainfallReference.median != null &&
-                      rainfallReference.median! > 0
-                  ? input.rainfallIntensityMmPerHour /
-                      rainfallReference.median!
-                  : null,
-          differenceFromReference:
-              rainfallReference.median == null
-                  ? null
-                  : input.rainfallIntensityMmPerHour -
-                      rainfallReference.median!,
-          historicalPercentile:
-              rainfallReference.percentile,
-          statisticalCriticalValue:
-              rainfallReference.critical,
-          statisticalCriticalLabel:
-              rainfallReference.critical == null
-                  ? null
-                  : '95e centile de la même période de référence. '
-                      '$_statisticalBoundNote',
+              rainfallReference.median != null && rainfallReference.median! > 0
+              ? input.rainfallIntensityMmPerHour / rainfallReference.median!
+              : null,
+          differenceFromReference: rainfallReference.median == null
+              ? null
+              : input.rainfallIntensityMmPerHour - rainfallReference.median!,
+          historicalPercentile: rainfallReference.percentile,
+          statisticalCriticalValue: rainfallReference.critical,
+          statisticalCriticalLabel: rainfallReference.critical == null
+              ? null
+              : '95e centile de la même période de référence. '
+                    '$_statisticalBoundNote',
           source: rainfallSource,
           observedAt: rainfallTime,
         ),
@@ -129,24 +116,18 @@ class RiskIntelligenceService {
           referenceType: accumulationReference.type,
           ratioToReference:
               accumulationReference.median != null &&
-                      accumulationReference.median! > 0
-                  ? input.rainfallAccumulation6hMm /
-                      accumulationReference.median!
-                  : null,
-          differenceFromReference:
-              accumulationReference.median == null
-                  ? null
-                  : input.rainfallAccumulation6hMm -
-                      accumulationReference.median!,
-          historicalPercentile:
-              accumulationReference.percentile,
-          statisticalCriticalValue:
-              accumulationReference.critical,
-          statisticalCriticalLabel:
-              accumulationReference.critical == null
-                  ? null
-                  : '95e centile de la même période de référence. '
-                      '$_statisticalBoundNote',
+                  accumulationReference.median! > 0
+              ? input.rainfallAccumulation6hMm / accumulationReference.median!
+              : null,
+          differenceFromReference: accumulationReference.median == null
+              ? null
+              : input.rainfallAccumulation6hMm - accumulationReference.median!,
+          historicalPercentile: accumulationReference.percentile,
+          statisticalCriticalValue: accumulationReference.critical,
+          statisticalCriticalLabel: accumulationReference.critical == null
+              ? null
+              : '95e centile de la même période de référence. '
+                    '$_statisticalBoundNote',
           source: rainfallSource,
           observedAt: rainfallTime,
         ),
@@ -160,23 +141,18 @@ class RiskIntelligenceService {
           referenceLabel: riverReference.label,
           referenceType: riverReference.type,
           ratioToReference:
-              riverReference.median != null &&
-                      riverReference.median! > 0
-                  ? input.riverDischargeM3s /
-                      riverReference.median!
-                  : null,
-          differenceFromReference:
-              riverReference.median == null
-                  ? null
-                  : input.riverDischargeM3s -
-                      riverReference.median!,
+              riverReference.median != null && riverReference.median! > 0
+              ? input.riverDischargeM3s / riverReference.median!
+              : null,
+          differenceFromReference: riverReference.median == null
+              ? null
+              : input.riverDischargeM3s - riverReference.median!,
           historicalPercentile: riverReference.percentile,
           statisticalCriticalValue: riverReference.critical,
-          statisticalCriticalLabel:
-              riverReference.critical == null
-                  ? null
-                  : '95e centile de la même période de référence. '
-                      '$_statisticalBoundNote',
+          statisticalCriticalLabel: riverReference.critical == null
+              ? null
+              : '95e centile de la même période de référence. '
+                    '$_statisticalBoundNote',
           source: riverSource,
           observedAt: riverTime,
         ),
@@ -239,13 +215,6 @@ class RiskIntelligenceService {
     );
   }
 
-  
-  
-  
-  
-  
-  
-  
   _FloodReference _rainfallReference({
     required FloodRiskInput input,
     required FloodHistoricalBaseline? baseline,
@@ -265,7 +234,8 @@ class RiskIntelligenceService {
     return (
       median: distribution.median,
       critical: distribution.percentile(95),
-      label: 'Médiane de la référence pluviométrique horaire ERA5 '
+      label:
+          'Médiane de la référence pluviométrique horaire ERA5 '
           '${_periodLabel(baseline)} '
           '(${distribution.sampleCount} échantillons)',
       type: RiskReferenceType.historicalMedian,
@@ -294,13 +264,12 @@ class RiskIntelligenceService {
     return (
       median: distribution.median,
       critical: distribution.percentile(95),
-      label: 'Médiane de la référence pluviométrique 6 h ERA5 '
+      label:
+          'Médiane de la référence pluviométrique 6 h ERA5 '
           '${_periodLabel(baseline)} '
           '(${distribution.sampleCount} échantillons)',
       type: RiskReferenceType.historicalMedian,
-      percentile: distribution.percentileRankOf(
-        input.rainfallAccumulation6hMm,
-      ),
+      percentile: distribution.percentileRankOf(input.rainfallAccumulation6hMm),
     );
   }
 
@@ -323,23 +292,15 @@ class RiskIntelligenceService {
     return (
       median: distribution.median,
       critical: distribution.percentile(95),
-      label: 'Médiane de la référence de débit journalier GloFAS '
+      label:
+          'Médiane de la référence de débit journalier GloFAS '
           '${_periodLabel(baseline)} '
           '(${distribution.sampleCount} échantillons)',
       type: RiskReferenceType.historicalMedian,
-      percentile: distribution.percentileRankOf(
-        input.riverDischargeM3s,
-      ),
+      percentile: distribution.percentileRankOf(input.riverDischargeM3s),
     );
   }
 
-  
-  
-  
-  
-  
-  
-  
   RiskResult calculateHazardRisk({
     required String id,
     required String locationName,
@@ -366,10 +327,6 @@ class RiskIntelligenceService {
 
     final timestamp = newest ?? DateTime.now().toUtc();
 
-    
-    
-    
-    
     final measurements = <RiskMeasurement>[
       ...hazardMeasurements,
       if (input.vulnerabilityScore != null)
@@ -430,10 +387,6 @@ class RiskIntelligenceService {
       );
     }
 
-    
-    
-    
-    
     for (final variable in input.variables) {
       if (variable.score != null) {
         continue;
@@ -441,15 +394,9 @@ class RiskIntelligenceService {
 
       indicators.add(
         'Non pris en compte : '
-        '${RiskMeasurementLabel.of(
-          name: variable.name,
-          measurementPeriod: variable.measurementPeriod,
-          unit: variable.unit,
-        )} — sa valeur mesurée reste dans les preuves, mais '
-        '${variable.informational
-            ? 'aucune référence statistique n’existe pour cette variable'
-            : 'aucune référence statistique exploitable n’a pu être '
-                'construite pour cet endroit'}, elle est donc exclue du '
+        '${RiskMeasurementLabel.of(name: variable.name, measurementPeriod: variable.measurementPeriod, unit: variable.unit)} — sa valeur mesurée reste dans les preuves, mais '
+        '${variable.informational ? 'aucune référence statistique n’existe pour cette variable' : 'aucune référence statistique exploitable n’a pu être '
+                  'construite pour cet endroit'}, elle est donc exclue du '
         'score au lieu d’être comptée comme un zéro.',
       );
     }
@@ -506,8 +453,7 @@ class RiskIntelligenceService {
         measurements: measurements,
         qualitativeIndicators: indicators,
         observationCount: input.observationCount,
-        confirmedObservationCount:
-            input.confirmedObservationCount,
+        confirmedObservationCount: input.confirmedObservationCount,
         collectedAt: timestamp,
       ),
       updatedAt: timestamp,
@@ -519,8 +465,6 @@ class RiskIntelligenceService {
         '${_formatPeriod(baseline.referencePeriodEnd)}';
   }
 
-  
-  
   String _factorWeightLabel(String key) {
     return switch (key) {
       'hazard' => 'risque',
@@ -569,8 +513,7 @@ class RiskIntelligenceService {
         rainfallObservedAt: rainfallObservedAt,
         riverObservedAt: riverObservedAt,
         dataNotes: dataNotes,
-        rainfallAccumulationWindowHours:
-            rainfallAccumulationWindowHours,
+        rainfallAccumulationWindowHours: rainfallAccumulationWindowHours,
       );
     }
 
@@ -593,8 +536,7 @@ class RiskIntelligenceService {
       rainfallObservedAt: rainfallObservedAt,
       riverObservedAt: riverObservedAt,
       dataNotes: dataNotes,
-      rainfallAccumulationWindowHours:
-          rainfallAccumulationWindowHours,
+      rainfallAccumulationWindowHours: rainfallAccumulationWindowHours,
     );
   }
 
@@ -634,8 +576,7 @@ class RiskIntelligenceService {
       rainfallObservedAt: rainfallObservedAt,
       riverObservedAt: riverObservedAt,
       dataNotes: dataNotes,
-      rainfallAccumulationWindowHours:
-          rainfallAccumulationWindowHours,
+      rainfallAccumulationWindowHours: rainfallAccumulationWindowHours,
     );
   }
 
@@ -662,8 +603,7 @@ class RiskIntelligenceService {
     final exposureEnricher = _exposureEnricher;
 
     if (exposureEnricher != null) {
-      final enrichment =
-          await exposureEnricher.enrichWithProfile(
+      final enrichment = await exposureEnricher.enrichWithProfile(
         zoneId: zoneId,
         input: enrichedInput,
       );
@@ -693,8 +633,7 @@ class RiskIntelligenceService {
       rainfallObservedAt: rainfallObservedAt,
       riverObservedAt: riverObservedAt,
       dataNotes: dataNotes,
-      rainfallAccumulationWindowHours:
-          rainfallAccumulationWindowHours,
+      rainfallAccumulationWindowHours: rainfallAccumulationWindowHours,
     );
   }
 
@@ -732,8 +671,7 @@ class RiskIntelligenceService {
     );
   }
 
-  Future<RiskResult>
-      calculateFloodRiskFromEnvironmentalDataWithExposure({
+  Future<RiskResult> calculateFloodRiskFromEnvironmentalDataWithExposure({
     required String id,
     required String zoneId,
     required String locationName,
@@ -770,7 +708,7 @@ class RiskIntelligenceService {
   }
 
   Future<RiskResult>
-      calculateFloodRiskFromEnvironmentalDataWithExposureAndObservations({
+  calculateFloodRiskFromEnvironmentalDataWithExposureAndObservations({
     required String id,
     required String zoneId,
     required String locationName,

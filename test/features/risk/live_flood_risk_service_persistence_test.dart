@@ -27,8 +27,7 @@ class _FakeFloodEnvironmentalDataSource
   }
 }
 
-class _FakeRiskResultRepository
-    implements RiskResultRepository {
+class _FakeRiskResultRepository implements RiskResultRepository {
   RiskResult? savedResult;
 
   @override
@@ -38,73 +37,60 @@ class _FakeRiskResultRepository
 
   @override
   Future<RiskResult?> get(String riskId) async {
-    return savedResult?.id == riskId
-        ? savedResult
-        : null;
+    return savedResult?.id == riskId ? savedResult : null;
   }
 
   @override
-  Future<RiskResult?> getLatestForZone(
-    String zoneId,
-  ) async {
+  Future<RiskResult?> getLatestForZone(String zoneId) async {
     return savedResult;
   }
 }
 
 void main() {
-  test(
-    'calculates and saves the integrated RiskResult',
-    () async {
-      final repository = _FakeRiskResultRepository();
+  test('calculates and saves the integrated RiskResult', () async {
+    final repository = _FakeRiskResultRepository();
 
-      final service = LiveFloodRiskService(
-        dataSource:
-            _FakeFloodEnvironmentalDataSource(),
-        riskIntelligenceService:
-            const RiskIntelligenceService(),
-        riskResultRepository: repository,
-      );
+    final service = LiveFloodRiskService(
+      dataSource: _FakeFloodEnvironmentalDataSource(),
+      riskIntelligenceService: const RiskIntelligenceService(),
+      riskResultRepository: repository,
+    );
 
-      final result = await service
-          .calculateWithExposureAndObservationsAndSave(
-        id: 'zone-1',
-        zoneId: 'zone-1',
-        locationName: 'Test Zone',
-        latitude: 0,
-        longitude: 0,
-        baseline: FloodHistoricalBaseline(
-          rainfallBaselineMmPerHour: 1,
-          rainfallCriticalMmPerHour: 8,
-          rainfallAccumulation6hBaselineMm: 10,
-          rainfallAccumulation6hCriticalMm: 45,
-          riverDischargeBaselineM3s: 250,
-          riverDischargeCriticalM3s: 600,
-          referencePeriodStart:
-              DateTime.utc(2018, 1, 1),
-          referencePeriodEnd:
-              DateTime.utc(2022, 7, 31),
-          generatedAt:
-              DateTime.utc(2026, 9, 28),
-          rainfallSampleCount: 100,
-          riverDischargeSampleCount: 100,
+    final result = await service.calculateWithExposureAndObservationsAndSave(
+      id: 'zone-1',
+      zoneId: 'zone-1',
+      locationName: 'Test Zone',
+      latitude: 0,
+      longitude: 0,
+      baseline: FloodHistoricalBaseline(
+        rainfallBaselineMmPerHour: 1,
+        rainfallCriticalMmPerHour: 8,
+        rainfallAccumulation6hBaselineMm: 10,
+        rainfallAccumulation6hCriticalMm: 45,
+        riverDischargeBaselineM3s: 250,
+        riverDischargeCriticalM3s: 600,
+        referencePeriodStart: DateTime.utc(2018, 1, 1),
+        referencePeriodEnd: DateTime.utc(2022, 7, 31),
+        generatedAt: DateTime.utc(2026, 9, 28),
+        rainfallSampleCount: 100,
+        riverDischargeSampleCount: 100,
+      ),
+      observations: [
+        Observation(
+          id: 'observation-1',
+          userId: 'user-1',
+          latitude: 0,
+          longitude: 0,
+          type: ObservationType.flooding,
+          status: ObservationStatus.confirmed,
+          createdAt: DateTime.now().toUtc(),
         ),
-        observations: [
-          Observation(
-            id: 'observation-1',
-            userId: 'user-1',
-            latitude: 0,
-            longitude: 0,
-            type: ObservationType.flooding,
-            status: ObservationStatus.confirmed,
-            createdAt: DateTime.now().toUtc(),
-          ),
-        ],
-      );
+      ],
+    );
 
-      expect(result.id, 'zone-1');
-      expect(repository.savedResult, isNotNull);
-      expect(repository.savedResult!.id, 'zone-1');
-      expect(repository.savedResult!.riskScore, greaterThan(0));
-    },
-  );
+    expect(result.id, 'zone-1');
+    expect(repository.savedResult, isNotNull);
+    expect(repository.savedResult!.id, 'zone-1');
+    expect(repository.savedResult!.riskScore, greaterThan(0));
+  });
 }

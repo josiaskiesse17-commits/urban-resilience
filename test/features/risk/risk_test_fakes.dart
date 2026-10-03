@@ -5,9 +5,6 @@ import 'package:urban_resilience/features/risk/domain/risk_exposure_repository.d
 import 'package:urban_resilience/features/risk/domain/risk_result.dart';
 import 'package:urban_resilience/features/risk/domain/risk_result_repository.dart';
 
-
-
-
 class FakeRiskResultRepository implements RiskResultRepository {
   RiskResult? stored;
   int getCalls = 0;
@@ -30,16 +27,12 @@ class FakeRiskResultRepository implements RiskResultRepository {
   }
 }
 
-
-
-
 class StoredByHazardRepository implements RiskResultRepository {
   StoredByHazardRepository([Map<String, RiskResult>? initial])
-      : stored = <String, RiskResult>{...?initial};
+    : stored = <String, RiskResult>{...?initial};
 
   final Map<String, RiskResult> stored;
 
-  
   Object? failure;
 
   int getCalls = 0;
@@ -68,8 +61,6 @@ class StoredByHazardRepository implements RiskResultRepository {
   }
 }
 
-
-
 class FakeRiskExposureRepository implements RiskExposureRepository {
   FloodRiskExposureProfile? profile;
 
@@ -83,8 +74,6 @@ class FakeRiskExposureRepository implements RiskExposureRepository {
     profile = newProfile;
   }
 }
-
-
 
 class FakeRiskAnalyst implements RiskAnalyst {
   int calls = 0;
