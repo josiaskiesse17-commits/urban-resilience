@@ -29,9 +29,9 @@ final pendingObservationsProvider =
       (ref) => ref.watch(observationsRepositoryProvider).watchPending(),
     );
 
-/// Own submissions of the signed-in author, newest first: the data behind
-/// the "Mes signalements" status area (pending, approved and rejected with
-/// its reason).
+
+
+
 final myObservationsProvider = StreamProvider.autoDispose<List<Observation>>((
   ref,
 ) {

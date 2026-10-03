@@ -15,7 +15,7 @@ import 'risk_measurement.dart';
 import 'risk_measurement_label.dart';
 import 'risk_result.dart';
 
-/// Statistical reference used by one flooding variable.
+
 typedef _FloodReference = ({
   double? median,
   double? critical,
@@ -24,7 +24,7 @@ typedef _FloodReference = ({
   double? percentile,
 });
 
-/// Statistical disclaimer attached to every flooding bound.
+
 const String _statisticalBoundNote =
     'référence statistique du même endroit et de la même période de '
     'référence, et non un seuil de sécurité officiel.';
@@ -239,13 +239,13 @@ class RiskIntelligenceService {
     );
   }
 
-  /// Flooding reference of one measurement.
-  ///
-  /// The statistical distribution of the reference period is used when it is
-  /// available: it gives both the central reference and the percentile of the
-  /// live value. Without it the values already carried by the input are kept,
-  /// so a caller that supplies its own baseline still produces a complete
-  /// assessment.
+  
+  
+  
+  
+  
+  
+  
   _FloodReference _rainfallReference({
     required FloodRiskInput input,
     required FloodHistoricalBaseline? baseline,
@@ -333,13 +333,13 @@ class RiskIntelligenceService {
     );
   }
 
-  /// Builds the stored risk result of a hazard assessed by the generic
-  /// hazard engine.
-  ///
-  /// The engine only scores variables that carry a usable statistical
-  /// reference; every variable that could not be measured, and every factor
-  /// that is unavailable, is reported in the evidence instead of being
-  /// counted as a zero.
+  
+  
+  
+  
+  
+  
+  
   RiskResult calculateHazardRisk({
     required String id,
     required String locationName,
@@ -366,10 +366,10 @@ class RiskIntelligenceService {
 
     final timestamp = newest ?? DateTime.now().toUtc();
 
-    // The exposure factors of the score are part of the evidence too: a
-    // factor is never named in the Risk Factors section without the
-    // measurement it was computed from. A factor that is unavailable stays
-    // out of this list and is therefore never presented as a value.
+    
+    
+    
+    
     final measurements = <RiskMeasurement>[
       ...hazardMeasurements,
       if (input.vulnerabilityScore != null)
@@ -430,10 +430,10 @@ class RiskIntelligenceService {
       );
     }
 
-    // A variable that was measured but carries no usable statistical
-    // reference stays in the evidence with its real value; it is not part of
-    // the factor breakdown because it played no role in the score. The
-    // exclusion is reported here so it is never silently dropped.
+    
+    
+    
+    
     for (final variable in input.variables) {
       if (variable.score != null) {
         continue;
@@ -519,8 +519,8 @@ class RiskIntelligenceService {
         '${_formatPeriod(baseline.referencePeriodEnd)}';
   }
 
-  /// French wording of the internal factor keys used by the weight
-  /// indicator, so no stored identifier leaks into the interface.
+  
+  
   String _factorWeightLabel(String key) {
     return switch (key) {
       'hazard' => 'risque',

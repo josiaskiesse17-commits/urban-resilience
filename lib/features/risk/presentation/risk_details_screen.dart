@@ -91,9 +91,9 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
 
       ref.invalidate(riskResultProvider(_riskId));
 
-      // The evaluation was persisted under its hazard-aware id: drop the
-      // cached read of the zone so the map markers and the Zone Active Risks
-      // selection UI show the stored result instead of their old snapshot.
+      
+      
+      
       ref.invalidate(zoneHazardAssessmentsProvider(zone.id));
 
       setState(() {
@@ -150,13 +150,13 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
     await _generate(zone);
   }
 
-  /// Runs the AI interpretation of a stored result, at most once per result
-  /// version. The explicit Retry button passes [force] so a failed request can
-  /// be run again without turning the automatic trigger into a retry loop.
-  ///
-  /// A successful interpretation is persisted inside its `risk_results`
-  /// document, so a recreated screen reuses it instead of asking the AI again.
-  /// A failed request is never stored.
+  
+  
+  
+  
+  
+  
+  
   Future<void> _analyzeRisk(RiskResult riskResult, {bool force = false}) async {
     final version = _riskVersion(riskResult);
 
@@ -196,19 +196,19 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
     }
   }
 
-  /// Saves [analysis] as the stored interpretation of [riskResult] in the same
-  /// `risk_results/{id}` document, then refreshes the stored read so a later
-  /// navigation discloses it without another AI request.
-  ///
-  /// A storage failure is not turned into an AI error: the successful
-  /// interpretation is already displayed and will simply be generated again on
-  /// the next visit.
+  
+  
+  
+  
+  
+  
+  
   Future<void> _storeAnalysis(
     RiskResult riskResult,
     RiskAnalysis analysis,
   ) async {
-    // Never let an interpretation generated for an older evaluation overwrite
-    // a newer evaluation that replaced it while the AI request was in flight.
+    
+    
     final latest = ref.read(riskResultProvider(_riskId)).value;
 
     if (latest != null &&
@@ -288,8 +288,8 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
             final storedAnalysis = riskResult.analysis;
 
             if (storedAnalysis != null) {
-              // An interpretation is already stored with this evaluation:
-              // adopt it instead of asking the AI again.
+              
+              
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) {
                   setState(() {
@@ -536,8 +536,8 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
     );
   }
 
-  /// Interpretation shown for a result: the one generated during this screen's
-  /// lifetime when present, otherwise the one stored with the evaluation.
+  
+  
   RiskAnalysis? _visibleAnalysis(RiskResult riskResult) {
     return _analysis ?? riskResult.analysis;
   }
@@ -629,8 +629,8 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
     );
   }
 
-  /// AI interpretation of the level: the reason comes from the analysis of
-  /// the actual stored result, never from a fixed sentence.
+  
+  
   Widget _buildWhyInterpretation(
     BuildContext context,
     RiskAnalysis analysis,
@@ -707,9 +707,9 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
     final rows = <Widget>[];
 
     if (entries.isEmpty) {
-      // Documents stored before the factor breakdown existed only carry the
-      // four legacy scores. The observation factor is never rendered: citizen
-      // observations are not a risk factor.
+      
+      
+      
       rows.addAll([
         _buildFactorRow(context, factors.primaryFactorLabel, factors.rainfall),
         _buildFactorRow(

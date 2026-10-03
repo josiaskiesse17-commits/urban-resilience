@@ -4,12 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/flood_risk_exposure_profile.dart';
 import '../providers/risk_live_providers.dart';
 
-/// Shows the stored exposure / vulnerability profile of a zone.
-///
-/// The citizen risk details screen and the admin risk screen both use this
-/// card so they display the same `risk_zones/{zoneId}` data. When the zone has
-/// no exposure document the card says so explicitly: missing exposure data
-/// must never be read as "no vulnerability".
+
+
+
+
+
+
 class RiskExposureCard extends ConsumerWidget {
   final String zoneId;
 

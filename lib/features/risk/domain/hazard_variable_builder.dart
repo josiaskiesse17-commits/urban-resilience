@@ -5,19 +5,19 @@ import 'hazard_series_utils.dart';
 import 'hazard_variable.dart';
 import 'risk_measurement.dart';
 
-/// Result of building the variables of a hazard from live data and the
-/// statistical reference.
+
+
 typedef HazardVariableBuildResult = ({
   List<HazardVariable> variables,
   List<HazardVariableGap> gaps,
 });
 
-/// Turns the live series of a hazard into scored variables.
-///
-/// The same trailing window as the baseline is applied, so the live value and
-/// its reference are the same kind of number. A variable whose live window is
-/// incomplete, or whose reference could not be computed, becomes a
-/// [HazardVariableGap]: it is never replaced by a zero.
+
+
+
+
+
+
 class HazardVariableBuilder {
   const HazardVariableBuilder();
 

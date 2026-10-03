@@ -293,8 +293,8 @@ class _ObservationTile extends StatelessWidget {
   }
 }
 
-/// One report of the author with its moderation state: pending, verified or
-/// rejected with the reason only the author (and the admins) can read.
+
+
 class _MyObservationCard extends StatelessWidget {
   const _MyObservationCard({required this.observation});
 

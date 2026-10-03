@@ -1,21 +1,21 @@
 import 'flood_risk_exposure_profile.dart';
 import 'hazard_type.dart';
 
-/// Exposure / vulnerability of a zone for one hazard.
+
 typedef HazardExposure = ({
   double? vulnerabilityScore,
   double? historicalExposureScore,
   String note,
 });
 
-/// Derives the hazard-appropriate vulnerability from the exposure profile
-/// that is already stored in `risk_zones/{zoneId}`.
-///
-/// The stored document is shared by every hazard, but two of its sub-scores
-/// only describe flooding (drainage vulnerability and historical flood
-/// exposure). Reusing them for heat or landslide would score one hazard with
-/// measurements of another, so they are reported as not available for those
-/// hazards instead of being silently counted.
+
+
+
+
+
+
+
+
 class HazardExposureExtractor {
   const HazardExposureExtractor();
 

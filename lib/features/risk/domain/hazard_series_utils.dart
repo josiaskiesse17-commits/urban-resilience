@@ -1,12 +1,12 @@
-/// One timestamped sample of an environmental series.
+
 typedef HazardSample = ({DateTime time, double value});
 
-/// Time window a hazard variable is derived over.
-///
-/// Every window is *trailing*: the value describes the last [hours] hours
-/// ending at the timestamp of the sample. Live values and historical
-/// reference values are derived with the same window, so they are directly
-/// comparable.
+
+
+
+
+
+
 enum HazardWindow {
   instant(hours: 1, label: 'instant'),
   sum6h(hours: 6, label: '6h'),
@@ -23,37 +23,37 @@ enum HazardWindow {
     required this.label,
   });
 
-  /// Length of the window in hours.
+  
   final int hours;
 
-  /// Measurement period written to the evidence (`6h`, `24h`, ...).
+  
   final String label;
 
-  /// How many days of hourly data the live request needs for this window.
+  
   int get requiredLookbackDays => (hours / 24).ceil() + 1;
 }
 
-/// Window arithmetic over hourly series.
-///
-/// Integrity rules enforced here:
-///
-/// * missing values are never replaced by a fabricated number; they simply
-///   remove the affected windows;
-/// * a window is only produced when its hours are contiguous, so a gap is
-///   reported instead of being summed as if the missing hours were dry;
-/// * samples are read with their timestamp, never by list position, because
-///   the providers return leading or trailing nulls.
+
+
+
+
+
+
+
+
+
+
 class HazardSeriesUtils {
   const HazardSeriesUtils._();
 
   static const Duration _oneHour = Duration(hours: 1);
 
-  /// Pairs timestamps with values and drops the entries that are missing.
-  ///
-  /// A timestamp may arrive as the raw provider string or already parsed as
-  /// a [DateTime]; both are normalised to UTC. The result is sorted by time
-  /// so a gap stays visible as a time difference instead of silently
-  /// shifting the following values.
+  
+  
+  
+  
+  
+  
   static List<HazardSample> align({
     required List<Object?> times,
     required List<Object?> values,
@@ -98,12 +98,12 @@ class HazardSeriesUtils {
     return samples;
   }
 
-  /// Number of consecutive hourly steps ending at each index.
-  ///
-  /// A window of `hours` samples ending at index `i` is contiguous when
-  /// `runs[i] >= hours - 1`. The array is computed once per series so the
-  /// window helpers stay linear even on the ~39 000 hourly samples of a
-  /// reference period.
+  
+  
+  
+  
+  
+  
   static List<int> _runLengths(List<HazardSample> hourly) {
     final runs = List<int>.filled(hourly.length, 0);
 
@@ -118,7 +118,7 @@ class HazardSeriesUtils {
     return runs;
   }
 
-  /// Trailing sums over [window] hours, in the unit of the series.
+  
   static List<HazardSample> trailingSums({
     required List<HazardSample> hourly,
     required int window,
@@ -155,7 +155,7 @@ class HazardSeriesUtils {
     return results;
   }
 
-  /// Trailing maxima over [window] hours.
+  
   static List<HazardSample> trailingMaxima({
     required List<HazardSample> hourly,
     required int window,
@@ -167,7 +167,7 @@ class HazardSeriesUtils {
     );
   }
 
-  /// Trailing minima over [window] hours.
+  
   static List<HazardSample> trailingMinima({
     required List<HazardSample> hourly,
     required int window,
@@ -218,7 +218,7 @@ class HazardSeriesUtils {
     return results;
   }
 
-  /// Applies [window] to an hourly series.
+  
   static List<HazardSample> applyWindow({
     required List<HazardSample> hourly,
     required HazardWindow window,
@@ -267,7 +267,7 @@ class HazardSeriesUtils {
     return samples.last;
   }
 
-  /// Splits a series into per calendar month buckets of the sample time.
+  
   static Map<int, List<double>> byMonth(
     List<HazardSample> samples,
   ) {

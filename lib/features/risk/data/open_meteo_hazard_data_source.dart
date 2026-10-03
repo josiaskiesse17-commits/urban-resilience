@@ -8,15 +8,15 @@ import '../domain/hazard_environmental_data_source.dart';
 import '../domain/hazard_type.dart';
 import 'open_meteo_hourly_parser.dart';
 
-/// Live hazard data from the Open-Meteo forecast API.
-///
-/// The requested fields and the lookback window both come from
-/// [HazardCatalog], so a hazard can never be fed by a variable that its
-/// definition does not declare.
-///
-/// Verified coverage for the zones of this app (Kinshasa, `-4.30/15.35`):
-/// `rain`, `soil_moisture_0_to_7cm`, `temperature_2m` and
-/// `apparent_temperature` are all returned.
+
+
+
+
+
+
+
+
+
 class OpenMeteoHazardDataSource
     implements HazardEnvironmentalDataSource {
   OpenMeteoHazardDataSource({

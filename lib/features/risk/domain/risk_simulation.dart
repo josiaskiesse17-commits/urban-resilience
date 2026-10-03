@@ -13,10 +13,10 @@ import 'risk_measurement_label.dart';
 import 'risk_result.dart';
 import 'risk_zone.dart';
 
-/// One control of the What-If simulation.
-///
-/// The variable carries the statistical reference of the real assessment, so
-/// [scoreFor] applies the exact formula the stored result was computed with.
+
+
+
+
 class RiskSimulationVariable {
   const RiskSimulationVariable({
     required this.name,
@@ -34,7 +34,7 @@ class RiskSimulationVariable {
   final String label;
   final String unit;
 
-  /// Value of the stored assessment.
+  
   final double currentValue;
 
   final double weight;
@@ -43,7 +43,7 @@ class RiskSimulationVariable {
   final double? criticalValue;
   final bool informational;
 
-  /// True when the value can be varied and re-scored with the same engine.
+  
   bool get isAdjustable {
     if (informational) {
       return false;
@@ -59,8 +59,8 @@ class RiskSimulationVariable {
     return inverted ? central > outer : outer > central;
   }
 
-  /// Lowest value of the simulation control: half of the smallest reference
-  /// of the variable, never below zero.
+  
+  
   double get lowerBound {
     final lowest = _triple.reduce(
       (left, right) => left < right ? left : right,
@@ -70,8 +70,8 @@ class RiskSimulationVariable {
     return bound < 0 ? 0 : bound;
   }
 
-  /// Highest value of the simulation control: one and a half times the
-  /// largest reference of the variable.
+  
+  
   double get upperBound {
     final highest = _triple.reduce(
       (left, right) => left > right ? left : right,
@@ -87,8 +87,8 @@ class RiskSimulationVariable {
         criticalValue ?? currentValue,
       ];
 
-  /// Score the hypothetical [value] would produce with the same formula as
-  /// the real assessment.
+  
+  
   double? scoreFor(double value) {
     if (!isAdjustable) {
       return null;
@@ -97,7 +97,7 @@ class RiskSimulationVariable {
     return variableFor(value).score;
   }
 
-  /// Rebuilds the hazard variable the engine consumes.
+  
   HazardVariable variableFor(double value) {
     return HazardVariable(
       name: name,
@@ -114,7 +114,7 @@ class RiskSimulationVariable {
   }
 }
 
-/// The adjustable inputs of one stored assessment.
+
 class RiskSimulationModel {
   const RiskSimulationModel({
     required this.hazard,
@@ -133,15 +133,15 @@ class RiskSimulationModel {
   final HazardType hazard;
   final List<RiskSimulationVariable> variables;
 
-  /// Score and level actually stored, used as the comparison base.
+  
   final double currentScore;
   final RiskLevel currentLevel;
 
-  /// True when the stored document predates the factor breakdown, so the
-  /// simulation can only re-run the environmental variables.
+  
+  
   final bool factorBreakdownMissing;
 
-  /// Why no simulation can be run, in plain language.
+  
   final String? unavailableReason;
 
   final double? vulnerabilityScore;
@@ -164,10 +164,10 @@ class RiskSimulationModel {
       unavailableReason == null && adjustable.isNotEmpty;
 }
 
-/// Deterministic outcome of one simulation.
-///
-/// Nothing here is saved: the outcome lives in the What-If section only, and
-/// the stored assessment stays untouched.
+
+
+
+
 class RiskSimulationOutcome {
   const RiskSimulationOutcome({
     required this.model,
@@ -179,13 +179,13 @@ class RiskSimulationOutcome {
 
   final RiskSimulationModel model;
 
-  /// Hypothetical value used for every variable.
+  
   final Map<String, double> values;
 
   final double score;
   final RiskLevel level;
 
-  /// Factor scores the same engine produced for the hypothetical inputs.
+  
   final List<RiskFactorScore> factors;
 
   double get difference => score - model.currentScore;
@@ -197,12 +197,12 @@ class RiskSimulationOutcome {
   bool get riskDecreased => difference < 0;
 }
 
-/// Re-runs the stored assessment with hypothetical inputs.
-///
-/// The simulation consumes the same evidence, references and calculators as
-/// the real pipeline: `HazardRiskCalculator` for the generic hazards and
-/// `FloodRiskCalculator` for flooding. It performs no network call and no AI
-/// request, so the same inputs always produce the same outcome.
+
+
+
+
+
+
 class RiskSimulationService {
   const RiskSimulationService({
     HazardRiskCalculator? hazardRiskCalculator,
@@ -215,8 +215,8 @@ class RiskSimulationService {
   final HazardRiskCalculator _hazardRiskCalculator;
   final FloodRiskCalculator _floodRiskCalculator;
 
-  /// Variables of the flooding pipeline with their weight inside the hazard
-  /// factor. They mirror `FloodRiskCalculator`.
+  
+  
   static const List<({String name, double weight})> floodVariables =
       <({String name, double weight})>[
     (name: 'rainfallIntensity', weight: 0.40),
@@ -224,12 +224,12 @@ class RiskSimulationService {
     (name: 'riverDischarge', weight: 0.30),
   ];
 
-  /// Builds the adjustable inputs of a stored assessment, or null when the
-  /// hazard of the document cannot be determined.
-  ///
-  /// The controls come from the evidence measurements of the document, so a
-  /// variable that was not measured never appears, and the statistical
-  /// reference of each control is the reference of the real assessment.
+  
+  
+  
+  
+  
+  
   RiskSimulationModel? modelFrom(RiskResult result) {
     final hazard = _hazardOf(result);
     final definition = HazardCatalog.of(hazard);
@@ -326,13 +326,13 @@ class RiskSimulationService {
     );
   }
 
-  /// Re-runs the assessment of [model] with [values] overriding the current
-  /// value of the variables they name. Every other control keeps its stored
-  /// value. Returns null when the model cannot be simulated.
-  ///
-  /// The outcome is a hypothetical score produced by the same engine as the
-  /// stored result: it is never written to `risk_results` and never sent to
-  /// the AI analyst.
+  
+  
+  
+  
+  
+  
+  
   RiskSimulationOutcome? simulate({
     required RiskSimulationModel model,
     Map<String, double> values = const <String, double>{},
@@ -400,13 +400,13 @@ class RiskSimulationService {
     );
   }
 
-  /// Rebuilds the flooding input from the stored references.
-  ///
-  /// The three environmental variables come from the simulation values, their
-  /// baseline and critical bound from the reference of the stored
-  /// assessment. The exposure factors are the ones the stored flooding score
-  /// used: the flooding calculator always applies all four factors, so an
-  /// unavailable one was part of the stored score with the value it displays.
+  
+  
+  
+  
+  
+  
+  
   FloodRiskInput? _floodInput({
     required RiskSimulationModel model,
     required Map<String, double> values,
@@ -480,13 +480,13 @@ class RiskSimulationService {
     );
   }
 
-  /// Score of an exposure factor of the stored result.
-  ///
-  /// The factor breakdown of the document is authoritative. A document written
-  /// before the breakdown existed only carries the four legacy scores: a
-  /// positive score is then a real measurement, while a zero cannot be told
-  /// apart from a factor that was never measured, so it is left out of the
-  /// simulation instead of being counted as a zero.
+  
+  
+  
+  
+  
+  
+  
   double? _factorScore({
     required String name,
     required RiskFactors factors,
@@ -517,8 +517,8 @@ class RiskSimulationService {
         : 0;
   }
 
-  /// Hazard of a stored result: the label written by the pipeline, then the
-  /// suffix of the risk id, then flooding for a legacy document.
+  
+  
   HazardType _hazardOf(RiskResult result) {
     final fromLabel = HazardType.fromLabel(result.hazardType);
 

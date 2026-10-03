@@ -138,8 +138,8 @@ void main() {
         originalRiver.source,
       );
 
-      // The stored AI interpretation survives the round trip: a later visit
-      // can disclose it without another AI request.
+      
+      
       expect(restored.analysis, isNotNull);
       expect(restored.analysis!.summary, 'Résumé IA');
       expect(restored.analysis!.explanation, 'Explication IA');

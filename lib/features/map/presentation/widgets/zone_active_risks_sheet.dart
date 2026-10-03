@@ -8,11 +8,11 @@ import '../../../risk/domain/zone_active_risk.dart';
 import '../../../risk/presentation/hazard_presentation.dart';
 import '../../../risk/presentation/providers/risk_live_providers.dart';
 
-/// Opens the Zone Active Risks selection UI of a zone.
-///
-/// The sheet only reads what is stored: it never runs a risk pipeline. Every
-/// row opens the Risk Details screen of one hazard (`/risk/{riskId}`), which is
-/// the only place that generates or refreshes that hazard's assessment.
+
+
+
+
+
 void showZoneActiveRisksSheet(
   BuildContext context,
   RiskZoneTarget zone,
@@ -25,8 +25,8 @@ void showZoneActiveRisksSheet(
   );
 }
 
-/// Zone Active Risks selection UI: the identified risks of a zone first, and
-/// the hazards that carry no current risk afterwards so they stay reachable.
+
+
 class ZoneActiveRisksSheet extends ConsumerWidget {
   const ZoneActiveRisksSheet({
     super.key,
@@ -227,8 +227,8 @@ class ZoneActiveRisksSheet extends ConsumerWidget {
   }
 }
 
-/// One hazard of the zone: its icon, its name and the real state of its
-/// stored assessment.
+
+
 class _ZoneHazardTile extends StatelessWidget {
   const _ZoneHazardTile({required this.assessment});
 

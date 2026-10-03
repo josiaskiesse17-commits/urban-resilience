@@ -4,16 +4,16 @@ import 'hazard_historical_data.dart';
 import 'hazard_series_utils.dart';
 import 'historical_distribution.dart';
 
-/// Builds the statistical reference of every variable of a hazard from the
-/// historical series of the same location.
-///
-/// Two integrity rules are enforced:
-///
-/// * a variable is compared with the *same window* in the past (`24 h`
-///   accumulation with `24 h` accumulations), never with an hourly series;
-/// * the reference is bucketed by calendar month when the hazard needs a
-///   season-specific reference, and falls back to the whole reference period
-///   when a bucket is too small, which is reported in the baseline notes.
+
+
+
+
+
+
+
+
+
+
 class HazardBaselineCalculator {
   const HazardBaselineCalculator();
 

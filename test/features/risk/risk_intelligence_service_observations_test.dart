@@ -123,8 +123,8 @@ void main() {
       expect(vulnerability.value, 71.5);
       expect(historicalExposure.value, 75);
 
-      // Citizen observations are not a risk measurement: they never appear
-      // as an observation "risk" value in the evidence.
+      
+      
       expect(
         result.evidence.measurements.map((measurement) => measurement.name),
         isNot(contains('citizenObservationRisk')),
@@ -167,8 +167,8 @@ void main() {
         observations: observations,
       );
 
-      // Pending observations are counted in the evidence, but they never
-      // carry an observation "risk" value.
+      
+      
       expect(
         result.evidence.measurements.map((measurement) => measurement.name),
         isNot(contains('citizenObservationRisk')),

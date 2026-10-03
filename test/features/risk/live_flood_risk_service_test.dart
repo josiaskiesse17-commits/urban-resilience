@@ -89,7 +89,7 @@ void main() {
         'Fake Weather',
       );
 
-      // Citizen observations are never a measurement of the risk.
+      
       expect(
         result.evidence.measurements.any(
           (measurement) =>

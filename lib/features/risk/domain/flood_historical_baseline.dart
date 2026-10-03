@@ -17,9 +17,9 @@ class FloodHistoricalBaseline {
   final int rainfallSampleCount;
   final int riverDischargeSampleCount;
 
-  /// Statistical distributions of the reference period, used to place a live
-  /// value inside the history of the same location and to publish the
-  /// percentile of the measurement in the evidence.
+  
+  
+  
   final HistoricalDistribution? rainfallHourlyDistribution;
   final HistoricalDistribution? rainfallSixHourDistribution;
   final HistoricalDistribution? riverDischargeDistribution;

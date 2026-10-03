@@ -36,7 +36,7 @@ void main() {
 
       expect(assessments, hasLength(HazardType.values.length));
 
-      // Identified risks come first, most severe score first.
+      
       expect(assessments[0].hazard, HazardType.heat);
       expect(assessments[0].status, ZoneHazardStatus.identified);
       expect(assessments[0].riskId, 'zone-masina--heat');
@@ -44,7 +44,7 @@ void main() {
       expect(assessments[1].hazard, HazardType.flooding);
       expect(assessments[1].riskId, 'zone-masina');
 
-      // A stored zero is "no current risk", never an active risk.
+      
       final landslide = assessments.singleWhere(
         (assessment) => assessment.hazard == HazardType.landslide,
       );

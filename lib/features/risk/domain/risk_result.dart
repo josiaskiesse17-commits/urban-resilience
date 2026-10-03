@@ -16,13 +16,13 @@ class RiskResult {
   final RiskEvidence evidence;
   final DateTime updatedAt;
 
-  /// AI interpretation of *this* evaluation, or null when the AI has not
-  /// interpreted this version yet.
-  ///
-  /// It is stored inside the same `risk_results/{id}` document as the result it
-  /// interprets, so it is tied to the evaluation version ([updatedAt]): a new
-  /// evaluation writes a fresh result, which clears this field and lets the AI
-  /// generate one new interpretation for the new version.
+  
+  
+  
+  
+  
+  
+  
   final RiskAnalysis? analysis;
 
   const RiskResult({
@@ -54,11 +54,11 @@ class RiskResult {
     };
   }
 
-  /// Firestore representation of the result, including the AI interpretation
-  /// stored with it.
-  ///
-  /// Kept separate from [toJson] so the AI request keeps sending exactly the
-  /// evaluation it has to interpret, without its own previous interpretation.
+  
+  
+  
+  
+  
   Map<String, dynamic> toStoredJson() {
     return {
       ...toJson(),
@@ -66,9 +66,9 @@ class RiskResult {
     };
   }
 
-  /// Returns a copy of this result carrying [analysis] as its stored AI
-  /// interpretation. Every other field, including the evaluation version
-  /// ([updatedAt]), is preserved.
+  
+  
+  
   RiskResult withAnalysis(RiskAnalysis analysis) {
     return RiskResult(
       id: id,
@@ -189,12 +189,12 @@ class RiskResult {
     );
   }
 
-  /// Reads the stored AI interpretation.
-  ///
-  /// A malformed interpretation resolves to null instead of failing the whole
-  /// result: the evaluation is still usable and the AI will simply be asked
-  /// once more. A failed request is never stored, so this only ever drops an
-  /// unreadable document.
+  
+  
+  
+  
+  
+  
   static RiskAnalysis? _parseAnalysis(
     Object? value,
     String riskId,

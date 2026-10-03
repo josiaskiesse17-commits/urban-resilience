@@ -12,19 +12,19 @@ class FloodRiskExposureProfile {
 
   final String zoneId;
 
-  /// 0-100.
+  
   final double populationExposureScore;
 
-  /// 0-100.
+  
   final double infrastructureExposureScore;
 
-  /// 0-100. Higher means more vulnerable.
+  
   final double drainageVulnerabilityScore;
 
-  /// 0-100.
+  
   final double criticalFacilityExposureScore;
 
-  /// 0-100.
+  
   final double historicalFloodExposureScore;
 
   final String? source;

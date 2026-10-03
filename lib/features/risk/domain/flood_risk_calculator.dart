@@ -81,9 +81,9 @@ class FloodRiskCalculator {
       input.historicalExposureScore,
     );
 
-    // Citizen observations are a moderation/evidence feature, not a risk
-    // factor: they no longer enter the score and are no longer displayed in
-    // the Risk Factors section.
+    
+    
+    
     final overallScore =
         RiskScoreUtils.weightedAverage([
       (
@@ -132,11 +132,11 @@ class FloodRiskCalculator {
     );
   }
 
-  /// Factors the flooding assessment really used, in display order: the
-  /// weighted rainfall factor, the three environmental variables it is built
-  /// from, then the exposure factors. The labels come from
-  /// [RiskMeasurementLabel], so the Risk Factors row and the Evidence row of
-  /// the same variable are worded identically.
+  
+  
+  
+  
+  
   List<RiskFactorScore> _entries({
     required double rainfallScore,
     required double rainfallAccumulationScore,

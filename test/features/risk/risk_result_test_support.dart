@@ -4,8 +4,8 @@ import 'package:urban_resilience/features/risk/domain/risk_measurement.dart';
 import 'package:urban_resilience/features/risk/domain/risk_result.dart';
 import 'package:urban_resilience/features/risk/domain/risk_zone.dart';
 
-/// Builds a realistic [RiskResult] for widget tests without touching the
-/// network or Firestore.
+
+
 RiskResult buildRiskResult({
   String id = 'zone-masina',
   String locationName = 'Masina',

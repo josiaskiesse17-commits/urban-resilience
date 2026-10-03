@@ -25,14 +25,14 @@ class RiskMeasurement {
 
   final double? historicalPercentile;
 
-  /// Outer statistical reference of the same variable: the 95th percentile of
-  /// the reference period, or the 5th percentile when a low value is the risk.
-  /// It bounds the score and is explicitly *not* a validated danger threshold.
+  
+  
+  
   final double? statisticalCriticalValue;
   final String? statisticalCriticalLabel;
 
-  /// True when the value is derived from measurements instead of being read
-  /// directly from the provider.
+  
+  
   final bool isDerived;
   final String? derivationNote;
 
@@ -81,12 +81,12 @@ class RiskMeasurement {
     };
   }
 
-  /// Human readable title of a measurement name.
-  ///
-  /// Known measurements are relabelled by the screens where a nicer wording
-  /// exists; any other name (a hazard variable such as
-  /// `temperature2mMax24h`) is split on its camel-case boundaries so a new
-  /// variable stays readable without a mapping table.
+  
+  
+  
+  
+  
+  
   static String humanizeName(String name) {
     if (name.isEmpty) {
       return name;

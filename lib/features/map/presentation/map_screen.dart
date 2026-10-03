@@ -11,13 +11,13 @@ import 'widgets/map_search_bar.dart';
 import 'widgets/zone_active_risks_sheet.dart';
 import 'widgets/zone_map_marker.dart';
 
-/// Citizen map: the user's position and the configured application zones.
-///
-/// The map owns no risk logic. Each zone is a coloured point whose colour is
-/// the highest risk currently identified in that zone, read from the stored
-/// `risk_results` documents through [zoneActiveRisksProvider]. Tapping a zone
-/// opens the Zone Active Risks selection UI of that zone, and the selected
-/// hazard opens the Risk Details screen - the only surface that computes.
+
+
+
+
+
+
+
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
 

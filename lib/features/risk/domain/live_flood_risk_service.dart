@@ -155,15 +155,15 @@ class LiveFloodRiskService {
     return result;
   }
 
-  /// Complete live-risk pipeline:
-  ///
-  /// Historical data
-  /// → historical baseline
-  /// → live environmental data
-  /// → exposure
-  /// → observations
-  /// → RiskResult
-  /// → Firestore
+  
+  
+  
+  
+  
+  
+  
+  
+  
   Future<RiskResult>
       calculateLiveRiskAndSave({
     required String id,
@@ -203,14 +203,14 @@ class LiveFloodRiskService {
     );
   }
 
-  /// Rebuilds the live environmental input of a zone and compares the
-  /// current assessment with a hypothetical scenario.
-  ///
-  /// The same historical baseline, live data source, and risk engine as
-  /// [calculateLiveRiskAndSave] are reused, so the scenario is derived from
-  /// real measurements instead of demo values. The vulnerability, historical
-  /// exposure, and observation scores are the ones already stored in the
-  /// current [RiskResult].
+  
+  
+  
+  
+  
+  
+  
+  
   Future<RiskScenarioResult> simulateFloodScenario({
     required String id,
     required String locationName,

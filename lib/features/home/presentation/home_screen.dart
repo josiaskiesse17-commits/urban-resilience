@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-/// Citizen entry point of the Risk Intelligence feature.
-///
-/// The home screen deliberately does not list anything about risks: choosing a
-/// zone happens on the map (`/map`), the identified risks of that zone are
-/// listed by the Zone Active Risks selection UI, and the selected hazard opens
-/// `/risk/{riskId}` ([RiskDetailsScreen]). That keeps a single entry point and
-/// a single place - the Risk Details screen - where an assessment is generated
-/// or refreshed.
+
+
+
+
+
+
+
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 

@@ -1,7 +1,7 @@
-/// A location the Risk Intelligence engine can compute a flood risk for.
-///
-/// The citizen home screen and the admin risk screen share this catalog so
-/// both surfaces always talk about the same zones.
+
+
+
+
 typedef RiskZoneTarget = ({
   String id,
   String name,
@@ -9,16 +9,16 @@ typedef RiskZoneTarget = ({
   double longitude,
 });
 
-/// Zones shipped with the application.
-///
-/// The ids follow the `zone-<name>` convention already used by the risk
-/// tests (`zone-masina`) and must match the exposure documents stored in the
-/// `risk_zones` Firestore collection read by the exposure repository. The
-/// coordinates are the commune centres used for the Open-Meteo live and
-/// historical lookups.
-///
-/// The same ids are used for the `risk_results` document ids, so
-/// `/risk/<zoneId>` resolves the stored risk result of the zone.
+
+
+
+
+
+
+
+
+
+
 class RiskZoneCatalog {
   const RiskZoneCatalog._();
 
@@ -39,9 +39,9 @@ class RiskZoneCatalog {
     (id: 'zone-barumbu', name: 'Barumbu', latitude: -4.32, longitude: 15.31),
   ];
 
-  /// Historical reference window used to build the flood baseline.
-  ///
-  /// Kept in sync with the window used by the risk details screen.
+  
+  
+  
   static final DateTime historicalBaselineStart = DateTime.utc(2018, 1, 1);
 
   static final DateTime historicalBaselineEnd = DateTime.utc(2022, 7, 31);

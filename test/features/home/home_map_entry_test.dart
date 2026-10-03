@@ -11,8 +11,8 @@ import 'package:urban_resilience/features/risk/presentation/providers/risk_live_
 
 import '../risk/risk_test_fakes.dart';
 
-/// Location controller that keeps the flow tests off the Geolocator platform
-/// channels while behaving like the real one.
+
+
 class _FakeLocationController extends MapLocationController {
   @override
   MapState build() => const MapState(
@@ -65,14 +65,14 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // The zone catalog is no longer part of the entry point.
+      
       expect(find.text('Masina'), findsNothing);
       expect(find.text('Ouvrir la carte'), findsOneWidget);
 
       await tester.tap(find.text('Ouvrir la carte'));
       await tester.pumpAndSettle();
 
-      // The map is the single place where a zone is chosen.
+      
       expect(find.byType(MapScreen), findsOneWidget);
       expect(find.byType(ZoneMapMarker), findsWidgets);
 

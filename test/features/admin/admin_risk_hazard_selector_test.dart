@@ -13,7 +13,7 @@ import 'package:urban_resilience/features/risk/presentation/providers/risk_live_
 import '../risk/risk_result_test_support.dart';
 import '../risk/risk_test_fakes.dart';
 
-/// One document per risk id, like the `risk_results` collection.
+
 class MapRiskResultRepository implements RiskResultRepository {
   final Map<String, RiskResult> stored = <String, RiskResult>{};
 
@@ -99,8 +99,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // The first hazard of the zone is generated automatically. Flooding
-      // keeps the bare zone id as its document id.
+      
+      
       expect(generated, <String>[HazardType.flooding.id]);
       expect(
         repository.stored.keys,
@@ -111,7 +111,7 @@ void main() {
         'Flood',
       );
 
-      // The flood scenario simulator belongs to the flooding hazard.
+      
       expect(find.text('Scénario hypothétique'), findsOneWidget);
 
       await tester.tap(
@@ -127,7 +127,7 @@ void main() {
         ],
       );
 
-      // A new document was added; the flooding one was not overwritten.
+      
       expect(
         repository.stored.keys,
         containsAll(<String>[
@@ -148,7 +148,7 @@ void main() {
         38,
       );
 
-      // The flood-only scenario tool is not offered for another hazard.
+      
       expect(find.text('Scénario hypothétique'), findsNothing);
     },
   );

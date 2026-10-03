@@ -104,7 +104,7 @@ void main() {
             ],
             <double?>[0.2, 0.3],
           ),
-          // Only three hours: no complete 6-hour window.
+          
           'rain': _series(
             'rain',
             [

@@ -25,7 +25,7 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
 
   String? _selectedZoneId;
 
-  /// Hazard currently inspected.
+  
   HazardType _selectedHazard = HazardType.flooding;
 
   double _rainfallMultiplier = 1.0;
@@ -37,8 +37,8 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
   Object? _simulationError;
   RiskScenarioResult? _simulation;
 
-  /// Zone/hazard that already went through the automatic load-or-generate
-  /// step, so rebuilding does not start another generation.
+  
+  
   String? _updateAttemptedForZoneId;
 
   String _riskIdFor(RiskZoneTarget zone) {

@@ -15,8 +15,8 @@ import 'package:urban_resilience/features/risk/presentation/risk_details_screen.
 
 import 'risk_test_fakes.dart';
 
-/// A fresh, stored heat assessment with its factor breakdown and evidence,
-/// as the Risk Details screen receives it from `risk_results`.
+
+
 RiskResult _storedHeatResult() {
   final timestamp = DateTime.now().toUtc();
 
@@ -146,8 +146,8 @@ Widget buildHost({
   required FakeRiskExposureRepository exposureRepository,
   required FakeRiskAnalyst analyst,
 }) {
-  // The stored result is fresh, so no generation may ever run during these
-  // tests: a call is a failure.
+  
+  
   Future<RiskResult> unexpectedGeneration(RiskZoneTarget zone) async {
     throw StateError(
       'the stored assessment must not be regenerated: ${zone.id}',
@@ -188,14 +188,14 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // The AI explained the real stored assessment, exactly once.
+      
       expect(analyst.calls, 1);
       expect(find.text('AI summary for Masina.'), findsOneWidget);
 
       double topOf(Finder finder) => tester.getTopLeft(finder).dy;
 
-      // Section order: the stored assessment and its evidence come first, the
-      // AI interpretation follows them, and the What-If simulator is last.
+      
+      
       expect(
         topOf(find.text('Facteurs de risque')),
         lessThan(topOf(find.text('Éléments de preuve'))),
@@ -209,8 +209,8 @@ void main() {
         lessThan(topOf(find.text('Simulation « Et si ? »'))),
       );
 
-      // The simulator declares itself a hypothetical scenario, never a
-      // forecast of what will happen.
+      
+      
       expect(find.textContaining('ce n’est pas une prévision'), findsWidgets);
       expect(find.text('Résultat simulé'), findsNothing);
     },
@@ -241,7 +241,7 @@ void main() {
     await tester.drag(slider, const Offset(300, 0));
     await tester.pumpAndSettle();
 
-    // The hypothetical outcome is rendered inside the What-If section.
+    
     expect(find.text('Résultat simulé'), findsOneWidget);
     expect(find.textContaining('ce n’est pas une prévision'), findsWidgets);
     expect(
@@ -251,11 +251,11 @@ void main() {
       findsOneWidget,
     );
 
-    // The real assessment above is untouched by the scenario.
+    
     expect(find.text('62/100'), findsWidgets);
     expect(find.text('AI summary for Masina.'), findsOneWidget);
 
-    // A scenario never invokes the AI analyst.
+    
     expect(analyst.calls, 1);
   });
 }

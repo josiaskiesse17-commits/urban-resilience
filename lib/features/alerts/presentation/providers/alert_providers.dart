@@ -8,7 +8,7 @@ final alertsRepositoryProvider = Provider<AlertsRepository>((ref) {
   return AlertsRepository(ref.watch(firestoreProvider));
 });
 
-/// Published alerts of exactly one zone + hazard context, realtime.
+
 final alertsForContextProvider = StreamProvider.autoDispose
     .family<List<RiskAlert>, ({String zoneId, String hazardType})>((
       ref,
@@ -22,7 +22,7 @@ final alertsForContextProvider = StreamProvider.autoDispose
           );
     });
 
-/// Every alert of the admin history, realtime.
+
 final allAlertsProvider = StreamProvider.autoDispose<List<RiskAlert>>(
   (ref) => ref.watch(alertsRepositoryProvider).watchAll(),
 );

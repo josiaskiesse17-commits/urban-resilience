@@ -161,8 +161,8 @@ class OpenMeteoRiskDataSource
       );
     }
 
-    // The provider timestamps are kept: a missing hour must not shift the
-    // following hours of the accumulation window.
+    
+    
     final samples = HazardSeriesUtils.align(
       times: times,
       values: rain,
@@ -178,7 +178,7 @@ class OpenMeteoRiskDataSource
 
     final notes = <String>[];
 
-    // Largest contiguous run of hourly samples ending at the last sample.
+    
     var windowHours = 1;
 
     for (var index = samples.length - 1; index > 0; index--) {
@@ -280,8 +280,8 @@ class OpenMeteoRiskDataSource
 
     final today = DateTime.now().toUtc();
 
-    // Newest day that is not in the future: a future day must not be
-    // presented as the current state of the river.
+    
+    
     ({DateTime date, double value})? latest;
 
     for (final item in values) {

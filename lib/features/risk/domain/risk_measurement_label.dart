@@ -1,24 +1,24 @@
-/// Human readable wording of a measurement identifier.
-///
-/// The screens must never show an internal field name such as
-/// `rainfallAccumulation6h` or `riverDischargeM3s` to a citizen, but the
-/// stored documents keep those names. This helper is the single translation
-/// point, so the Risk Factors row, the Evidence row and the What-If control of
-/// the same variable are worded identically:
-///
-/// * a known identifier is translated with the wording of its hazard model;
-/// * a trailing window (`6h`, `24h`, `14d`, `30d`, ...) becomes a period
-///   ("- 30 days"), taken from the identifier or from [measurementPeriod];
-/// * a unit embedded in the identifier (`MmPerHour`, `M3s`, ...) is spelled
-///   out as a unit;
-/// * anything else falls back to a camel-case split, so a new variable is
-///   readable without a mapping table.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class RiskMeasurementLabel {
   const RiskMeasurementLabel._();
 
   static const String _separator = ' \u2014 ';
 
-  /// Base wording of the identifiers the application stores.
+  
   static const Map<String, String> _known = <String, String>{
     'rainfall': 'Pluie',
     'rainfallIntensity': 'Intensité de la pluie',
@@ -38,7 +38,7 @@ class RiskMeasurementLabel {
     'citizenObservationRisk': 'Risque lié aux observations citoyennes',
   };
 
-  /// Unit spellings for the identifiers that embed one.
+  
   static const Map<String, String> _unitsInName = <String, String>{
     'MmPerHour': 'mm/h',
     'PerHour': '/heure',
@@ -102,7 +102,7 @@ class RiskMeasurementLabel {
     return '$base$_separator$scale';
   }
 
-  /// Extracts a trailing window token of an identifier (`rainfall30d`).
+  
   static ({String remainder, String phrase})? _takeWindow(String value) {
     final match = _windowPattern.firstMatch(value);
 
@@ -127,7 +127,7 @@ class RiskMeasurementLabel {
 
   static final RegExp _windowPattern = RegExp(r'(\d{1,3})(h|d)$');
 
-  /// Wording of a trailing window token (`6h`, `30d`).
+  
   static String? _windowPhrase(int amount, String unit) {
     if (unit == 'h') {
       return amount == 1
@@ -142,8 +142,8 @@ class RiskMeasurementLabel {
     return null;
   }
 
-  /// Wording of the measurement period written by the sources
-  /// (`instant`, `1h`, `6h`, `daily`, ...).
+  
+  
   static String? _periodPhrase(String? measurementPeriod) {
     if (measurementPeriod == null || measurementPeriod.isEmpty) {
       return null;
@@ -172,7 +172,7 @@ class RiskMeasurementLabel {
     return _windowPhrase(amount, match.group(2)!);
   }
 
-  /// `customSensorAlpha` -> `Custom sensor alpha` (used when nothing is known).
+  
   static String _camelCaseToWords(String name) {
     final buffer = StringBuffer();
 

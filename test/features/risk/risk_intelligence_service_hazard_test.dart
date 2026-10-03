@@ -74,8 +74,8 @@ void main() {
 
     final evidence = result.evidence;
 
-    // Both hazard variables reach the evidence with their own
-    // unit, source and statistical reference.
+    
+    
     expect(
       evidence.measurements.map((item) => item.name),
       containsAll(<String>[
@@ -103,7 +103,7 @@ void main() {
     );
     expect(indicators, contains('Poids du score appliqués'));
 
-    // The evidence timestamp is the observation time of the live value.
+    
     expect(evidence.collectedAt, DateTime.utc(2026, 1, 15, 12));
     expect(evidence.observationCount, 0);
   });

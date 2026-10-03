@@ -6,19 +6,19 @@ import '../domain/risk_alert.dart';
 import 'alert_presentation.dart';
 import 'providers/alert_providers.dart';
 
-/// Published alerts of the zone + hazard context the user is looking at.
-///
-/// The screen keeps its simple centred layout; it only renders the alerts
-/// that target exactly the selected zone and hazard, so an unrelated alert
-/// is never shown.
+
+
+
+
+
 class AlertsScreen extends ConsumerWidget {
   const AlertsScreen({super.key, this.zoneId, this.hazardType});
 
-  /// Configured zone id of the context (`zone-masina`), when known.
+  
   final String? zoneId;
 
-  /// Hazard of the context: either the hazard id (`flooding`) coming from
-  /// the Risk Details navigation or the stored label (`Flooding`).
+  
+  
   final String? hazardType;
 
   String? get _hazardLabel {

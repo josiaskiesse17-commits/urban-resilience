@@ -32,8 +32,8 @@ RiskResult _identified({
   );
 }
 
-/// Hosts the Zone Active Risks sheet behind a button, with the risk details
-/// route available so a row can open it exactly like the map does.
+
+
 Widget buildSheetHost({
   required StoredByHazardRepository repository,
   required List<String> generated,
@@ -147,7 +147,7 @@ void main() {
       expect(find.text('Risques actifs'), findsOneWidget);
       expect(find.text('Autres risques'), findsOneWidget);
 
-      // The most severe identified risk is listed first.
+      
       expect(
         tester.getTopLeft(find.text(HazardType.heat.labelFr)).dy,
         lessThan(
@@ -157,7 +157,7 @@ void main() {
       expect(find.text('CRITIQUE'), findsOneWidget);
       expect(find.text('ÉLEVÉ'), findsOneWidget);
 
-      // The hazards that carry no current risk stay reachable.
+      
       expect(find.text(HazardType.landslide.labelFr), findsOneWidget);
       expect(find.text('Non évalué'), findsOneWidget);
     },
@@ -192,7 +192,7 @@ void main() {
         findsOneWidget,
       );
 
-      // The stored zero is not an active risk.
+      
       expect(find.text('Aucun risque'), findsOneWidget);
       expect(find.text('Autres risques'), findsOneWidget);
     },
@@ -247,7 +247,7 @@ void main() {
       await tester.tap(find.text(HazardType.heat.labelFr));
       await tester.pumpAndSettle();
 
-      // The details screen of the heat hazard generated exactly that document.
+      
       expect(generated, <String>[HazardType.heat.id]);
       expect(
         repository.stored.keys,
@@ -271,22 +271,22 @@ void main() {
         generated: generated,
       );
 
-      // Nothing is evaluated yet.
+      
       expect(find.text('Non évalué'), findsNWidgets(3));
 
-      // Evaluate Heat from its Risk Details screen.
+      
       await tester.tap(find.text(HazardType.heat.labelFr));
       await tester.pumpAndSettle();
 
       expect(generated, <String>[HazardType.heat.id]);
       expect(repository.stored['zone-masina--heat'], isNotNull);
 
-      // Leave the zone (Risk Details was pushed above the sheet).
+      
       GoRouter.of(tester.element(find.byType(RiskDetailsScreen))).pop();
       await tester.pumpAndSettle();
 
-      // The stored evaluation is the source of truth: Heat stays evaluated
-      // instead of falling back to "Non évalué".
+      
+      
       expect(find.text('Non évalué'), findsNWidgets(2));
       expect(find.text('CRITIQUE'), findsOneWidget);
       expect(find.textContaining('Score 71/100'), findsOneWidget);

@@ -48,11 +48,11 @@ class RiskAnalysis {
     );
   }
 
-  /// Serialises the interpretation so it can be stored next to the evaluation
-  /// it interprets (`risk_results/{id}.analysis`).
-  ///
-  /// Persisting it is what lets a recreated screen reuse the interpretation
-  /// instead of asking the AI again for an unchanged result.
+  
+  
+  
+  
+  
   Map<String, dynamic> toJson() {
     return {
       'riskId': riskId,

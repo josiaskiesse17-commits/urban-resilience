@@ -56,7 +56,7 @@ void main() {
 
     final assessment = calculator.calculate(input);
 
-    // (100 * 0.5 + 0 * 0.3) / 0.8 = 62.5.
+    
     expect(assessment.hazardScore, closeTo(62.5, 0.001));
     expect(assessment.hazardAvailable, isTrue);
     expect(assessment.excludedWeight, closeTo(0.2, 0.0001));
@@ -66,7 +66,7 @@ void main() {
       'vulnerability': 0.25,
     });
 
-    // (62.5 * 0.40 + 80 * 0.25) / 0.65.
+    
     expect(assessment.overallScore, closeTo(69.2307, 0.001));
     expect(assessment.riskLevel, RiskLevel.high);
 

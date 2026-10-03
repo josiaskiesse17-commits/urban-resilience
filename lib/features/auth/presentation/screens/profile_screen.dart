@@ -125,7 +125,7 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-/// French wording of the theme preference, shared by the profile surfaces.
+
 String themeLabel(ThemeMode mode) {
   return switch (mode) {
     ThemeMode.light => 'Clair',
@@ -138,8 +138,8 @@ void _showMessage(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 }
 
-/// Runs one account action through the existing auth architecture and reports
-/// its outcome, so no Firebase Auth call is made directly by the UI.
+
+
 Future<void> _runAuthAction(
   BuildContext context,
   WidgetRef ref,

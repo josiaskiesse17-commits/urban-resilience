@@ -58,7 +58,7 @@ class _FakeExposure implements RiskExposureRepository {
   Future<void> saveProfile(FloodRiskExposureProfile profile) async {}
 }
 
-/// Plausible value of every field the catalog reads.
+
 const Map<String, double> _fieldBase = <String, double>{
   'rain': 0.8,
   'soil_moisture_0_to_7cm': 0.30,
@@ -313,14 +313,14 @@ void main() {
         .toSet();
     final factors = result.factors.entries.map((entry) => entry.name).toSet();
 
-    // The synthetic reference series makes the 24 h accumulation constant,
-    // so it carries no usable statistical reference: its value is real
-    // evidence, but it played no role in the score, so it must not be
-    // shown as a factor (available or unavailable).
+    
+    
+    
+    
     expect(measurements, contains('rainfallAccumulation24h'));
     expect(factors, isNot(contains('rainfallAccumulation24h')));
 
-    // The exclusion is reported explicitly instead of being dropped.
+    
     expect(
       result.evidence.qualitativeIndicators.join(' '),
       contains('Non pris en compte : Cumul de pluie — dernières 24 heures'),

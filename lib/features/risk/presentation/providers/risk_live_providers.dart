@@ -67,8 +67,8 @@ final floodEnvironmentalDataSourceProvider =
   );
 });
 
-/// Live series of the generic hazards (landslide and heat) from the
-/// Open-Meteo forecast API.
+
+
 final hazardEnvironmentalDataSourceProvider =
     Provider<HazardEnvironmentalDataSource>((ref) {
   return OpenMeteoHazardDataSource(
@@ -76,8 +76,8 @@ final hazardEnvironmentalDataSourceProvider =
   );
 });
 
-/// ERA5 historical series the generic hazards build their statistical
-/// reference from.
+
+
 final hazardHistoricalDataSourceProvider =
     Provider<HazardHistoricalDataSource>((ref) {
   return OpenMeteoHazardHistoricalDataSource(
@@ -161,17 +161,17 @@ final riskResultProvider =
   },
 );
 
-/// Zones shared by the citizen home screen and the admin risk screen.
+
 final riskZoneCatalogProvider =
     Provider<List<RiskZoneTarget>>((ref) {
   return RiskZoneCatalog.zones;
 });
 
-/// Stored exposure / vulnerability profile of a zone, read from
-/// `risk_zones/{zoneId}`.
-///
-/// A null value means the zone has no exposure data yet. Screens must report
-/// that explicitly instead of reading it as "no vulnerability".
+
+
+
+
+
 final riskExposureProfileProvider =
     FutureProvider.family<FloodRiskExposureProfile?, String>(
   (ref, zoneId) async {
@@ -182,15 +182,15 @@ final riskExposureProfileProvider =
   },
 );
 
-/// Stored state of every hazard of one zone, for the map and the Zone Active
-/// Risks selection UI.
-///
-/// This is a pure read of already calculated `risk_results` documents (one
-/// get per hazard of the zone). It never runs a hazard pipeline: generating a
-/// missing assessment or refreshing a stale one stays the job of the Risk
-/// Details screen of the selected hazard, which regenerates only that hazard.
-/// Errors from Firestore surface to the caller so the UI can report them
-/// instead of showing fake zeroes.
+
+
+
+
+
+
+
+
+
 final zoneHazardAssessmentsProvider = FutureProvider.autoDispose
     .family<List<ZoneHazardAssessment>, String>(
   (ref, zoneId) async {
@@ -216,12 +216,12 @@ final zoneHazardAssessmentsProvider = FutureProvider.autoDispose
   },
 );
 
-/// Identified, stored risks of one zone, derived from
-/// [zoneHazardAssessmentsProvider] so both surfaces read the same documents.
-///
-/// While the read is loading, or when it failed, the list stays empty: the
-/// map then shows the neutral marker colour and the selection UI shows its own
-/// loading / error state through [zoneHazardAssessmentsProvider].
+
+
+
+
+
+
 final zoneActiveRisksProvider =
     Provider.autoDispose.family<List<ZoneActiveRisk>, String>(
   (ref, zoneId) {
@@ -235,22 +235,22 @@ final zoneActiveRisksProvider =
   },
 );
 
-/// Runs the Risk Intelligence pipeline of a zone for one hazard and persists
-/// the result. Flooding is served by its dedicated pipeline, the other
-/// hazards by [HazardRiskService]; both write to `risk_results` with the
-/// hazard-aware id built by `HazardRiskId`.
+
+
+
+
 typedef ZoneHazardRiskGenerator = Future<RiskResult> Function(
   RiskZoneTarget zone,
   HazardType hazard,
 );
 
-/// Runs the Risk Intelligence pipeline of a zone and persists the result.
+
 typedef ZoneRiskGenerator = Future<RiskResult> Function(
   RiskZoneTarget zone,
 );
 
-/// Single entry point for hazard risk generation, shared by the citizen
-/// screens and the admin screens so both use the exact same pipeline.
+
+
 final zoneHazardRiskGeneratorProvider =
     Provider<ZoneHazardRiskGenerator>((ref) {
   final floodService = ref.watch(liveFloodRiskServiceProvider);
@@ -280,9 +280,9 @@ final zoneHazardRiskGeneratorProvider =
   };
 });
 
-/// Single entry point for flood risk generation, shared by the citizen
-/// screens and the admin screens so both use the exact same pipeline and
-/// write to the same `risk_results/{zoneId}` document.
+
+
+
 final zoneRiskGeneratorProvider =
     Provider<ZoneRiskGenerator>((ref) {
   final generator = ref.watch(zoneHazardRiskGeneratorProvider);

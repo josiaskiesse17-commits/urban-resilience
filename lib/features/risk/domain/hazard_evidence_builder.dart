@@ -1,12 +1,12 @@
 import 'hazard_variable.dart';
 import 'risk_measurement.dart';
 
-/// Turns hazard variables into the shared evidence model.
-///
-/// Every measurement keeps its own unit, source and observation timestamp,
-/// plus the statistical reference of the variable and where the live value
-/// sits inside that reference. The AI analyst only interprets this evidence:
-/// no calculation happens in the AI layer.
+
+
+
+
+
+
 class HazardEvidenceBuilder {
   const HazardEvidenceBuilder._();
 

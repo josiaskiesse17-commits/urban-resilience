@@ -6,7 +6,7 @@ import 'risk_measurement_label.dart';
 import 'risk_score_utils.dart';
 import 'risk_zone.dart';
 
-/// Contribution of one hazard variable to the hazard score.
+
 class HazardVariableScore {
   const HazardVariableScore({
     required this.name,
@@ -19,11 +19,11 @@ class HazardVariableScore {
   final String name;
   final String label;
 
-  /// Nominal weight of the variable inside the hazard score.
+  
   final double weight;
 
-  /// False when the variable had no usable statistical reference (or no
-  /// value), in which case it is reported but does not affect the score.
+  
+  
   final bool usedInScore;
 
   final double? score;
@@ -48,21 +48,21 @@ class HazardRiskAssessment {
   final RiskFactors factors;
   final List<HazardVariableScore> variableScores;
 
-  /// Total weight of the variables that carried no usable reference.
+  
   final double excludedWeight;
 
-  /// Weights actually applied to the overall score, keyed by factor name.
+  
   final Map<String, double> factorWeights;
 }
 
-/// Generic hazard engine.
-///
-/// It reuses the shared risk formula of the flooding calculator
-/// (`hazard 0.40`, `vulnerability 0.25`, `historical exposure 0.15` —
-/// citizen observations are not a risk factor) but averages only the factors
-/// that are actually available: a factor that could not be measured is
-/// excluded instead of entering the score as a fabricated zero, and its
-/// weight is redistributed over the remaining factors.
+
+
+
+
+
+
+
+
 class HazardRiskCalculator {
   const HazardRiskCalculator();
 
@@ -82,12 +82,12 @@ class HazardRiskCalculator {
       final score = variable.score;
 
       if (score == null) {
-        // The variable was measured, so its real value stays in the evidence,
-        // but it carries no usable statistical reference: it is excluded from
-        // the score instead of being counted as zero, and it is not presented
-        // as a factor either. The evidence reports the exclusion explicitly
-        // ("Not scored: ..."), so a variable that played no role in the score
-        // is never shown as an unavailable number.
+        
+        
+        
+        
+        
+        
         excludedWeight += variable.weight;
 
         variableScores.add(
@@ -130,10 +130,10 @@ class HazardRiskCalculator {
       );
     }
 
-    // A variable the hazard model needed but never received becomes an
-    // explicit factor entry with no score and the reason why: a missing
-    // measurement is reported as missing (never as zero, never silently
-    // dropped) and has no evidence measurement of its own.
+    
+    
+    
+    
     final variableNames = input.variables
         .map((variable) => variable.name)
         .toSet();
@@ -207,12 +207,12 @@ class HazardRiskCalculator {
     final overallScore =
         RiskScoreUtils.weightedAverage(overallComponents);
 
-    // The factors the user sees, in the order the section renders them: the
-    // weighted hazard factor first, then the environmental variables it is
-    // built from (measured and scored, plus the explicitly missing ones),
-    // then the exposure factors. A factor that could not be scored keeps a
-    // null score and the reason why; a variable that was measured but has no
-    // usable reference is reported in the evidence only, never as a factor.
+    
+    
+    
+    
+    
+    
     final entries = <RiskFactorScore>[
       RiskFactorScore(
         name: 'hazard',
@@ -277,8 +277,8 @@ class HazardRiskCalculator {
     );
   }
 
-  /// Wording shared with the Evidence section: the same variable must not be
-  /// named differently in the factors and in the evidence.
+  
+  
   static String _factorLabel(HazardVariable variable) {
     return RiskMeasurementLabel.of(
       name: variable.name,

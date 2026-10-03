@@ -43,14 +43,14 @@ class RiskScoreUtils {
     );
   }
 
-  /// Score of a variable where a *low* value is the risk (soil moisture,
-  /// rainfall deficit, ...).
-  ///
-  /// The two bounds are statistical references of the same kind as the ones
-  /// used by [linearScore]: [statisticalHigh] is the central reference of the
-  /// variable and [statisticalLow] its outer reference (typically the 5th
-  /// percentile of the reference period). The result is 0 at or above the
-  /// central reference and 100 at or below the outer one.
+  
+  
+  
+  
+  
+  
+  
+  
   static double invertedLinearScore({
     required double value,
     required double statisticalLow,

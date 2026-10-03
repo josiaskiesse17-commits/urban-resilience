@@ -7,8 +7,8 @@ import 'package:urban_resilience/features/risk/domain/hazard_historical_data.dar
 import 'package:urban_resilience/features/risk/domain/hazard_series_utils.dart';
 import 'package:urban_resilience/features/risk/domain/hazard_type.dart';
 
-/// 45 days of hourly rainfall starting on 1 January: the windowed series
-/// spans January and February, both with far more than 30 samples.
+
+
 HazardHistoricalData buildRainfallData() {
   final times = <DateTime>[];
   final values = <double?>[];

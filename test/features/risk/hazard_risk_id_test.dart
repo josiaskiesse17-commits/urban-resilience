@@ -58,7 +58,7 @@ void main() {
         'zone-limete',
       );
 
-      // A document written before the multi-hazard work keeps resolving.
+      
       expect(
         HazardRiskId.zoneIdOf('zone-masina--unknown'),
         'zone-masina--unknown',

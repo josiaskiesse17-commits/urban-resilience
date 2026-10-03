@@ -92,7 +92,7 @@ class _FakeResultRepository implements RiskResultRepository {
   }
 }
 
-/// 30 hourly live samples: enough for a trailing 24-hour maximum.
+
 HazardLiveData _liveHeatData() {
   final times = <DateTime>[];
   final temperatures = <double?>[];
@@ -134,7 +134,7 @@ HazardLiveData _liveHeatData() {
   );
 }
 
-/// 45 days of hourly history spanning two calendar months.
+
 HazardHistoricalData _historicalHeatData() {
   final times = <DateTime>[];
   final temperatures = <double?>[];
@@ -177,12 +177,12 @@ HazardHistoricalData _historicalHeatData() {
   );
 }
 
-/// Fake Open-Meteo `forecast` payload served to the real
-/// [OpenMeteoHazardDataSource].
-///
-/// It returns 30 contiguous hourly samples ending at 2026-01-06T05:00, so the
-/// trailing 24 h windows of the catalog are derived exactly like in
-/// production - without ever touching the network.
+
+
+
+
+
+
 http.Response _openMeteoResponse({
   required Map<String, List<double?>> series,
 }) {
@@ -257,13 +257,13 @@ void main() {
       expect(result.factors.primaryFactorLabel, 'Heat');
       expect(result.riskScore, greaterThan(0));
 
-      // Non-flood vulnerability: 0.35 * 40 + 0.35 * 50 + 0.30 * 60.
+      
       expect(
         result.factors.geographicVulnerability,
         closeTo(49.5, 0.001),
       );
 
-      // No hazard-specific historical exposure for heat.
+      
       expect(result.factors.historicalExposure, 0);
 
       final names = result.evidence.measurements
@@ -366,8 +366,8 @@ void main() {
 
         return _openMeteoResponse(
           series: <String, List<double?>>{
-            // The first six hours are outside the trailing 24 h window that
-            // ends at the last sample, so they must not influence it.
+            
+            
             'temperature_2m': <double?>[
               for (var hour = 0; hour < 30; hour++)
                 hour < 6
@@ -404,7 +404,7 @@ void main() {
         hazard: HazardType.heat,
       );
 
-      // The request really asked the provider for the catalog fields.
+      
       expect(requested.host, 'api.open-meteo.com');
       expect(
         requested.queryParameters['hourly'],
@@ -417,8 +417,8 @@ void main() {
             (item) => item.name == name,
           );
 
-      // The provider values reached the evidence unchanged, through the
-      // trailing 24 h windows of the catalog.
+      
+      
       expect(measurement('temperature2mMax24h').value, 41.0);
       expect(measurement('temperature2mMin24h').value, 30.0);
       expect(measurement('apparentTemperatureMax24h').value, 44.0);
@@ -430,8 +430,8 @@ void main() {
         'Open-Meteo Weather API',
       );
 
-      // The measured values were compared with their statistical reference,
-      // so the environmental data truly entered the risk evaluation.
+      
+      
       expect(measurement('temperature2mMax24h').referenceValue, isNotNull);
       expect(
         measurement('temperature2mMax24h').historicalPercentile,
@@ -486,7 +486,7 @@ void main() {
       );
       expect(indicators, contains('jamais comme un zéro'));
 
-      // The missing series is never turned into a zero measurement.
+      
       expect(
         result.evidence.measurements.where(
           (item) =>
@@ -495,7 +495,7 @@ void main() {
         isEmpty,
       );
 
-      // The field the provider did return keeps its real value.
+      
       expect(
         result.evidence.measurements
             .firstWhere((item) => item.name == 'temperature2mMax24h')

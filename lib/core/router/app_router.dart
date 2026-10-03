@@ -19,16 +19,16 @@ import '../../features/map/presentation/map_screen.dart';
 import '../../features/observations/presentation/observations_screen.dart';
 import '../../features/risk/presentation/risk_details_screen.dart';
 
-/// Pure redirect decision used by [appRouterProvider].
-///
-/// Kept free of FirebaseAuth / Riverpod dependencies so the authorization
-/// matrix can be unit tested.
-///
-/// Rules:
-/// - Guest users → `/login`
-/// - Signed-in users with unverified email → `/verify-email`
-/// - Active admins → `/admin/dashboard` for non-admin routes
-/// - Ordinary users are blocked from `/admin/*`
+
+
+
+
+
+
+
+
+
+
 String? appRouteRedirect({
   required String location,
   required bool isAuthenticated,

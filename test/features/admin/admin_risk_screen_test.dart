@@ -80,18 +80,18 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // The stored result of the selected zone is shown...
+      
       expect(find.text('CRITIQUE'), findsWidgets);
       expect(find.text('64'), findsWidgets);
       expect(find.textContaining('Mis à jour'), findsWidgets);
 
-      // ...with its evidence and measurements from the same document.
+      
       expect(find.text('Éléments de preuve'), findsOneWidget);
       expect(find.textContaining('observations reçues'), findsOneWidget);
       expect(find.text('Mesures clés'), findsOneWidget);
       expect(find.textContaining('Source : Open-Meteo'), findsWidgets);
 
-      // A fresh stored result is reused: no recalculation ran.
+      
       expect(generatorCalls, 0);
     },
   );
@@ -138,20 +138,20 @@ void main() {
       await tester.tap(recalculate);
       await tester.pumpAndSettle();
 
-      // Exactly one recalculation ran and the new result was persisted.
+      
       expect(generatorCalls, 1);
       expect(repository.stored, isNotNull);
       expect(repository.stored!.riskScore, 81);
 
-      // The updated result replaced the old one on the admin screen.
+      
       expect(find.text('81'), findsWidgets);
 
-      // Flush the confirmation SnackBar timer.
+      
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
 
-      // The citizen Risk Details screen reads the admin-updated result from
-      // the same source of truth.
+      
+      
       await tester.pumpWidget(
         buildCitizenHost(
           repository: repository,
@@ -169,8 +169,8 @@ void main() {
       expect(find.text('81/100'), findsOneWidget);
       expect(find.text('CRITIQUE'), findsOneWidget);
 
-      // The citizen screen only read the stored result; it did not
-      // regenerate it.
+      
+      
       expect(generatorCalls, 1);
       expect(analyst.calls, 1);
     },

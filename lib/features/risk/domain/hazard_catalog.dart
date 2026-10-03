@@ -2,36 +2,36 @@ import 'hazard_definition.dart';
 import 'hazard_series_utils.dart';
 import 'hazard_type.dart';
 
-/// Single source of truth for the hazard models of the application.
-///
-/// Every entry declares the environmental variables the hazard is assessed
-/// with, the provider field each variable is read from, the trailing window
-/// it is derived over, its unit and its weight, plus what the model cannot
-/// assess with the data available today. The data sources build their
-/// requests from this catalog, so a variable can never be scored without a
-/// declared, verifiable source.
-///
-/// Weighting rule: the weights are fixed per hazard by the variable's role in
-/// the process (the driver of the hazard, a contributing factor, an
-/// aggravating factor). They are never adjusted to accommodate a variable
-/// that happens to be available.
+
+
+
+
+
+
+
+
+
+
+
+
+
 class HazardCatalog {
   const HazardCatalog._();
 
-  /// Hazards assessed by the generic engine of this file.
-  ///
-  /// Only the hazards the application currently supports are listed: the
-  /// flooding pipeline keeps its dedicated implementation (see
-  /// [usesLegacyPipeline]) and every other supported hazard is driven by this
-  /// catalog.
+  
+  
+  
+  
+  
+  
   static const List<HazardType> genericHazards =
       <HazardType>[
     HazardType.landslide,
     HazardType.heat,
   ];
 
-  /// The flooding assessment keeps its dedicated pipeline
-  /// (`LiveFloodRiskService` → `FloodRiskCalculator` → `RiskIntelligenceService`).
+  
+  
   static bool usesLegacyPipeline(HazardType hazard) =>
       hazard == HazardType.flooding;
 
@@ -50,12 +50,12 @@ class HazardCatalog {
     }
   }
 
-  /// Inventory of the flooding pipeline.
-  ///
-  /// The variables are listed here so the catalog describes *every* hazard of
-  /// the app, but they are assessed by the legacy flooding calculator (which
-  /// keeps its own weights), so the generic engine is not allowed to score
-  /// them: they are marked informational.
+  
+  
+  
+  
+  
+  
   static const HazardDefinition flooding = HazardDefinition(
     hazard: HazardType.flooding,
     primaryFactorLabel: 'Rainfall',
@@ -111,11 +111,11 @@ class HazardCatalog {
     ],
   );
 
-  /// Landslide hazard.
-  ///
-  /// The model is driven by the two rainfall accumulations that trigger slope
-  /// failures (short intense rainfall and multi-day saturation) and by the
-  /// water content of the topsoil, which is what actually weakens the slope.
+  
+  
+  
+  
+  
   static const HazardDefinition landslide = HazardDefinition(
     hazard: HazardType.landslide,
     primaryFactorLabel: 'Rainfall (24 h)',
@@ -168,13 +168,13 @@ class HazardCatalog {
     ],
   );
 
-  /// Heat hazard.
-  ///
-  /// Humid tropical heat is not described by the dry-bulb temperature alone,
-  /// so the model combines the daytime maximum of the air temperature, the
-  /// daytime maximum of the apparent temperature (which includes humidity)
-  /// and the night-time minimum, because a night that does not cool down is
-  /// what makes consecutive hot days dangerous.
+  
+  
+  
+  
+  
+  
+  
   static const HazardDefinition heat = HazardDefinition(
     hazard: HazardType.heat,
     primaryFactorLabel: 'Heat',

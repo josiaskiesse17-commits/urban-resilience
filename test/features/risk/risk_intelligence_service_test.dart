@@ -87,8 +87,8 @@ void main() {
           measurement.name == 'historicalExposure',
     );
 
-    // Citizen observations are a moderation feature, never a measurement of
-    // this risk: the evidence no longer carries an observation "risk" value.
+    
+    
     expect(
       result.evidence.measurements.map((measurement) => measurement.name),
       isNot(contains('citizenObservationRisk')),

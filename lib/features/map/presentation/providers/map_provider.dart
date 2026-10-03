@@ -41,14 +41,14 @@ class MapState {
   }
 }
 
-/// Location state of the map: where the user is, what the view is centred on
-/// and whether permission was granted.
-///
-/// The markers shown on the map do not come from this controller: they are
-/// the configured application zones coloured from the stored risk results
-/// (`zoneActiveRisksProvider`), so no risk logic lives here.
+
+
+
+
+
+
 class MapLocationController extends Notifier<MapState> {
-  // Kinshasa city centre, matching the configured zone catalog.
+  
   static const LatLng defaultLocation = LatLng(
     -4.3276,
     15.3142,

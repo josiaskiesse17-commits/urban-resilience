@@ -14,8 +14,8 @@ import 'package:urban_resilience/features/risk/presentation/providers/risk_live_
 import '../risk/risk_result_test_support.dart';
 import '../risk/risk_test_fakes.dart';
 
-/// Location controller that keeps the map tests off the Geolocator platform
-/// channels while behaving like the real one.
+
+
 class _FakeLocationController extends MapLocationController {
   @override
   MapState build() => const MapState(
@@ -60,7 +60,7 @@ Widget buildMarkerHost({
   );
 }
 
-/// Colour of the circular point of a marker.
+
 Color? _dotColor(WidgetTester tester) {
   for (final container in tester.widgetList<Container>(
     find.byType(Container),

@@ -5,7 +5,7 @@ import 'package:latlong2/latlong.dart';
 import '../providers/map_provider.dart';
 
 class MapSearchBar extends ConsumerStatefulWidget {
-  /// Called with the location that matched the query.
+  
   final Future<void> Function(LatLng location) onLocationSelected;
 
   const MapSearchBar({

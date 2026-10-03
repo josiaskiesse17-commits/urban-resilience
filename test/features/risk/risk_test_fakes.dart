@@ -5,9 +5,9 @@ import 'package:urban_resilience/features/risk/domain/risk_exposure_repository.d
 import 'package:urban_resilience/features/risk/domain/risk_result.dart';
 import 'package:urban_resilience/features/risk/domain/risk_result_repository.dart';
 
-/// In-memory [RiskResultRepository] shared by the citizen, home and admin
-/// widget tests. One instance represents the single `risk_results` source of
-/// truth all screens read and write.
+
+
+
 class FakeRiskResultRepository implements RiskResultRepository {
   RiskResult? stored;
   int getCalls = 0;
@@ -30,16 +30,16 @@ class FakeRiskResultRepository implements RiskResultRepository {
   }
 }
 
-/// In-memory `risk_results` collection with one document per risk id, used by
-/// the map / Zone Active Risks flow tests. It can also fail explicit reads so
-/// the error states of those surfaces are covered.
+
+
+
 class StoredByHazardRepository implements RiskResultRepository {
   StoredByHazardRepository([Map<String, RiskResult>? initial])
       : stored = <String, RiskResult>{...?initial};
 
   final Map<String, RiskResult> stored;
 
-  /// When set, every read throws it instead of returning a document.
+  
   Object? failure;
 
   int getCalls = 0;
@@ -68,8 +68,8 @@ class StoredByHazardRepository implements RiskResultRepository {
   }
 }
 
-/// In-memory exposure repository. A null [profile] represents a zone whose
-/// `risk_zones/{zoneId}` document does not exist yet.
+
+
 class FakeRiskExposureRepository implements RiskExposureRepository {
   FloodRiskExposureProfile? profile;
 
@@ -84,8 +84,8 @@ class FakeRiskExposureRepository implements RiskExposureRepository {
   }
 }
 
-/// Counting [RiskAnalyst] whose success/failure can be flipped mid-test to
-/// verify the run-once lifecycle and the explicit Retry button.
+
+
 class FakeRiskAnalyst implements RiskAnalyst {
   int calls = 0;
   Object? failure;

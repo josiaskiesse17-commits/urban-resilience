@@ -62,7 +62,7 @@ void main() {
       );
       expect(live.series['temperature_2m']!.unit, '°C');
 
-      // The trailing null is dropped without shifting the series.
+      
       expect(
         live.series['temperature_2m']!.sampleCount,
         2,

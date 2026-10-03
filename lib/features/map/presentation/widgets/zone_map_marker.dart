@@ -6,13 +6,13 @@ import '../../../risk/domain/zone_active_risk.dart';
 import '../../../risk/presentation/hazard_presentation.dart';
 import '../../../risk/presentation/providers/risk_live_providers.dart';
 
-/// Simple coloured point marker for one configured application zone.
-///
-/// The colour is the highest currently identified risk level of the zone,
-/// read from the stored risk results through [zoneActiveRisksProvider]. The
-/// marker performs no calculation itself: while risks are loading, missing or
-/// could not be loaded it stays neutral. Hazard icons deliberately do not
-/// appear on the map; they belong to the Active Risks selection UI.
+
+
+
+
+
+
+
 class ZoneMapMarker extends ConsumerWidget {
   const ZoneMapMarker({
     super.key,

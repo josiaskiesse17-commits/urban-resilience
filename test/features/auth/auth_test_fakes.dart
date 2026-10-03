@@ -4,9 +4,9 @@ import 'package:urban_resilience/features/auth/data/auth_remote_data_source.dart
 import 'package:urban_resilience/features/auth/domain/app_user.dart';
 import 'package:urban_resilience/features/auth/domain/auth_repository.dart';
 
-/// Fake [User] that records the calls made by the auth flow and can simulate
-/// Firebase failures (for example the `too-many-requests` throttling that
-/// Firebase returns when a verification email is requested twice in a row).
+
+
+
 class FakeUser implements User {
   FakeUser({
     this.uid = 'test-uid',
@@ -28,10 +28,10 @@ class FakeUser implements User {
   @override
   final bool emailVerified;
 
-  /// When set, [sendEmailVerification] throws it after recording the call.
+  
   final Object? sendEmailVerificationError;
 
-  /// Ordered log of the user operations invoked by the code under test.
+  
   final List<String> calls = [];
 
   int get sendEmailVerificationCalls =>
@@ -64,7 +64,7 @@ class FakeUser implements User {
       super.noSuchMethod(invocation);
 }
 
-/// Fake [UserCredential] exposing only the `user` the repository reads.
+
 class FakeUserCredential implements UserCredential {
   FakeUserCredential(this.user);
 
@@ -76,7 +76,7 @@ class FakeUserCredential implements UserCredential {
       super.noSuchMethod(invocation);
 }
 
-/// Fake [FirebaseAuth] exposing only `currentUser`.
+
 class FakeFirebaseAuth implements FirebaseAuth {
   FakeFirebaseAuth({this.currentUser});
 
@@ -88,16 +88,16 @@ class FakeFirebaseAuth implements FirebaseAuth {
       super.noSuchMethod(invocation);
 }
 
-/// Fake [AuthRemoteDataSource] that returns a scripted signup result.
+
 class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
   FakeAuthRemoteDataSource({this.currentUser, this.createdUser});
 
-  /// Mirrors `FirebaseAuth.currentUser` after signup.
+  
   @override
   final User? currentUser;
 
-  /// Returned as `credential.user` from [register]; `null` simulates a
-  /// signup that produced no user.
+  
+  
   final User? createdUser;
 
   Object? registerError;
@@ -126,7 +126,7 @@ class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
       super.noSuchMethod(invocation);
 }
 
-/// Fake [AuthRepository] used to verify how [AuthNotifier] surfaces results.
+
 class FakeAuthRepository implements AuthRepository {
   FakeAuthRepository({
     this.currentUser,

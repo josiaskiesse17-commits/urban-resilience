@@ -5,19 +5,19 @@ enum AlertSeverity {
   critical,
 }
 
-/// One alert published manually by an admin for a zone + hazard context.
-///
-/// There is no automatic alert generation: an alert exists because an admin
-/// created and published it.
+
+
+
+
 class RiskAlert {
   final String id;
   final String title;
   final String message;
 
-  /// Configured zone the alert targets (`zone-masina`).
+  
   final String zoneId;
 
-  /// Stored hazard label of the target (`Flooding`, `Heat`, `Landslide`).
+  
   final String hazardType;
 
   final AlertSeverity severity;
@@ -25,10 +25,10 @@ class RiskAlert {
   final double longitude;
   final DateTime createdAt;
 
-  /// Optional expiry: an expired alert stops being shown to users.
+  
   final DateTime? expiresAt;
 
-  /// Whether the alert is currently published to users.
+  
   final bool active;
 
   const RiskAlert({
