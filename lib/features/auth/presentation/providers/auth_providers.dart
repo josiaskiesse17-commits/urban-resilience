@@ -160,6 +160,23 @@ class AuthNotifier extends AsyncNotifier<AppUser?> {
     _refreshAuthState();
   }
 
+  Future<void> changePasswordWithReauthentication({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() async {
+      await _repository.reauthenticate(password: currentPassword);
+
+      await _repository.changePassword(newPassword: newPassword);
+
+      return _repository.currentUser;
+    });
+
+    _refreshAuthState();
+  }
+
   Future<void> changeDisplayName({required String displayName}) async {
     state = const AsyncLoading();
 
@@ -190,18 +207,24 @@ class AuthNotifier extends AsyncNotifier<AppUser?> {
 
       return _repository.currentUser;
     });
-
-    _refreshAuthState();
   }
 
   Future<void> refreshUser() async {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
+      final user = ref.read(firebaseAuthProvider).currentUser;
+
+      if (user == null) {
+        return null;
+      }
+
+      await user.reload();
+
+      ref.invalidate(authStateChangesProvider);
+
       return _repository.currentUser;
     });
-
-    _refreshAuthState();
   }
 
   Future<void> deleteAccount() async {

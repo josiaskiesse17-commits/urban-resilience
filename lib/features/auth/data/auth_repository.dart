@@ -52,7 +52,7 @@ class FirebaseAuthRepository implements AuthRepository {
     if (user == null) {
       throw FirebaseAuthException(
         code: 'registration-failed',
-        message: 'Unable to create the user account.',
+        message: 'Impossible de créer le compte.',
       );
     }
 
@@ -77,7 +77,7 @@ class FirebaseAuthRepository implements AuthRepository {
     if (user == null) {
       throw FirebaseAuthException(
         code: 'login-failed',
-        message: 'Unable to sign in.',
+        message: 'Impossible de se connecter.',
       );
     }
 

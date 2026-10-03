@@ -39,16 +39,13 @@ class AuthRemoteDataSource {
 
   Future<void> changePassword({required String newPassword}) async {
     final user = _requireCurrentUser();
-
     await user.updatePassword(newPassword);
-    await user.reload();
   }
 
   Future<void> changeDisplayName({required String displayName}) async {
     final user = _requireCurrentUser();
 
     await user.updateDisplayName(displayName);
-    await user.reload();
   }
 
   Future<void> sendEmailVerification() async {
@@ -63,13 +60,12 @@ class AuthRemoteDataSource {
 
   Future<void> reauthenticate({required String password}) async {
     final user = _requireCurrentUser();
-
     final email = user.email;
 
     if (email == null || email.isEmpty) {
       throw FirebaseAuthException(
         code: 'missing-email',
-        message: 'No email address is associated with this account.',
+        message: 'Aucune adresse e-mail n’est associée à ce compte.',
       );
     }
 
@@ -99,7 +95,7 @@ class AuthRemoteDataSource {
     if (user == null) {
       throw FirebaseAuthException(
         code: 'user-not-found',
-        message: 'No authenticated user found.',
+        message: 'Aucun utilisateur authentifié.',
       );
     }
 
