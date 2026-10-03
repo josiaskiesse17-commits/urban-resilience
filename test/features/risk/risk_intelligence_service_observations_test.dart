@@ -120,15 +120,15 @@ void main() {
             measurement.name == 'historicalExposure',
       );
 
-      final observationRisk =
-          result.evidence.measurements.firstWhere(
-        (measurement) =>
-            measurement.name == 'citizenObservationRisk',
-      );
-
       expect(vulnerability.value, 71.5);
       expect(historicalExposure.value, 75);
-      expect(observationRisk.value, greaterThan(0));
+
+      // Citizen observations are not a risk measurement: they never appear
+      // as an observation "risk" value in the evidence.
+      expect(
+        result.evidence.measurements.map((measurement) => measurement.name),
+        isNot(contains('citizenObservationRisk')),
+      );
 
       expect(result.evidence.observationCount, 2);
       expect(
@@ -167,10 +167,11 @@ void main() {
         observations: observations,
       );
 
-      final observationRisk =
-          result.evidence.measurements.firstWhere(
-        (measurement) =>
-            measurement.name == 'citizenObservationRisk',
+      // Pending observations are counted in the evidence, but they never
+      // carry an observation "risk" value.
+      expect(
+        result.evidence.measurements.map((measurement) => measurement.name),
+        isNot(contains('citizenObservationRisk')),
       );
 
       expect(result.evidence.observationCount, 1);
@@ -178,7 +179,6 @@ void main() {
         result.evidence.confirmedObservationCount,
         0,
       );
-      expect(observationRisk.value, 0);
     },
   );
 }

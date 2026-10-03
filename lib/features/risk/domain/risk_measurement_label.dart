@@ -20,36 +20,36 @@ class RiskMeasurementLabel {
 
   /// Base wording of the identifiers the application stores.
   static const Map<String, String> _known = <String, String>{
-    'rainfall': 'Rainfall',
-    'rainfallIntensity': 'Rainfall intensity',
-    'rainfallAccumulation': 'Rainfall accumulation',
-    'rainfallAccumulation6h': 'Rainfall accumulation',
-    'rainfallAccumulation24h': 'Rainfall accumulation',
-    'rainfallAccumulation72h': 'Rainfall accumulation',
-    'soilMoisture': 'Soil moisture',
-    'soilMoisture0to7cm': 'Topsoil water content (0-7 cm)',
-    'temperature2mMax24h': 'Maximum air temperature',
-    'temperature2mMin24h': 'Night-time minimum temperature',
-    'apparentTemperatureMax24h': 'Maximum apparent temperature',
-    'riverDischarge': 'River discharge',
-    'riverDischargeM3s': 'River discharge',
-    'geographicVulnerability': 'Geographic vulnerability',
-    'historicalExposure': 'Historical exposure',
-    'citizenObservationRisk': 'Citizen observation risk',
+    'rainfall': 'Pluie',
+    'rainfallIntensity': 'Intensité de la pluie',
+    'rainfallAccumulation': 'Cumul de pluie',
+    'rainfallAccumulation6h': 'Cumul de pluie',
+    'rainfallAccumulation24h': 'Cumul de pluie',
+    'rainfallAccumulation72h': 'Cumul de pluie',
+    'soilMoisture': 'Humidité du sol',
+    'soilMoisture0to7cm': 'Contenu en eau de la couche 0-7 cm',
+    'temperature2mMax24h': 'Température maximale de l’air',
+    'temperature2mMin24h': 'Température minimale nocturne',
+    'apparentTemperatureMax24h': 'Température ressentie maximale',
+    'riverDischarge': 'Débit fluvial',
+    'riverDischargeM3s': 'Débit fluvial',
+    'geographicVulnerability': 'Vulnérabilité géographique',
+    'historicalExposure': 'Exposition historique',
+    'citizenObservationRisk': 'Risque lié aux observations citoyennes',
   };
 
   /// Unit spellings for the identifiers that embed one.
   static const Map<String, String> _unitsInName = <String, String>{
-    'MmPerHour': 'mm/hour',
-    'PerHour': '/hour',
-    'MmPerDay': 'mm/day',
+    'MmPerHour': 'mm/h',
+    'PerHour': '/heure',
+    'MmPerDay': 'mm/jour',
     'M3s': 'm\u00b3/s',
     'M3S': 'm\u00b3/s',
     'Kpa': 'kPa',
     'JPerKg': 'J/kg',
     'Kmh': 'km/h',
     'Mm': 'mm',
-    'Celsius': '\u00b0C',
+    'Celsius': '°C',
     'Percent': '%',
   };
 
@@ -130,11 +130,13 @@ class RiskMeasurementLabel {
   /// Wording of a trailing window token (`6h`, `30d`).
   static String? _windowPhrase(int amount, String unit) {
     if (unit == 'h') {
-      return amount == 1 ? 'last hour' : '$amount hours';
+      return amount == 1
+          ? 'dernière heure'
+          : 'dernières $amount heures';
     }
 
     if (unit == 'd') {
-      return amount == 1 ? 'last day' : '$amount days';
+      return amount == 1 ? 'dernier jour' : 'derniers $amount jours';
     }
 
     return null;
@@ -152,7 +154,7 @@ class RiskMeasurementLabel {
     }
 
     if (measurementPeriod == 'daily') {
-      return 'daily mean';
+      return 'moyenne journalière';
     }
 
     final match = _windowPattern.firstMatch(measurementPeriod);

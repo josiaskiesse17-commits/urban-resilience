@@ -58,18 +58,17 @@ class HazardRiskAssessment {
 /// Generic hazard engine.
 ///
 /// It reuses the shared risk formula of the flooding calculator
-/// (`hazard 0.40`, `vulnerability 0.25`, `historical exposure 0.15`,
-/// `observations 0.20`) but averages only the factors that are actually
-/// available: a factor that could not be measured is excluded instead of
-/// entering the score as a fabricated zero, and its weight is redistributed
-/// over the remaining factors.
+/// (`hazard 0.40`, `vulnerability 0.25`, `historical exposure 0.15` —
+/// citizen observations are not a risk factor) but averages only the factors
+/// that are actually available: a factor that could not be measured is
+/// excluded instead of entering the score as a fabricated zero, and its
+/// weight is redistributed over the remaining factors.
 class HazardRiskCalculator {
   const HazardRiskCalculator();
 
   static const double hazardWeight = 0.40;
   static const double vulnerabilityWeight = 0.25;
   static const double historicalExposureWeight = 0.15;
-  static const double observationWeight = 0.20;
 
   HazardRiskAssessment calculate(HazardRiskInput input) {
     final variableScores = <HazardVariableScore>[];
@@ -205,23 +204,6 @@ class HazardRiskCalculator {
           historicalExposureWeight;
     }
 
-    // Observations stay disconnected in this release: the factor is only
-    // applied once a real observation score exists, so an always-empty
-    // factor cannot deflate every hazard.
-    final observationsConnected =
-        input.observationCount > 0 || input.observationScore > 0;
-
-    if (observationsConnected) {
-      overallComponents.add(
-        (
-          value: RiskScoreUtils.clamp(input.observationScore),
-          weight: observationWeight,
-        ),
-      );
-
-      factorWeights['observations'] = observationWeight;
-    }
-
     final overallScore =
         RiskScoreUtils.weightedAverage(overallComponents);
 
@@ -251,7 +233,7 @@ class HazardRiskCalculator {
       ...variableEntries,
       RiskFactorScore(
         name: 'geographicVulnerability',
-        label: 'Geographic vulnerability',
+        label: RiskMeasurementLabel.of(name: 'geographicVulnerability'),
         score: vulnerability,
         weight: vulnerability == null ? 0 : vulnerabilityWeight,
         usedInScore: vulnerability != null,
@@ -262,7 +244,7 @@ class HazardRiskCalculator {
       ),
       RiskFactorScore(
         name: 'historicalExposure',
-        label: 'Historical exposure',
+        label: RiskMeasurementLabel.of(name: 'historicalExposure'),
         score: historicalExposure,
         weight: historicalExposure == null
             ? 0
@@ -273,17 +255,6 @@ class HazardRiskCalculator {
                 '${input.hazard.label.toLowerCase()}, and the flood exposure '
                 'of the same zone is not a measurement of this hazard'
             : null,
-      ),
-      RiskFactorScore(
-        name: 'citizenObservationRisk',
-        label: 'Citizen observations',
-        score: observationsConnected ? input.observationScore : null,
-        weight: observationsConnected ? observationWeight : 0,
-        usedInScore: observationsConnected,
-        unavailableReason: observationsConnected
-            ? null
-            : 'citizen observations are not connected in this release, so '
-                'this factor is excluded instead of being counted as zero',
       ),
     ];
 
@@ -296,8 +267,7 @@ class HazardRiskCalculator {
         rainfall: hazardScore,
         geographicVulnerability: vulnerability ?? 0,
         historicalExposure: historicalExposure ?? 0,
-        currentObservations:
-            observationsConnected ? input.observationScore : 0,
+        currentObservations: 0,
         primaryFactorLabel: input.primaryFactorLabel,
         entries: entries,
       ),

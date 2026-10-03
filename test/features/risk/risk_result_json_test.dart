@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:urban_resilience/features/risk/domain/risk_analysis.dart';
 import 'package:urban_resilience/features/risk/domain/risk_intelligence_service.dart';
 import 'package:urban_resilience/features/risk/domain/flood_risk_input.dart';
 import 'package:urban_resilience/features/risk/domain/risk_result.dart';
@@ -39,7 +40,20 @@ void main() {
       );
 
       final restored = RiskResult.fromJson(
-        result.toJson(),
+        result
+            .withAnalysis(
+              RiskAnalysis(
+                riskId: result.id,
+                summary: 'Résumé IA',
+                explanation: 'Explication IA',
+                mainFactors: const <String>['Pluie'],
+                recommendations: const <String>[
+                  'Éviter les routes inondées',
+                ],
+                generatedAt: DateTime.utc(2026, 1, 5, 6),
+              ),
+            )
+            .toStoredJson(),
       );
 
       expect(restored.id, result.id);
@@ -122,6 +136,17 @@ void main() {
       expect(
         restoredRiver.source,
         originalRiver.source,
+      );
+
+      // The stored AI interpretation survives the round trip: a later visit
+      // can disclose it without another AI request.
+      expect(restored.analysis, isNotNull);
+      expect(restored.analysis!.summary, 'Résumé IA');
+      expect(restored.analysis!.explanation, 'Explication IA');
+      expect(restored.analysis!.mainFactors, <String>['Pluie']);
+      expect(
+        restored.analysis!.recommendations,
+        <String>['Éviter les routes inondées'],
       );
     },
   );

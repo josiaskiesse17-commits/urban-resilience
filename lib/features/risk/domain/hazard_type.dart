@@ -16,23 +16,31 @@ enum HazardType {
   flooding(
     id: 'flooding',
     label: 'Flooding',
+    labelFr: 'Inondation',
     riskNoun: 'flood risk',
+    riskNounFr: 'risque d’inondation',
   ),
   landslide(
     id: 'landslide',
     label: 'Landslide',
+    labelFr: 'Glissement de terrain',
     riskNoun: 'landslide risk',
+    riskNounFr: 'risque de glissement de terrain',
   ),
   heat(
     id: 'heat',
     label: 'Heat',
+    labelFr: 'Chaleur',
     riskNoun: 'heat risk',
+    riskNounFr: 'risque de chaleur',
   );
 
   const HazardType({
     required this.id,
     required this.label,
+    required this.labelFr,
     required this.riskNoun,
+    required this.riskNounFr,
   });
 
   /// Stable identifier used in risk ids (`zone-masina--heat`).
@@ -41,8 +49,15 @@ enum HazardType {
   /// Human readable name stored in `RiskResult.hazardType`.
   final String label;
 
+  /// French wording shown to the user. Only [label] is ever persisted, so
+  /// stored documents stay stable while the interface stays French.
+  final String labelFr;
+
   /// Short noun used by the screens (`Flood risk`, `Heat risk`).
   final String riskNoun;
+
+  /// French noun used by the screens.
+  final String riskNounFr;
 
   /// Hazard assumed for ids that carry no hazard suffix.
   ///

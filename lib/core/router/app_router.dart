@@ -139,7 +139,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/alerts',
-        builder: (context, state) => const AlertsScreen(),
+        builder: (context, state) => AlertsScreen(
+          zoneId: state.uri.queryParameters['zone'],
+          hazardType: state.uri.queryParameters['hazard'],
+        ),
       ),
       GoRoute(
         path: '/observations',

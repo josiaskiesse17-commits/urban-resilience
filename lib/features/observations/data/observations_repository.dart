@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 import '../domain/observation.dart';
 
@@ -31,6 +32,13 @@ class ObservationsRepository {
         .map(_mapSnapshots);
   }
 
+  Stream<List<Observation>> watchMine(String userId) {
+    return _collection
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .map(_mapSnapshots);
+  }
+
   Future<void> create({
     required String zoneId,
     required String hazardType,
@@ -40,9 +48,13 @@ class ObservationsRepository {
     required String description,
   }) async {
     final user = _auth.currentUser;
-    if (user == null) throw StateError('Utilisateur non connecté');
+
+    if (user == null) {
+      throw StateError('Utilisateur non connecté');
+    }
 
     final reference = _collection.doc();
+
     final observation = Observation(
       id: reference.id,
       userId: user.uid,
@@ -51,27 +63,52 @@ class ObservationsRepository {
       latitude: latitude,
       longitude: longitude,
       type: type,
-      description: description,
+      description: description.trim(),
       createdAt: DateTime.now().toUtc(),
     );
+
     await reference.set(observation.toJson());
   }
 
-  Future<void> setStatus(String id, ObservationStatus status) {
-    return _collection.doc(id).update({'status': status.name});
+  Future<void> approve({required String id, required String reviewerId}) {
+    return _collection.doc(id).update({
+      'status': ObservationStatus.confirmed.name,
+      'reviewedAt': DateTime.now().toUtc().toIso8601String(),
+      'reviewedBy': reviewerId,
+    });
+  }
+
+  Future<void> delete({required String id}) {
+    return _collection.doc(id).delete();
   }
 
   List<Observation> _mapSnapshots(
     QuerySnapshot<Map<String, dynamic>> snapshot,
   ) {
-    final observations = snapshot.docs.map((document) {
-      final data = document.data();
+    final observations = <Observation>[];
+
+    for (final document in snapshot.docs) {
+      final data = Map<String, dynamic>.from(document.data());
+
+      data['id'] ??= document.id;
+
       final createdAt = data['createdAt'];
       if (createdAt is Timestamp) {
         data['createdAt'] = createdAt.toDate().toIso8601String();
       }
-      return Observation.fromJson(data);
-    }).toList();
+
+      final reviewedAt = data['reviewedAt'];
+      if (reviewedAt is Timestamp) {
+        data['reviewedAt'] = reviewedAt.toDate().toIso8601String();
+      }
+
+      try {
+        observations.add(Observation.fromJson(data));
+      } catch (error, stackTrace) {
+        debugPrint('Observation invalide ignorée [${document.id}]: $error');
+        debugPrintStack(stackTrace: stackTrace);
+      }
+    }
 
     observations.sort(
       (left, right) => right.createdAt.compareTo(left.createdAt),

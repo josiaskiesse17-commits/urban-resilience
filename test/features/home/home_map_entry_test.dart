@@ -67,9 +67,9 @@ void main() {
 
       // The zone catalog is no longer part of the entry point.
       expect(find.text('Masina'), findsNothing);
-      expect(find.text('Open the map'), findsOneWidget);
+      expect(find.text('Ouvrir la carte'), findsOneWidget);
 
-      await tester.tap(find.text('Open the map'));
+      await tester.tap(find.text('Ouvrir la carte'));
       await tester.pumpAndSettle();
 
       // The map is the single place where a zone is chosen.

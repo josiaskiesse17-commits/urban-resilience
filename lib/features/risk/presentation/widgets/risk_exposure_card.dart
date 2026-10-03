@@ -31,14 +31,14 @@ class RiskExposureCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Exposure & Vulnerability',
+              'Profil d’exposition et vulnérabilité',
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 6),
             Text(
-              'Stored profile of risk_zones/$zoneId.',
+              'Profil enregistré de risk_zones/$zoneId.',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -88,7 +88,7 @@ class RiskExposureCard extends ConsumerWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'No exposure profile is stored for this zone.',
+                'Aucun profil d’exposition n’est enregistré pour cette zone.',
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -98,10 +98,10 @@ class RiskExposureCard extends ConsumerWidget {
         ),
         const SizedBox(height: 10),
         Text(
-          'Geographic vulnerability and historical exposure are '
-          'unknown, not zero: the score below does not include them. '
-          'An administrator has to add the exposure profile of '
-          'risk_zones/$zoneId before the assessment is complete.',
+          'La vulnérabilité géographique et l’exposition historique sont '
+          'inconnues, et non nulles : le score ci-dessous ne les inclut '
+          'pas. Un administrateur doit ajouter le profil d’exposition de '
+          'risk_zones/$zoneId pour que l’évaluation soit complète.',
           style: theme.textTheme.bodyMedium,
         ),
         if (error != null) ...[
@@ -129,23 +129,23 @@ class RiskExposureCard extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _ExposureBar(
-          label: 'Population exposure',
+          label: 'Exposition de la population',
           value: profile.populationExposureScore,
         ),
         _ExposureBar(
-          label: 'Infrastructure exposure',
+          label: 'Exposition des infrastructures',
           value: profile.infrastructureExposureScore,
         ),
         _ExposureBar(
-          label: 'Drainage vulnerability',
+          label: 'Vulnérabilité du drainage',
           value: profile.drainageVulnerabilityScore,
         ),
         _ExposureBar(
-          label: 'Critical facility exposure',
+          label: 'Exposition des équipements critiques',
           value: profile.criticalFacilityExposureScore,
         ),
         _ExposureBar(
-          label: 'Historical flood exposure',
+          label: 'Exposition historique aux inondations',
           value: profile.historicalFloodExposureScore,
         ),
         const SizedBox(height: 2),
@@ -153,7 +153,7 @@ class RiskExposureCard extends ConsumerWidget {
           children: [
             Expanded(
               child: Text(
-                'Vulnerability score',
+                'Score de vulnérabilité',
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -169,14 +169,14 @@ class RiskExposureCard extends ConsumerWidget {
         ),
         const SizedBox(height: 10),
         Text(
-          'Source: ${source ?? 'not provided'}',
+          'Source : ${source ?? 'non renseignée'}',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
         Text(
-          'Updated: '
-          '${updatedAt == null ? 'unknown' : _formatDateTime(updatedAt)}',
+          'Mis à jour : '
+          '${updatedAt == null ? 'inconnu' : _formatDateTime(updatedAt)}',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),

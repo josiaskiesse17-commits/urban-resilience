@@ -86,17 +86,22 @@ void main() {
 
     final indicators = evidence.qualitativeIndicators.join('\n');
 
-    expect(indicators, contains('Statistical reference:'));
+    expect(indicators, contains('Référence statistique :'));
     expect(indicators, contains('2018-01-01 – 2022-07-31'));
     expect(indicators, contains('(ERA5)'));
-    expect(indicators, contains('not official safety thresholds'));
-    expect(indicators, contains('same calendar month'));
-    expect(indicators, contains('Not measured: Maximum apparent temperature'));
-    expect(indicators, contains('not as zero'));
+    expect(indicators, contains('pas des seuils de sécurité officiels'));
+    expect(indicators, contains('même mois calendaire'));
+    expect(
+      indicators,
+      contains('Non mesuré : Maximum apparent temperature'),
+    );
+    expect(indicators, contains('jamais comme un zéro'));
     expect(indicators, contains('provider note'));
-    expect(indicators, contains('Model limitation: No official heat-health'));
-    expect(indicators, contains('Overall score weights applied'));
-    expect(indicators, contains('not connected in this release'));
+    expect(
+      indicators,
+      contains('Limite du modèle : No official heat-health'),
+    );
+    expect(indicators, contains('Poids du score appliqués'));
 
     // The evidence timestamp is the observation time of the live value.
     expect(evidence.collectedAt, DateTime.utc(2026, 1, 15, 12));

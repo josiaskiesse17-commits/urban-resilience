@@ -26,8 +26,8 @@ typedef _FloodReference = ({
 
 /// Statistical disclaimer attached to every flooding bound.
 const String _statisticalBoundNote =
-    'Statistical reference of the same location and reference period, '
-    'not an official safety threshold.';
+    'référence statistique du même endroit et de la même période de '
+    'référence, et non un seuil de sécurité officiel.';
 
 class RiskIntelligenceService {
   final FloodRiskCalculator _floodRiskCalculator;
@@ -113,7 +113,7 @@ class RiskIntelligenceService {
           statisticalCriticalLabel:
               rainfallReference.critical == null
                   ? null
-                  : '95th percentile of the same reference period. '
+                  : '95e centile de la même période de référence. '
                       '$_statisticalBoundNote',
           source: rainfallSource,
           observedAt: rainfallTime,
@@ -145,7 +145,7 @@ class RiskIntelligenceService {
           statisticalCriticalLabel:
               accumulationReference.critical == null
                   ? null
-                  : '95th percentile of the same reference period. '
+                  : '95e centile de la même période de référence. '
                       '$_statisticalBoundNote',
           source: rainfallSource,
           observedAt: rainfallTime,
@@ -175,7 +175,7 @@ class RiskIntelligenceService {
           statisticalCriticalLabel:
               riverReference.critical == null
                   ? null
-                  : '95th percentile of the same reference period. '
+                  : '95e centile de la même période de référence. '
                       '$_statisticalBoundNote',
           source: riverSource,
           observedAt: riverTime,
@@ -184,7 +184,7 @@ class RiskIntelligenceService {
           name: 'geographicVulnerability',
           value: input.vulnerabilityScore,
           unit: 'score/100',
-          referenceLabel: 'Geographic vulnerability score',
+          referenceLabel: 'Score de vulnérabilité géographique',
           referenceType: RiskReferenceType.threshold,
           source: 'Risk Intelligence',
           observedAt: timestamp,
@@ -193,48 +193,32 @@ class RiskIntelligenceService {
           name: 'historicalExposure',
           value: input.historicalExposureScore,
           unit: 'score/100',
-          referenceLabel: 'Historical exposure score',
+          referenceLabel: 'Score d’exposition historique',
           referenceType: RiskReferenceType.historicalAverage,
           source: 'Risk Intelligence',
-          observedAt: timestamp,
-        ),
-        RiskMeasurement(
-          name: 'citizenObservationRisk',
-          value: input.observationScore,
-          unit: 'score/100',
-          referenceLabel: 'Recent citizen observation risk',
-          referenceType: RiskReferenceType.threshold,
-          source: 'Citizen Observations',
           observedAt: timestamp,
         ),
       ],
       qualitativeIndicators: [
         if (exposureProfileMissing)
-          'No stored exposure profile was found for this zone. '
-              'Geographic vulnerability and historical exposure could '
-              'not be evaluated and are missing from this score.',
+          'Aucun profil d’exposition enregistré n’a été trouvé pour cette '
+              'zone. La vulnérabilité géographique et l’exposition '
+              'historique n’ont pas pu être évaluées et sont absentes de '
+              'ce score.',
         if (baseline != null)
-          'Statistical reference: '
+          'Référence statistique : '
               '${_formatPeriod(baseline.referencePeriodStart)} – '
               '${_formatPeriod(baseline.referencePeriodEnd)} '
-              '(${baseline.rainfallSampleCount} hourly rainfall samples, '
-              '${baseline.riverDischargeSampleCount} daily river discharge '
-              'samples). The reference values are percentiles of that '
-              'period of the same grid cells; they are not official '
-              'safety thresholds.',
+              '(${baseline.rainfallSampleCount} échantillons horaires de '
+              'pluie, ${baseline.riverDischargeSampleCount} échantillons '
+              'journaliers de débit fluvial). Les valeurs de référence sont '
+              'les centiles de cette période pour les mêmes cellules de '
+              'grille ; ce ne sont pas des seuils de sécurité officiels.',
         if (baseline == null)
-          'The statistical reference of this location was not supplied '
-              'with this assessment, so the reference values come from the '
-              'fallback input only.',
-        if (input.observationCount > 0)
-          '${input.observationCount} citizen observations received.',
-        if (input.confirmedObservationCount > 0)
-          '${input.confirmedObservationCount} citizen observations '
-              'confirmed.',
+          'La référence statistique de cet endroit n’a pas été fournie '
+              'avec cette évaluation : les valeurs de référence proviennent '
+              'uniquement des valeurs de repli.',
         ...dataNotes,
-        'Citizen observations are not connected to this release: the '
-            'observation factor is excluded from the score instead of being '
-            'counted as zero.',
       ],
       observationCount: input.observationCount,
       confirmedObservationCount: input.confirmedObservationCount,
@@ -272,7 +256,7 @@ class RiskIntelligenceService {
       return (
         median: input.rainfallBaselineMmPerHour,
         critical: input.rainfallCriticalMmPerHour,
-        label: 'Local rainfall baseline supplied with the assessment',
+        label: 'Référence pluviométrique locale fournie avec l’évaluation',
         type: RiskReferenceType.localBaseline,
         percentile: null,
       );
@@ -281,8 +265,9 @@ class RiskIntelligenceService {
     return (
       median: distribution.median,
       critical: distribution.percentile(95),
-      label: 'Median of the ${_periodLabel(baseline)} ERA5 hourly rainfall '
-          'reference (${distribution.sampleCount} samples)',
+      label: 'Médiane de la référence pluviométrique horaire ERA5 '
+          '${_periodLabel(baseline)} '
+          '(${distribution.sampleCount} échantillons)',
       type: RiskReferenceType.historicalMedian,
       percentile: distribution.percentileRankOf(
         input.rainfallIntensityMmPerHour,
@@ -300,8 +285,7 @@ class RiskIntelligenceService {
       return (
         median: input.rainfallAccumulation6hBaselineMm,
         critical: input.rainfallAccumulation6hCriticalMm,
-        label: 'Historical 6-hour rainfall baseline supplied with the '
-            'assessment',
+        label: 'Référence pluviométrique 6 h fournie avec l’évaluation',
         type: RiskReferenceType.historicalAverage,
         percentile: null,
       );
@@ -310,8 +294,9 @@ class RiskIntelligenceService {
     return (
       median: distribution.median,
       critical: distribution.percentile(95),
-      label: 'Median of the ${_periodLabel(baseline)} ERA5 6-hour rainfall '
-          'reference (${distribution.sampleCount} samples)',
+      label: 'Médiane de la référence pluviométrique 6 h ERA5 '
+          '${_periodLabel(baseline)} '
+          '(${distribution.sampleCount} échantillons)',
       type: RiskReferenceType.historicalMedian,
       percentile: distribution.percentileRankOf(
         input.rainfallAccumulation6hMm,
@@ -329,7 +314,7 @@ class RiskIntelligenceService {
       return (
         median: input.riverDischargeBaselineM3s,
         critical: input.riverDischargeCriticalM3s,
-        label: 'River discharge baseline supplied with the assessment',
+        label: 'Référence de débit fluvial fournie avec l’évaluation',
         type: RiskReferenceType.historicalMedian,
         percentile: null,
       );
@@ -338,8 +323,9 @@ class RiskIntelligenceService {
     return (
       median: distribution.median,
       critical: distribution.percentile(95),
-      label: 'Median of the ${_periodLabel(baseline)} GloFAS daily river '
-          'discharge reference (${distribution.sampleCount} samples)',
+      label: 'Médiane de la référence de débit journalier GloFAS '
+          '${_periodLabel(baseline)} '
+          '(${distribution.sampleCount} échantillons)',
       type: RiskReferenceType.historicalMedian,
       percentile: distribution.percentileRankOf(
         input.riverDischargeM3s,
@@ -392,8 +378,8 @@ class RiskIntelligenceService {
           value: input.vulnerabilityScore!,
           unit: 'score/100',
           referenceLabel:
-              'Vulnerability of the stored zone profile '
-              '(population, infrastructure, critical facilities)',
+              'Vulnérabilité du profil de zone enregistré '
+              '(population, infrastructures, équipements critiques)',
           referenceType: RiskReferenceType.threshold,
           source: 'Risk Intelligence',
           observedAt: timestamp,
@@ -403,19 +389,9 @@ class RiskIntelligenceService {
           name: 'historicalExposure',
           value: input.historicalExposureScore!,
           unit: 'score/100',
-          referenceLabel: 'Stored historical exposure of this zone',
+          referenceLabel: 'Exposition historique enregistrée de cette zone',
           referenceType: RiskReferenceType.historicalAverage,
           source: 'Risk Intelligence',
-          observedAt: timestamp,
-        ),
-      if (input.observationCount > 0 || input.observationScore > 0)
-        RiskMeasurement(
-          name: 'citizenObservationRisk',
-          value: input.observationScore,
-          unit: 'score/100',
-          referenceLabel: 'Recent citizen observation risk',
-          referenceType: RiskReferenceType.threshold,
-          source: 'Citizen Observations',
           observedAt: timestamp,
         ),
     ];
@@ -426,19 +402,20 @@ class RiskIntelligenceService {
       final source = input.referenceSource;
 
       indicators.add(
-        'Statistical reference: '
+        'Référence statistique : '
         '${_formatPeriod(input.referencePeriodStart!)} – '
         '${_formatPeriod(input.referencePeriodEnd!)}'
         '${source == null ? '' : ' ($source)'}. '
-        'Reference values are percentiles of the same calendar month of '
-        'that period; they are not official safety thresholds.',
+        'Les valeurs de référence sont les centiles du même mois calendaire '
+        'de cette période ; ce ne sont pas des seuils de sécurité officiels.',
       );
     }
 
     if (input.partialReference) {
       indicators.add(
-        'At least one variable had too few samples in the calendar month of '
-        'the observation, so its whole-period statistics were used instead.',
+        'Au moins une variable avait trop peu d’échantillons dans le mois '
+        'calendaire de l’observation : ses statistiques sur toute la '
+        'période ont été utilisées à la place.',
       );
     }
 
@@ -448,8 +425,8 @@ class RiskIntelligenceService {
 
     for (final gap in input.gaps) {
       indicators.add(
-        'Not measured: ${gap.label} — ${gap.reason}. It is reported as '
-        'missing from the hazard score, not as zero.',
+        'Non mesuré : ${gap.label} — ${gap.reason}. Il est signalé comme '
+        'manquant du score, jamais comme un zéro.',
       );
     }
 
@@ -463,34 +440,36 @@ class RiskIntelligenceService {
       }
 
       indicators.add(
-        'Not scored: '
+        'Non pris en compte : '
         '${RiskMeasurementLabel.of(
           name: variable.name,
           measurementPeriod: variable.measurementPeriod,
           unit: variable.unit,
-        )} — its measured value stays in the evidence, but '
+        )} — sa valeur mesurée reste dans les preuves, mais '
         '${variable.informational
-            ? 'no statistical reference exists for it'
-            : 'no usable statistical reference could be built for this '
-                'location'}, so it is excluded from the score instead of '
-        'being counted as zero.',
+            ? 'aucune référence statistique n’existe pour cette variable'
+            : 'aucune référence statistique exploitable n’a pu être '
+                'construite pour cet endroit'}, elle est donc exclue du '
+        'score au lieu d’être comptée comme un zéro.',
       );
     }
 
     if (!assessment.hazardAvailable) {
       indicators.add(
-        'No environmental variable of this hazard could be scored for this '
-        'location, so the hazard factor is unavailable and the assessment '
-        'relies on the available exposure factors only.',
+        'Aucune variable environnementale de ce risque n’a pu être évaluée '
+        'pour cet endroit : le facteur de risque est indisponible et '
+        'l’évaluation repose uniquement sur les facteurs d’exposition '
+        'disponibles.',
       );
     }
 
     if (assessment.excludedWeight > 0) {
       indicators.add(
-        'Variables representing '
-        '${(assessment.excludedWeight * 100).toStringAsFixed(0)}% of the '
-        'hazard weight had no usable reference and were excluded; the '
-        'remaining weights were renormalised over the available variables.',
+        'Des variables représentant '
+        '${(assessment.excludedWeight * 100).toStringAsFixed(0)} % du poids '
+        'du risque n’avaient pas de référence exploitable et ont été '
+        'exclues ; les poids restants ont été renormalisés sur les '
+        'variables disponibles.',
       );
     }
 
@@ -498,25 +477,20 @@ class RiskIntelligenceService {
       final weights = assessment.factorWeights.entries
           .map(
             (entry) =>
-                '${entry.key} ${entry.value.toStringAsFixed(2)}',
+                '${_factorWeightLabel(entry.key)} '
+                '${entry.value.toStringAsFixed(2)}',
           )
           .join(', ');
 
       indicators.add(
-        'Overall score weights applied after renormalisation: $weights.',
+        'Poids du score appliqués après renormalisation : $weights.',
       );
     }
-
-    indicators.add(
-      'Citizen observations are not connected in this release: the '
-      'observation factor is excluded from the score instead of being '
-      'counted as zero.',
-    );
 
     indicators.addAll(input.notes);
 
     for (final limitation in input.limitations) {
-      indicators.add('Model limitation: $limitation');
+      indicators.add('Limite du modèle : $limitation');
     }
 
     return RiskResult(
@@ -543,6 +517,17 @@ class RiskIntelligenceService {
   String _periodLabel(FloodHistoricalBaseline baseline) {
     return '${_formatPeriod(baseline.referencePeriodStart)} – '
         '${_formatPeriod(baseline.referencePeriodEnd)}';
+  }
+
+  /// French wording of the internal factor keys used by the weight
+  /// indicator, so no stored identifier leaks into the interface.
+  String _factorWeightLabel(String key) {
+    return switch (key) {
+      'hazard' => 'risque',
+      'vulnerability' => 'vulnérabilité',
+      'historicalExposure' => 'exposition historique',
+      _ => key,
+    };
   }
 
   String _formatPeriod(DateTime date) {

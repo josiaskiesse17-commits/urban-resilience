@@ -205,7 +205,7 @@ void main() {
         lessThan(topOf(find.text('Simulation « Et si ? »'))),
       );
       expect(
-        topOf(find.text('Analyse IA du risque')),
+        topOf(find.text('AI summary for Masina.')),
         lessThan(topOf(find.text('Simulation « Et si ? »'))),
       );
 

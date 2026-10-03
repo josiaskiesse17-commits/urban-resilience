@@ -141,25 +141,25 @@ void main() {
 
       expect(find.text('Masina'), findsOneWidget);
       expect(
-        find.text('2 active risks identified in this zone.'),
+        find.text('2 risques actifs identifiés dans cette zone.'),
         findsOneWidget,
       );
-      expect(find.text('Active risks'), findsOneWidget);
-      expect(find.text('Other hazards'), findsOneWidget);
+      expect(find.text('Risques actifs'), findsOneWidget);
+      expect(find.text('Autres risques'), findsOneWidget);
 
       // The most severe identified risk is listed first.
       expect(
-        tester.getTopLeft(find.text(HazardType.heat.label)).dy,
+        tester.getTopLeft(find.text(HazardType.heat.labelFr)).dy,
         lessThan(
-          tester.getTopLeft(find.text(HazardType.flooding.label)).dy,
+          tester.getTopLeft(find.text(HazardType.flooding.labelFr)).dy,
         ),
       );
-      expect(find.text('CRITICAL'), findsOneWidget);
-      expect(find.text('HIGH'), findsOneWidget);
+      expect(find.text('CRITIQUE'), findsOneWidget);
+      expect(find.text('ÉLEVÉ'), findsOneWidget);
 
       // The hazards that carry no current risk stay reachable.
-      expect(find.text(HazardType.landslide.label), findsOneWidget);
-      expect(find.text('Not assessed'), findsOneWidget);
+      expect(find.text(HazardType.landslide.labelFr), findsOneWidget);
+      expect(find.text('Non évalué'), findsOneWidget);
     },
   );
 
@@ -181,18 +181,20 @@ void main() {
       );
 
       expect(
-        find.text('No active risk identified in this zone right now.'),
+        find.text(
+          'Aucun risque actif identifié dans cette zone pour le moment.',
+        ),
         findsOneWidget,
       );
-      expect(find.text('Active risks'), findsNothing);
+      expect(find.text('Risques actifs'), findsNothing);
       expect(
-        find.textContaining('nothing is shown as a zero'),
+        find.textContaining('aucune valeur n’est affichée comme un zéro'),
         findsOneWidget,
       );
 
       // The stored zero is not an active risk.
-      expect(find.text('No risk'), findsOneWidget);
-      expect(find.text('Other hazards'), findsOneWidget);
+      expect(find.text('Aucun risque'), findsOneWidget);
+      expect(find.text('Autres risques'), findsOneWidget);
     },
   );
 
@@ -209,18 +211,18 @@ void main() {
       );
 
       expect(
-        find.text('Could not load the stored risks of Masina.'),
+        find.text('Impossible de charger les risques enregistrés de Masina.'),
         findsOneWidget,
       );
       expect(find.textContaining('offline'), findsOneWidget);
 
       repository.failure = null;
 
-      await tester.tap(find.text('Retry'));
+      await tester.tap(find.text('Réessayer'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Other hazards'), findsOneWidget);
-      expect(find.text(HazardType.landslide.label), findsOneWidget);
+      expect(find.text('Autres risques'), findsOneWidget);
+      expect(find.text(HazardType.landslide.labelFr), findsOneWidget);
     },
   );
 
@@ -242,7 +244,7 @@ void main() {
         generated: generated,
       );
 
-      await tester.tap(find.text(HazardType.heat.label));
+      await tester.tap(find.text(HazardType.heat.labelFr));
       await tester.pumpAndSettle();
 
       // The details screen of the heat hazard generated exactly that document.
@@ -254,6 +256,40 @@ void main() {
       expect(repository.stored['zone-masina']!.riskScore, 62);
       expect(repository.stored['zone-masina--heat']!.riskScore, 71);
       expect(find.text('71/100'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'an evaluation persists when the zone is left and reopened',
+    (tester) async {
+      final repository = StoredByHazardRepository();
+      final generated = <String>[];
+
+      await _openSheet(
+        tester,
+        repository: repository,
+        generated: generated,
+      );
+
+      // Nothing is evaluated yet.
+      expect(find.text('Non évalué'), findsNWidgets(3));
+
+      // Evaluate Heat from its Risk Details screen.
+      await tester.tap(find.text(HazardType.heat.labelFr));
+      await tester.pumpAndSettle();
+
+      expect(generated, <String>[HazardType.heat.id]);
+      expect(repository.stored['zone-masina--heat'], isNotNull);
+
+      // Leave the zone (Risk Details was pushed above the sheet).
+      GoRouter.of(tester.element(find.byType(RiskDetailsScreen))).pop();
+      await tester.pumpAndSettle();
+
+      // The stored evaluation is the source of truth: Heat stays evaluated
+      // instead of falling back to "Non évalué".
+      expect(find.text('Non évalué'), findsNWidgets(2));
+      expect(find.text('CRITIQUE'), findsOneWidget);
+      expect(find.textContaining('Score 71/100'), findsOneWidget);
     },
   );
 }

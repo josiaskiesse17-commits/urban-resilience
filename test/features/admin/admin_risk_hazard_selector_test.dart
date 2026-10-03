@@ -112,10 +112,10 @@ void main() {
       );
 
       // The flood scenario simulator belongs to the flooding hazard.
-      expect(find.text('What-If Scenario'), findsOneWidget);
+      expect(find.text('Scénario hypothétique'), findsOneWidget);
 
       await tester.tap(
-        find.text(HazardType.heat.label),
+        find.text(HazardType.heat.labelFr),
       );
       await tester.pumpAndSettle();
 
@@ -149,7 +149,7 @@ void main() {
       );
 
       // The flood-only scenario tool is not offered for another hazard.
-      expect(find.text('What-If Scenario'), findsNothing);
+      expect(find.text('Scénario hypothétique'), findsNothing);
     },
   );
 }

@@ -81,7 +81,7 @@ void main() {
 
       expect(
         result.evidence.measurements.length,
-        6,
+        5,
       );
 
       expect(
@@ -89,12 +89,13 @@ void main() {
         'Fake Weather',
       );
 
+      // Citizen observations are never a measurement of the risk.
       expect(
         result.evidence.measurements.any(
           (measurement) =>
               measurement.name == 'citizenObservationRisk',
         ),
-        isTrue,
+        isFalse,
       );
     },
   );

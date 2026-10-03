@@ -108,7 +108,7 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Live risk updated for ${zone.name}.')),
+        SnackBar(content: Text('Risque actualisé pour ${zone.name}.')),
       );
     } catch (error) {
       if (!mounted) {
@@ -121,7 +121,7 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not update live risk: $error')),
+        SnackBar(content: Text('Actualisation impossible : $error')),
       );
     }
   }
@@ -132,8 +132,8 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
 
     if (zones.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Risk Intelligence')),
-        body: const Center(child: Text('No risk zones are configured.')),
+        appBar: AppBar(title: const Text('Intelligence des risques')),
+        body: const Center(child: Text('Aucune zone à risque n’est configurée.')),
       );
     }
 
@@ -154,7 +154,7 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
     final riskResult = riskAsync.value;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Risk Intelligence')),
+      appBar: AppBar(title: const Text('Intelligence des risques')),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth >= 1000;
@@ -219,13 +219,14 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Risk Intelligence',
+          'Intelligence des risques',
           style: Theme.of(context).textTheme.headlineMedium
               ?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 6),
         Text(
-          'Inspect the evidence behind the current risk assessment and explore scenarios.',
+          'Examinez les preuves derrière l’évaluation actuelle du risque et '
+          'explorez des scénarios.',
           style: Theme.of(context).textTheme.bodyLarge
               ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
@@ -244,7 +245,7 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
         child: DropdownButtonFormField<String>(
           initialValue: selected.id,
           decoration: const InputDecoration(
-            labelText: 'Risk zone',
+            labelText: 'Zone à risque',
             border: OutlineInputBorder(),
           ),
           items: zones
@@ -278,7 +279,7 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Hazard',
+              'Risque',
               style: Theme.of(context).textTheme.titleMedium
                   ?.copyWith(fontWeight: FontWeight.w700),
             ),
@@ -289,7 +290,7 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
               children: HazardType.values
                   .map(
                     (hazard) => ChoiceChip(
-                      label: Text(hazard.label),
+                      label: Text(hazard.labelFr),
                       selected: hazard == _selectedHazard,
                       onSelected: (selected) {
                         if (!selected || hazard == _selectedHazard) {
@@ -345,12 +346,14 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(riskResult?.hazardType ?? _selectedHazard.label),
+                Text(riskResult?.hazardType == null
+                    ? _selectedHazard.labelFr
+                    : (_hazardLabelOf(riskResult!.hazardType))),
                 const SizedBox(height: 6),
                 Text(
                   riskResult == null
-                      ? 'No stored assessment for this zone.'
-                      : 'Updated ${_formatDateTime(riskResult.updatedAt)}',
+                      ? 'Aucune évaluation enregistrée pour cette zone.'
+                      : 'Mis à jour le ${_formatDateTime(riskResult.updatedAt)}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -409,8 +412,8 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
                       : const Icon(Icons.refresh),
                   label: Text(
                     _isRefreshing
-                        ? 'Recalculating...'
-                        : 'Recalculate live risk',
+                        ? 'Recalcul en cours...'
+                        : 'Recalculer le risque actuel',
                   ),
                 ),
               ],
@@ -447,14 +450,14 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Preparing the assessment for ${zone.name}...',
+                      'Préparation de l’évaluation pour ${zone.name}...',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      'Historical baseline, live environmental data and the stored exposure profile. No action is needed.',
+                      'Référence historique, données environnementales actuelles et profil d’exposition enregistré. Aucune action n’est requise.',
                     ),
                   ],
                 ),
@@ -472,7 +475,7 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'No risk result could be loaded for this zone',
+              'Aucun résultat de risque ne peut être chargé pour cette zone',
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -488,7 +491,7 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
             FilledButton.icon(
               onPressed: _isRefreshing ? null : () => _refreshLiveRisk(zone),
               icon: const Icon(Icons.refresh),
-              label: const Text('Try again'),
+              label: const Text('Réessayer'),
             ),
           ],
         ),
@@ -506,15 +509,17 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Key Measurements',
+              'Mesures clés',
               style: Theme.of(context).textTheme.titleLarge
                   ?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 16),
             if (measurements.isEmpty)
-              const Text('No measurements stored.')
+              const Text('Aucune mesure enregistrée.')
             else
-              for (final measurement in measurements)
+              for (final measurement in measurements
+                  .where((measurement) =>
+                      measurement.name != 'citizenObservationRisk'))
                 _MeasurementTile(
                   title: _measurementTitle(measurement.name),
                   value:
@@ -530,26 +535,30 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
     );
   }
 
+  String _hazardLabelOf(String storedLabel) {
+    return HazardType.fromLabel(storedLabel)?.labelFr ?? storedLabel;
+  }
+
   String _measurementTitle(String name) {
     switch (name) {
       case 'rainfallIntensity':
-        return 'Rainfall intensity';
+        return 'Intensité de la pluie';
 
       case 'rainfallAccumulation6h':
-        return '6-hour accumulation';
+        return 'Cumul sur 6 heures';
 
       case 'riverDischarge':
       case 'riverDischargeM3s':
-        return 'River discharge — m³/s';
+        return 'Débit fluvial — m³/s';
 
       case 'geographicVulnerability':
-        return 'Geographic vulnerability';
+        return 'Vulnérabilité géographique';
 
       case 'historicalExposure':
-        return 'Historical exposure';
+        return 'Exposition historique';
 
       case 'citizenObservationRisk':
-        return 'Citizen observation risk';
+        return 'Risque lié aux observations citoyennes';
 
       default:
         return RiskMeasurement.humanizeName(name);
@@ -560,7 +569,7 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
     final referenceValue = measurement.referenceValue;
 
     if (referenceValue == null) {
-      return measurement.referenceLabel ?? 'No stored reference';
+      return measurement.referenceLabel ?? 'Aucune référence enregistrée';
     }
 
     final unit = measurement.referenceUnit == null
@@ -572,7 +581,7 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
     final label = measurement.referenceLabel;
 
     if (label == null) {
-      return 'Reference $reference';
+      return 'Référence $reference';
     }
 
     return '$label ($reference)';
@@ -597,6 +606,47 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
   }
 
   Widget _buildFactors(BuildContext context, RiskResult riskResult) {
+    final entries = riskResult.factors.entries;
+
+    final factors = riskResult.factors;
+
+    final rows = entries.isEmpty
+        ? <Widget>[
+            _FactorBar(
+              title: factors.primaryFactorLabel,
+              value: factors.rainfall,
+            ),
+            _FactorBar(
+              title: 'Vulnérabilité géographique',
+              value: factors.geographicVulnerability,
+            ),
+            _FactorBar(
+              title: 'Exposition historique',
+              value: factors.historicalExposure,
+            ),
+          ]
+        : <Widget>[
+            for (final entry in entries)
+              entry.score == null
+                  ? ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(entry.label),
+                      subtitle: Text(
+                        entry.unavailableReason ??
+                            'Aucune mesure disponible ; ce facteur est '
+                                'exclu du score.',
+                      ),
+                      trailing: const Text(
+                        'Indisponible',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    )
+                  : _FactorBar(
+                      title: entry.label,
+                      value: entry.score!,
+                    ),
+          ];
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -604,30 +654,15 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Risk Factors',
+              'Facteurs de risque',
               style: Theme.of(context).textTheme.titleLarge
                   ?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 18),
-            _FactorBar(
-              title: riskResult.factors.primaryFactorLabel,
-              value: riskResult.factors.rainfall,
-            ),
-            const SizedBox(height: 18),
-            _FactorBar(
-              title: 'Geographic vulnerability',
-              value: riskResult.factors.geographicVulnerability,
-            ),
-            const SizedBox(height: 18),
-            _FactorBar(
-              title: 'Historical exposure',
-              value: riskResult.factors.historicalExposure,
-            ),
-            const SizedBox(height: 18),
-            _FactorBar(
-              title: 'Current observations',
-              value: riskResult.factors.currentObservations,
-            ),
+            for (var index = 0; index < rows.length; index++) ...[
+              if (index > 0) const SizedBox(height: 14),
+              rows[index],
+            ],
           ],
         ),
       ),
@@ -645,7 +680,7 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Evidence',
+              'Éléments de preuve',
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -653,14 +688,14 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
             const SizedBox(height: 16),
             Text(
               '${evidence.observationCount} '
-              'observations received • '
+              'observations reçues • '
               '${evidence.confirmedObservationCount} '
-              'confirmed',
+              'confirmées',
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: 6),
             Text(
-              'Collected ${_formatDateTime(evidence.collectedAt)}',
+              'Collectées le ${_formatDateTime(evidence.collectedAt)}',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -668,7 +703,7 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
             if (evidence.qualitativeIndicators.isNotEmpty) ...[
               const SizedBox(height: 16),
               Text(
-                'Indicators',
+                'Indicateurs',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -728,19 +763,19 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'What-If Scenario',
+              'Scénario hypothétique',
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 6),
             Text(
-              'Fetches live rainfall and river data, rebuilds the Risk Intelligence input and applies the scenario multiplier to it.',
+              'Récupère les données actuelles de pluie et de débit fluvial, reconstruit les données du risque et applique le multiplicateur du scénario.',
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: 20),
             Text(
-              'Rainfall multiplier: '
+              'Multiplicateur de pluie : '
               '${_rainfallMultiplier.toStringAsFixed(1)}×',
             ),
             Slider(
@@ -767,12 +802,14 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.science_outlined),
-              label: Text(_isSimulating ? 'Simulating...' : 'Run scenario'),
+              label: Text(
+                _isSimulating ? 'Simulation en cours...' : 'Lancer le scénario',
+              ),
             ),
             if (_simulationError != null) ...[
               const SizedBox(height: 12),
               Text(
-                'Could not run the scenario: '
+                'Impossible d’exécuter le scénario : '
                 '$_simulationError',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.error,
@@ -785,17 +822,17 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
               runSpacing: 16,
               children: [
                 _ScenarioValue(
-                  label: 'Current risk',
+                  label: 'Risque actuel',
                   value: riskResult.riskScore.toStringAsFixed(0),
                   color: theme.colorScheme.onSurface,
                 ),
                 _ScenarioValue(
-                  label: 'Scenario risk',
+                  label: 'Risque simulé',
                   value: scenarioScore,
                   color: scenarioColor,
                 ),
                 _ScenarioValue(
-                  label: 'Change',
+                  label: 'Évolution',
                   value: changeLabel,
                   color: scenarioColor,
                 ),
@@ -805,9 +842,9 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
               const SizedBox(height: 12),
               Text(
                 simulation.riskLevelChanged
-                    ? 'The scenario changes the level to '
+                    ? 'Le scénario modifie le niveau à '
                           '${simulation.scenario.riskLevel.name.toUpperCase()}.'
-                    : 'The scenario keeps the level at '
+                    : 'Le scénario maintient le niveau à '
                           '${simulation.scenario.riskLevel.name.toUpperCase()}.',
                 style: theme.textTheme.bodySmall,
               ),
@@ -931,7 +968,7 @@ class _MeasurementTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final details = source == null
         ? '$value • $reference'
-        : '$value • $reference • Source: $source';
+        : '$value • $reference • Source : $source';
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),

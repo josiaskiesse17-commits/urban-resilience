@@ -28,3 +28,18 @@ final pendingObservationsProvider =
     StreamProvider.autoDispose<List<Observation>>(
       (ref) => ref.watch(observationsRepositoryProvider).watchPending(),
     );
+
+/// Own submissions of the signed-in author, newest first: the data behind
+/// the "Mes signalements" status area (pending, approved and rejected with
+/// its reason).
+final myObservationsProvider = StreamProvider.autoDispose<List<Observation>>((
+  ref,
+) {
+  final user = ref.watch(currentUserProvider);
+
+  if (user == null) {
+    return Stream<List<Observation>>.value(const <Observation>[]);
+  }
+
+  return ref.watch(observationsRepositoryProvider).watchMine(user.id);
+});

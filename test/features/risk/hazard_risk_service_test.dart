@@ -1,5 +1,10 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'dart:convert';
 
+import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+
+import 'package:urban_resilience/features/risk/data/open_meteo_hazard_data_source.dart';
 import 'package:urban_resilience/features/risk/domain/flood_risk_exposure_profile.dart';
 import 'package:urban_resilience/features/risk/domain/hazard_environmental_data.dart';
 import 'package:urban_resilience/features/risk/domain/hazard_environmental_data_source.dart';
@@ -8,6 +13,7 @@ import 'package:urban_resilience/features/risk/domain/hazard_historical_data_sou
 import 'package:urban_resilience/features/risk/domain/hazard_risk_service.dart';
 import 'package:urban_resilience/features/risk/domain/hazard_type.dart';
 import 'package:urban_resilience/features/risk/domain/risk_exposure_repository.dart';
+import 'package:urban_resilience/features/risk/domain/risk_measurement.dart';
 import 'package:urban_resilience/features/risk/domain/risk_result.dart';
 import 'package:urban_resilience/features/risk/domain/risk_result_repository.dart';
 
@@ -171,6 +177,36 @@ HazardHistoricalData _historicalHeatData() {
   );
 }
 
+/// Fake Open-Meteo `forecast` payload served to the real
+/// [OpenMeteoHazardDataSource].
+///
+/// It returns 30 contiguous hourly samples ending at 2026-01-06T05:00, so the
+/// trailing 24 h windows of the catalog are derived exactly like in
+/// production - without ever touching the network.
+http.Response _openMeteoResponse({
+  required Map<String, List<double?>> series,
+}) {
+  final times = <String>[
+    for (var hour = 0; hour < 30; hour++)
+      DateTime.utc(2026, 1, 5)
+          .add(Duration(hours: hour))
+          .toIso8601String(),
+  ];
+
+  return http.Response(
+    jsonEncode(<String, dynamic>{
+      'hourly_units': <String, String>{
+        for (final field in series.keys) field: '°C',
+      },
+      'hourly': <String, dynamic>{
+        'time': times,
+        ...series,
+      },
+    }),
+    200,
+  );
+}
+
 void main() {
   late _FakeLive live;
   late _FakeHistorical historical;
@@ -240,11 +276,11 @@ void main() {
       final indicators =
           result.evidence.qualitativeIndicators.join('\n');
 
-      expect(indicators, contains('Statistical reference:'));
-      expect(indicators, contains('same calendar month'));
+      expect(indicators, contains('Référence statistique :'));
+      expect(indicators, contains('même mois calendaire'));
       expect(
         indicators,
-        contains('Vulnerability combines population'),
+        contains('La vulnérabilité combine l’exposition de la population'),
       );
       expect(indicators, contains('live provider note'));
     },
@@ -316,7 +352,156 @@ void main() {
 
     expect(
       indicators,
-      contains('No stored exposure profile was found'),
+      contains('Aucun profil d’exposition enregistré n’a été trouvé'),
     );
   });
+
+  test(
+    'receives the live environmental data and maps it into the evidence',
+    () async {
+      late Uri requested;
+
+      final client = MockClient((request) async {
+        requested = request.url;
+
+        return _openMeteoResponse(
+          series: <String, List<double?>>{
+            // The first six hours are outside the trailing 24 h window that
+            // ends at the last sample, so they must not influence it.
+            'temperature_2m': <double?>[
+              for (var hour = 0; hour < 30; hour++)
+                hour < 6
+                    ? 20.0
+                    : hour == 29
+                        ? 41.0
+                        : 30.0,
+            ],
+            'apparent_temperature': <double?>[
+              for (var hour = 0; hour < 30; hour++)
+                hour < 6
+                    ? 20.0
+                    : hour == 29
+                        ? 44.0
+                        : 35.0,
+            ],
+          },
+        );
+      });
+
+      final service = HazardRiskService(
+        liveDataSource: OpenMeteoHazardDataSource(client: client),
+        historicalDataSource: historical,
+        referencePeriodStart: DateTime.utc(2021, 1, 1),
+        referencePeriodEnd: DateTime.utc(2021, 2, 14),
+        exposureRepository: exposure,
+      );
+
+      final result = await service.calculate(
+        zoneId: 'zone-test',
+        locationName: 'Test Zone',
+        latitude: -4.30,
+        longitude: 15.35,
+        hazard: HazardType.heat,
+      );
+
+      // The request really asked the provider for the catalog fields.
+      expect(requested.host, 'api.open-meteo.com');
+      expect(
+        requested.queryParameters['hourly'],
+        'temperature_2m,apparent_temperature',
+      );
+
+      final measurements = result.evidence.measurements;
+
+      RiskMeasurement measurement(String name) => measurements.firstWhere(
+            (item) => item.name == name,
+          );
+
+      // The provider values reached the evidence unchanged, through the
+      // trailing 24 h windows of the catalog.
+      expect(measurement('temperature2mMax24h').value, 41.0);
+      expect(measurement('temperature2mMin24h').value, 30.0);
+      expect(measurement('apparentTemperatureMax24h').value, 44.0);
+
+      expect(measurement('temperature2mMax24h').unit, '°C');
+      expect(measurement('temperature2mMax24h').measurementPeriod, '24h');
+      expect(
+        measurement('temperature2mMax24h').source,
+        'Open-Meteo Weather API',
+      );
+
+      // The measured values were compared with their statistical reference,
+      // so the environmental data truly entered the risk evaluation.
+      expect(measurement('temperature2mMax24h').referenceValue, isNotNull);
+      expect(
+        measurement('temperature2mMax24h').historicalPercentile,
+        isNotNull,
+      );
+      expect(result.riskScore, greaterThan(0));
+    },
+  );
+
+  test(
+    'a live field the provider does not return becomes a gap, never a zero',
+    () async {
+      final client = MockClient((request) async {
+        return _openMeteoResponse(
+          series: <String, List<double?>>{
+            'temperature_2m': <double?>[
+              for (var hour = 0; hour < 30; hour++) 31.5,
+            ],
+          },
+        );
+      });
+
+      final service = HazardRiskService(
+        liveDataSource: OpenMeteoHazardDataSource(client: client),
+        historicalDataSource: historical,
+        referencePeriodStart: DateTime.utc(2021, 1, 1),
+        referencePeriodEnd: DateTime.utc(2021, 2, 14),
+        exposureRepository: exposure,
+      );
+
+      final result = await service.calculate(
+        zoneId: 'zone-test',
+        locationName: 'Test Zone',
+        latitude: -4.30,
+        longitude: 15.35,
+        hazard: HazardType.heat,
+      );
+
+      final names = result.evidence.measurements
+          .map((item) => item.name)
+          .toList();
+
+      expect(names, contains('temperature2mMax24h'));
+      expect(names, isNot(contains('apparentTemperatureMax24h')));
+
+      final indicators =
+          result.evidence.qualitativeIndicators.join('\n');
+
+      expect(
+        indicators,
+        contains('Non mesuré : Maximum apparent temperature'),
+      );
+      expect(indicators, contains('jamais comme un zéro'));
+
+      // The missing series is never turned into a zero measurement.
+      expect(
+        result.evidence.measurements.where(
+          (item) =>
+              item.name == 'apparentTemperatureMax24h' && item.value == 0,
+        ),
+        isEmpty,
+      );
+
+      // The field the provider did return keeps its real value.
+      expect(
+        result.evidence.measurements
+            .firstWhere((item) => item.name == 'temperature2mMax24h')
+            .value,
+        31.5,
+      );
+    },
+  );
 }

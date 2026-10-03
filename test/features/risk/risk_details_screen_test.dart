@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:urban_resilience/features/risk/domain/risk_analysis.dart';
 import 'package:urban_resilience/features/risk/domain/risk_zone.dart';
 import 'package:urban_resilience/features/risk/presentation/providers/risk_ai_providers.dart';
 import 'package:urban_resilience/features/risk/presentation/providers/risk_live_providers.dart';
@@ -66,6 +67,14 @@ void main() {
       // The AI interpreted exactly this stored result, once.
       expect(analyst.calls, 1);
       expect(find.text('AI summary for Masina.'), findsOneWidget);
+
+      // The interpretation was persisted with the evaluation so a later visit
+      // reuses it instead of asking the AI again.
+      expect(repository.stored!.analysis, isNotNull);
+      expect(
+        repository.stored!.analysis!.summary,
+        'AI summary for Masina.',
+      );
 
       // Rebuilding never starts another AI request.
       await tester.pump();
@@ -197,10 +206,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('No exposure profile is stored for this zone.'),
+      find.text('Aucun profil d’exposition n’est enregistré pour cette zone.'),
       findsOneWidget,
     );
-    expect(find.textContaining('unknown, not zero'), findsWidgets);
+    expect(find.textContaining('inconnues, et non nulles'), findsWidgets);
   });
 
   testWidgets(
@@ -259,6 +268,50 @@ void main() {
       // Flush the confirmation SnackBar timer before the test ends.
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
+    'a stored AI interpretation is reused without another AI request',
+    (tester) async {
+      final repository = FakeRiskResultRepository()
+        ..stored = buildRiskResult(riskScore: 62, riskLevel: RiskLevel.high)
+            .withAnalysis(
+          RiskAnalysis(
+            riskId: 'zone-masina',
+            summary: 'Interprétation enregistrée pour Masina.',
+            explanation: 'Elle est réutilisée telle quelle.',
+            mainFactors: const <String>['Températures élevées'],
+            recommendations: const <String>['Boire de l’eau'],
+            generatedAt: DateTime.utc(2026, 1, 5, 6),
+          ),
+        );
+      final exposureRepository = FakeRiskExposureRepository();
+      final analyst = FakeRiskAnalyst();
+
+      await tester.pumpWidget(
+        buildHost(
+          repository: repository,
+          exposureRepository: exposureRepository,
+          analyst: analyst,
+          generator: (zone) async => repository.stored!,
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // The interpretation stored with the evaluation is displayed and the AI
+      // was never asked again for it.
+      expect(analyst.calls, 0);
+      expect(
+        find.text('Interprétation enregistrée pour Masina.'),
+        findsOneWidget,
+      );
+
+      // Rebuilding the screen does not start an AI request either.
+      await tester.pump(const Duration(seconds: 30));
+      await tester.pumpAndSettle();
+      expect(analyst.calls, 0);
     },
   );
 }

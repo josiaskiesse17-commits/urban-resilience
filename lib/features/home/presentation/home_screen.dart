@@ -15,21 +15,21 @@ class HomeScreen extends StatelessWidget {
   static const List<({IconData icon, String title, String detail})> _steps = [
     (
       icon: Icons.map_outlined,
-      title: '1. Open the map',
-      detail: 'Every zone is a coloured point: the colour is the highest '
-          'risk currently identified in it.',
+      title: '1. Ouvrir la carte',
+      detail: 'Chaque zone est un point coloré : la couleur indique le risque '
+          'le plus élevé actuellement identifié dans cette zone.',
     ),
     (
       icon: Icons.list_alt_outlined,
-      title: '2. Pick the zone',
-      detail: 'The Zone Active Risks sheet lists the identified risks of the '
-          'zone and the hazards that are not assessed yet.',
+      title: '2. Choisir la zone',
+      detail: 'La fiche des risques actifs liste les risques identifiés de la '
+          'zone ainsi que les risques qui ne sont pas encore évalués.',
     ),
     (
       icon: Icons.insights_outlined,
-      title: '3. Read the hazard',
-      detail: 'The risk details screen shows the stored assessment, its '
-          'evidence and the AI interpretation, and refreshes them there.',
+      title: '3. Lire le risque',
+      detail: 'La fiche de détail affiche l’évaluation enregistrée, ses '
+          'preuves et l’interprétation IA, et les actualise sur place.',
     ),
   ];
 
@@ -39,10 +39,10 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Flood risk'),
+        title: const Text('Risque d’inondation'),
         actions: [
           IconButton(
-            tooltip: 'Profile and role',
+            tooltip: 'Profil et rôle',
             icon: const Icon(Icons.account_circle_outlined),
             onPressed: () => context.go('/profile'),
           ),
@@ -57,17 +57,18 @@ class HomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Know your zone before the next rainfall.',
+                  'Connaissez votre zone avant la prochaine pluie.',
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Each zone combines the live environmental data, the '
-                  'historical reference of the same location and the stored '
-                  'community exposure profile into one assessment. The map '
-                  'shows where a risk is identified today.',
+                  'Chaque zone combine les données environnementales en '
+                  'direct, la référence historique du même endroit et le '
+                  'profil d’exposition de la communauté enregistré, en une '
+                  'seule évaluation. La carte montre où un risque est '
+                  'identifié aujourd’hui.',
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -81,7 +82,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   icon: const Icon(Icons.map_outlined),
-                  label: const Text('Open the map'),
+                  label: const Text('Ouvrir la carte'),
                 ),
                 const SizedBox(height: 24),
                 Card(

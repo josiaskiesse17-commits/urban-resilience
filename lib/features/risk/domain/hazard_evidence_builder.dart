@@ -11,8 +11,8 @@ class HazardEvidenceBuilder {
   const HazardEvidenceBuilder._();
 
   static const String _statisticalReferenceNote =
-      'statistical reference of the same location and reference period, '
-      'not an official safety threshold';
+      'référence statistique du même endroit et de la même période de '
+      'référence, et non un seuil de sécurité officiel';
 
   static RiskMeasurement measurementFrom(
     HazardVariable variable,
@@ -39,7 +39,7 @@ class HazardEvidenceBuilder {
       statisticalCriticalValue: critical,
       statisticalCriticalLabel: critical == null
           ? null
-          : '${variable.inverted ? '5th' : '95th'} percentile — '
+          : '${variable.inverted ? '5e' : '95e'} centile — '
               '$_statisticalReferenceNote',
       isDerived: variable.isDerived,
       derivationNote: variable.derivationNote,

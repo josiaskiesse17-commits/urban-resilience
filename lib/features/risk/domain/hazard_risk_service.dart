@@ -94,8 +94,8 @@ class HazardRiskService {
 
     if (definition.legacyPipeline) {
       throw StateError(
-        '${hazard.label} is assessed by its dedicated pipeline '
-        '(LiveFloodRiskService); HazardRiskService must not score it.',
+        '${hazard.label} est évalué par son pipeline dédié '
+        '(LiveFloodRiskService) ; HazardRiskService ne doit pas le scorer.',
       );
     }
 

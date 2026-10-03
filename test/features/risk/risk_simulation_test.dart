@@ -173,7 +173,7 @@ void main() {
       // Control labels are human readable, never internal identifiers.
       expect(
         model.variables.first.label,
-        'Maximum air temperature — 24 hours',
+        'Température maximale de l’air — dernières 24 heures',
       );
       expect(
         model.variables.first.label,

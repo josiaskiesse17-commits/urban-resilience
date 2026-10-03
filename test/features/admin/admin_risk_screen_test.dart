@@ -83,13 +83,13 @@ void main() {
       // The stored result of the selected zone is shown...
       expect(find.text('CRITIQUE'), findsWidgets);
       expect(find.text('64'), findsWidgets);
-      expect(find.textContaining('Updated'), findsWidgets);
+      expect(find.textContaining('Mis à jour'), findsWidgets);
 
       // ...with its evidence and measurements from the same document.
-      expect(find.text('Evidence'), findsOneWidget);
-      expect(find.textContaining('observations received'), findsOneWidget);
-      expect(find.text('Key Measurements'), findsOneWidget);
-      expect(find.textContaining('Source: Open-Meteo'), findsWidgets);
+      expect(find.text('Éléments de preuve'), findsOneWidget);
+      expect(find.textContaining('observations reçues'), findsOneWidget);
+      expect(find.text('Mesures clés'), findsOneWidget);
+      expect(find.textContaining('Source : Open-Meteo'), findsWidgets);
 
       // A fresh stored result is reused: no recalculation ran.
       expect(generatorCalls, 0);
@@ -133,7 +133,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(generatorCalls, 0);
 
-      final recalculate = find.text('Recalculate live risk');
+      final recalculate = find.text('Recalculer le risque actuel');
       await tester.ensureVisible(recalculate);
       await tester.tap(recalculate);
       await tester.pumpAndSettle();

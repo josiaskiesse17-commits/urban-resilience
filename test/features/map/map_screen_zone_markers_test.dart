@@ -166,7 +166,9 @@ void main() {
 
       expect(find.byType(ZoneActiveRisksSheet), findsOneWidget);
       expect(
-        find.text('No active risk identified in this zone right now.'),
+        find.text(
+          'Aucun risque actif identifié dans cette zone pour le moment.',
+        ),
         findsOneWidget,
       );
     },

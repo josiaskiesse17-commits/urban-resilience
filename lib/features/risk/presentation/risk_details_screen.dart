@@ -91,6 +91,11 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
 
       ref.invalidate(riskResultProvider(_riskId));
 
+      // The evaluation was persisted under its hazard-aware id: drop the
+      // cached read of the zone so the map markers and the Zone Active Risks
+      // selection UI show the stored result instead of their old snapshot.
+      ref.invalidate(zoneHazardAssessmentsProvider(zone.id));
+
       setState(() {
         _isUpdatingRisk = false;
         _updateError = null;
@@ -148,6 +153,10 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
   /// Runs the AI interpretation of a stored result, at most once per result
   /// version. The explicit Retry button passes [force] so a failed request can
   /// be run again without turning the automatic trigger into a retry loop.
+  ///
+  /// A successful interpretation is persisted inside its `risk_results`
+  /// document, so a recreated screen reuses it instead of asking the AI again.
+  /// A failed request is never stored.
   Future<void> _analyzeRisk(RiskResult riskResult, {bool force = false}) async {
     final version = _riskVersion(riskResult);
 
@@ -173,6 +182,8 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
         _analysis = analysis;
         _isAnalyzing = false;
       });
+
+      await _storeAnalysis(riskResult, analysis);
     } catch (error) {
       if (!mounted) {
         return;
@@ -183,6 +194,41 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
         _isAnalyzing = false;
       });
     }
+  }
+
+  /// Saves [analysis] as the stored interpretation of [riskResult] in the same
+  /// `risk_results/{id}` document, then refreshes the stored read so a later
+  /// navigation discloses it without another AI request.
+  ///
+  /// A storage failure is not turned into an AI error: the successful
+  /// interpretation is already displayed and will simply be generated again on
+  /// the next visit.
+  Future<void> _storeAnalysis(
+    RiskResult riskResult,
+    RiskAnalysis analysis,
+  ) async {
+    // Never let an interpretation generated for an older evaluation overwrite
+    // a newer evaluation that replaced it while the AI request was in flight.
+    final latest = ref.read(riskResultProvider(_riskId)).value;
+
+    if (latest != null &&
+        latest.updatedAt.toUtc() != riskResult.updatedAt.toUtc()) {
+      return;
+    }
+
+    try {
+      await ref.read(riskResultRepositoryProvider).save(
+            riskResult.withAnalysis(analysis),
+          );
+    } catch (_) {
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    ref.invalidate(riskResultProvider(_riskId));
   }
 
   Future<void> _refreshLiveRisk(RiskResult stored) async {
@@ -206,7 +252,7 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Risk result recalculated and saved.')),
+      const SnackBar(content: Text('Risque recalculé et enregistré.')),
     );
   }
 
@@ -239,11 +285,27 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
           if (!_isAnalyzing &&
               !_isUpdatingRisk &&
               _analyzedRiskVersion != _riskVersion(riskResult)) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) {
-                _analyzeRisk(riskResult);
-              }
-            });
+            final storedAnalysis = riskResult.analysis;
+
+            if (storedAnalysis != null) {
+              // An interpretation is already stored with this evaluation:
+              // adopt it instead of asking the AI again.
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  setState(() {
+                    _analysis = storedAnalysis;
+                    _analysisError = null;
+                    _analyzedRiskVersion = _riskVersion(riskResult);
+                  });
+                }
+              });
+            } else {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  _analyzeRisk(riskResult);
+                }
+              });
+            }
           }
 
           final locationLabel = place?.label ?? riskResult.locationName;
@@ -270,29 +332,34 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildSummaryCard(context, riskResult),
-                    const SizedBox(height: 12),
-                    _buildWhyCard(context, riskResult),
-                    const SizedBox(height: 12),
-                    _buildFactorsCard(context, riskResult),
-                    const SizedBox(height: 12),
-                    RiskExposureCard(
-                      zoneId: HazardRiskId.zoneIdOf(widget.riskId),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 720),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildSummaryCard(context, riskResult),
+                        const SizedBox(height: 12),
+                        _buildWhyCard(context, riskResult),
+                        const SizedBox(height: 12),
+                        _buildFactorsCard(context, riskResult),
+                        const SizedBox(height: 12),
+                        RiskExposureCard(
+                          zoneId: HazardRiskId.zoneIdOf(widget.riskId),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildEvidenceCard(context, riskResult),
+                        const SizedBox(height: 12),
+                        _buildAdviceCard(context, riskResult),
+                        const SizedBox(height: 12),
+                        _buildObservationsCard(context, riskResult),
+                        const SizedBox(height: 12),
+                        _buildRefreshCard(context, riskResult),
+                        const SizedBox(height: 12),
+                        _buildWhatIfCard(context, riskResult),
+                      ],
                     ),
-                    const SizedBox(height: 12),
-                    _buildEvidenceCard(context, riskResult),
-                    const SizedBox(height: 12),
-                    _buildAdviceCard(context),
-                    const SizedBox(height: 12),
-                    _buildObservationsCard(context, riskResult),
-                    const SizedBox(height: 12),
-                    _buildRefreshCard(context, riskResult),
-                    const SizedBox(height: 12),
-                    _buildWhatIfCard(context, riskResult),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -301,6 +368,12 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
             onReport: () {
               context.push(
                 '/observations?zone=${Uri.encodeComponent(HazardRiskId.zoneIdOf(widget.riskId))}'
+                '&hazard=${Uri.encodeComponent(_selectedHazard.id)}',
+              );
+            },
+            onAlerts: () {
+              context.go(
+                '/alerts?zone=${Uri.encodeComponent(HazardRiskId.zoneIdOf(widget.riskId))}'
                 '&hazard=${Uri.encodeComponent(_selectedHazard.id)}',
               );
             },
@@ -463,8 +536,15 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
     );
   }
 
+  /// Interpretation shown for a result: the one generated during this screen's
+  /// lifetime when present, otherwise the one stored with the evaluation.
+  RiskAnalysis? _visibleAnalysis(RiskResult riskResult) {
+    return _analysis ?? riskResult.analysis;
+  }
+
   Widget _buildWhyCard(BuildContext context, RiskResult riskResult) {
     final theme = Theme.of(context);
+    final analysis = _visibleAnalysis(riskResult);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -524,15 +604,6 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Analyse IA du risque',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
                   'L’analyse IA n’a pas pu être générée.',
                   style: theme.textTheme.bodyMedium,
                 ),
@@ -551,60 +622,77 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
                 ),
               ],
             )
-          else if (_analysis != null)
-            _buildAiInterpretation(context, _analysis!),
+          else if (analysis != null)
+            _buildWhyInterpretation(context, analysis),
         ],
       ),
     );
   }
 
-  Widget _buildAiInterpretation(BuildContext context, RiskAnalysis analysis) {
+  /// AI interpretation of the level: the reason comes from the analysis of
+  /// the actual stored result, never from a fixed sentence.
+  Widget _buildWhyInterpretation(
+    BuildContext context,
+    RiskAnalysis analysis,
+  ) {
     final theme = Theme.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Analyse IA du risque',
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w700,
+        if (analysis.summary.isNotEmpty)
+          Text(
+            analysis.summary,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
-        ),
-        if (analysis.summary.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Text(analysis.summary),
-        ],
         if (analysis.explanation.isNotEmpty) ...[
-          const SizedBox(height: 6),
+          if (analysis.summary.isNotEmpty) const SizedBox(height: 6),
           Text(
             analysis.explanation,
-            style: theme.textTheme.bodySmall?.copyWith(
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.45,
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ],
-        if (analysis.recommendations.isEmpty) ...[
-          const SizedBox(height: 6),
+        if (analysis.mainFactors.isNotEmpty) ...[
+          const SizedBox(height: 12),
           Text(
-            'L’analyse IA n’a fourni aucune recommandation écrite '
-            'pour cette évaluation.',
-            style: theme.textTheme.bodySmall,
-          ),
-        ],
-        const SizedBox(height: 10),
-        ...analysis.recommendations.map(
-          (recommendation) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.auto_awesome, size: 17),
-                const SizedBox(width: 8),
-                Expanded(child: Text(recommendation)),
-              ],
+            'Facteurs principaux identifiés par l’analyse',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
             ),
           ),
-        ),
+          const SizedBox(height: 6),
+          ...analysis.mainFactors.map(
+            (factor) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 6),
+                    child: Icon(Icons.circle, size: 6),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      factor,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.35,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -619,6 +707,9 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
     final rows = <Widget>[];
 
     if (entries.isEmpty) {
+      // Documents stored before the factor breakdown existed only carry the
+      // four legacy scores. The observation factor is never rendered: citizen
+      // observations are not a risk factor.
       rows.addAll([
         _buildFactorRow(context, factors.primaryFactorLabel, factors.rainfall),
         _buildFactorRow(
@@ -630,11 +721,6 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
           context,
           'Exposition historique',
           factors.historicalExposure,
-        ),
-        _buildFactorRow(
-          context,
-          'Observations actuelles',
-          factors.currentObservations,
         ),
       ]);
     } else {
@@ -804,7 +890,7 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
           if (measurement.referenceValue != null) ...[
             const SizedBox(height: 4),
             Text(
-              'Reference: '
+              'Référence : '
               '${measurement.referenceValue!.toStringAsFixed(2)}'
               '${measurement.referenceUnit == null ? '' : ' ${measurement.referenceUnit}'}',
               style: theme.textTheme.bodySmall?.copyWith(
@@ -824,7 +910,7 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
           if (measurement.source != null) ...[
             const SizedBox(height: 3),
             Text(
-              'Source: ${measurement.source}',
+              'Source : ${measurement.source}',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -833,7 +919,7 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
           if (measurement.observedAt != null) ...[
             const SizedBox(height: 3),
             Text(
-              'Observed '
+              'Observé le '
               '${_formatDateTime(measurement.observedAt!)}',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
@@ -845,10 +931,11 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
     );
   }
 
-  Widget _buildAdviceCard(BuildContext context) {
+  Widget _buildAdviceCard(BuildContext context, RiskResult riskResult) {
     final theme = Theme.of(context);
+    final analysis = _visibleAnalysis(riskResult);
 
-    if (_analysis == null && !_isAnalyzing) {
+    if (analysis == null && !_isAnalyzing) {
       return const SizedBox.shrink();
     }
 
@@ -874,12 +961,12 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
               'Recommandations indisponibles.',
               style: theme.textTheme.bodySmall,
             )
-          else if (_analysis?.recommendations.isEmpty ?? true)
+          else if (analysis?.recommendations.isEmpty ?? true)
             const Text(
               'Aucune recommandation n’a été retournée par l’analyse IA.',
             )
           else
-            ..._analysis!.recommendations.map(
+            ...analysis!.recommendations.map(
               (recommendation) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Row(
@@ -1268,12 +1355,7 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
   }
 
   String _hazardFrenchLabel(String label) {
-    return switch (label) {
-      'Flooding' => 'Inondation',
-      'Heat' => 'Chaleur',
-      'Landslide' => 'Glissement de terrain',
-      _ => label,
-    };
+    return HazardType.fromLabel(label)?.labelFr ?? label;
   }
 
   Color _riskColor(BuildContext context, RiskLevel level) {
@@ -1418,9 +1500,13 @@ class _SectionTitle extends StatelessWidget {
 }
 
 class _RiskNavigation extends StatelessWidget {
-  const _RiskNavigation({required this.onReport});
+  const _RiskNavigation({
+    required this.onReport,
+    required this.onAlerts,
+  });
 
   final VoidCallback onReport;
+  final VoidCallback onAlerts;
 
   @override
   Widget build(BuildContext context) {
@@ -1450,7 +1536,7 @@ class _RiskNavigation extends StatelessWidget {
           _NavItem(
             label: 'Alertes',
             asset: 'assets/icons/map-nav-bell.svg',
-            onTap: () => context.go('/alerts'),
+            onTap: onAlerts,
           ),
           _NavItem(
             label: 'Profil',

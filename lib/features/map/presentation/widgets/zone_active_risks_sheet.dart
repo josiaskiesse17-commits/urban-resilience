@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../risk/data/risk_repository.dart';
+import '../../../risk/domain/risk_zone.dart';
 import '../../../risk/domain/zone_active_risk.dart';
 import '../../../risk/presentation/hazard_presentation.dart';
 import '../../../risk/presentation/providers/risk_live_providers.dart';
@@ -63,9 +64,11 @@ class ZoneActiveRisksSheet extends ConsumerWidget {
             const SizedBox(height: 4),
             Text(
               switch (identifiedCount) {
-                0 => 'No active risk identified in this zone right now.',
-                1 => '1 active risk identified in this zone.',
-                final count => '$count active risks identified in this zone.',
+                0 => 'Aucun risque actif identifié dans cette zone pour le '
+                    'moment.',
+                1 => '1 risque actif identifié dans cette zone.',
+                final count => '$count risques actifs identifiés dans cette '
+                    'zone.',
               },
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
@@ -110,7 +113,7 @@ class ZoneActiveRisksSheet extends ConsumerWidget {
         const Icon(Icons.cloud_off),
         const SizedBox(height: 10),
         Text(
-          'Could not load the stored risks of ${zone.name}.',
+          'Impossible de charger les risques enregistrés de ${zone.name}.',
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w700,
           ),
@@ -128,7 +131,7 @@ class ZoneActiveRisksSheet extends ConsumerWidget {
             zoneHazardAssessmentsProvider(zone.id),
           ),
           icon: const Icon(Icons.refresh),
-          label: const Text('Retry'),
+          label: const Text('Réessayer'),
         ),
       ],
     );
@@ -152,7 +155,7 @@ class ZoneActiveRisksSheet extends ConsumerWidget {
         if (identified.isEmpty)
           _buildEmptyNotice(context)
         else ...[
-          _groupTitle(context, 'Active risks'),
+          _groupTitle(context, 'Risques actifs'),
           for (final assessment in identified) ...[
             _ZoneHazardTile(assessment: assessment),
             const SizedBox(height: 8),
@@ -160,7 +163,7 @@ class ZoneActiveRisksSheet extends ConsumerWidget {
         ],
         if (remaining.isNotEmpty) ...[
           const SizedBox(height: 8),
-          _groupTitle(context, 'Other hazards'),
+          _groupTitle(context, 'Autres risques'),
           for (final assessment in remaining) ...[
             _ZoneHazardTile(assessment: assessment),
             const SizedBox(height: 8),
@@ -168,8 +171,8 @@ class ZoneActiveRisksSheet extends ConsumerWidget {
         ],
         const SizedBox(height: 4),
         Text(
-          'Assessments are generated and refreshed on the Risk Details '
-          'screen of the selected hazard.',
+          'Les évaluations sont générées et actualisées sur la fiche de '
+          'détail du risque sélectionné.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -197,8 +200,9 @@ class ZoneActiveRisksSheet extends ConsumerWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'No stored assessment identifies a risk in this zone. Open a '
-              'hazard below to assess it: nothing is shown as a zero.',
+              'Aucune évaluation enregistrée n’identifie un risque dans '
+              'cette zone. Ouvrez un risque ci-dessous pour l’évaluer : '
+              'aucune valeur n’est affichée comme un zéro.',
               style: theme.textTheme.bodyMedium,
             ),
           ),
@@ -269,7 +273,7 @@ class _ZoneHazardTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      assessment.hazard.label,
+                      assessment.hazard.labelFr,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -302,15 +306,16 @@ class _ZoneHazardTile extends StatelessWidget {
 
     if (score != null && updatedAt != null) {
       return 'Score ${score.toStringAsFixed(0)}/100 • '
-          'Updated ${_formatDateTime(updatedAt)}';
+          'Mis à jour le ${_formatDateTime(updatedAt)}';
     }
 
     return switch (assessment.status) {
-      ZoneHazardStatus.identified => 'Stored assessment.',
+      ZoneHazardStatus.identified => 'Évaluation enregistrée.',
       ZoneHazardStatus.notIdentified =>
-        'A stored assessment exists but identifies no current risk.',
+        'Une évaluation est enregistrée mais n’identifie aucun risque actuel.',
       ZoneHazardStatus.notAssessed =>
-        'Nothing is stored yet: open it to generate the assessment.',
+        'Aucune évaluation n’est encore enregistrée : ouvrez-la pour la '
+            'générer.',
     };
   }
 
@@ -318,13 +323,22 @@ class _ZoneHazardTile extends StatelessWidget {
     final level = assessment.riskLevel;
 
     if (level != null) {
-      return level.name.toUpperCase();
+      return _levelLabel(level);
     }
 
     return switch (assessment.status) {
-      ZoneHazardStatus.identified => 'Assessed',
-      ZoneHazardStatus.notIdentified => 'No risk',
-      ZoneHazardStatus.notAssessed => 'Not assessed',
+      ZoneHazardStatus.identified => 'Évalué',
+      ZoneHazardStatus.notIdentified => 'Aucun risque',
+      ZoneHazardStatus.notAssessed => 'Non évalué',
+    };
+  }
+
+  static String _levelLabel(RiskLevel level) {
+    return switch (level) {
+      RiskLevel.low => 'FAIBLE',
+      RiskLevel.medium => 'MOYEN',
+      RiskLevel.high => 'ÉLEVÉ',
+      RiskLevel.critical => 'CRITIQUE',
     };
   }
 }

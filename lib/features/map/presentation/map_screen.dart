@@ -169,7 +169,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               children: [
                 FloatingActionButton(
                   heroTag: 'zones_refresh_button',
-                  tooltip: 'Refresh identified risks',
+                  tooltip: 'Actualiser les risques identifiés',
                   onPressed: () => ref.invalidate(
                     zoneHazardAssessmentsProvider,
                   ),

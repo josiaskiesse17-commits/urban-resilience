@@ -361,11 +361,11 @@ void main() {
     // The exclusion is reported explicitly instead of being dropped.
     expect(
       result.evidence.qualitativeIndicators.join(' '),
-      contains('Not scored: Rainfall accumulation — 24 hours'),
+      contains('Non pris en compte : Cumul de pluie — dernières 24 heures'),
     );
     expect(
       result.evidence.qualitativeIndicators.join(' '),
-      contains('excluded from the score instead of being counted as zero'),
+      contains('exclue du score au lieu d’être comptée comme un zéro'),
     );
   });
 
