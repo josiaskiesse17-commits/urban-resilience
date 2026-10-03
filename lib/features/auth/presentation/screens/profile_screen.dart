@@ -137,24 +137,25 @@ void _showMessage(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 }
 
-Future<void> _runAuthAction(
+Future<bool> _runAuthAction(
   BuildContext context,
   WidgetRef ref,
   Future<void> Function() action,
-  String successMessage,
 ) async {
   await action();
 
   if (!context.mounted) {
-    return;
+    return false;
   }
 
   final error = ref.read(authNotifierProvider).error;
 
-  _showMessage(
-    context,
-    error == null ? successMessage : authErrorMessage(error),
-  );
+  if (error != null) {
+    _showMessage(context, authErrorMessage(error));
+    return false;
+  }
+
+  return true;
 }
 
 Future<void> editDisplayName(
@@ -163,6 +164,7 @@ Future<void> editDisplayName(
   String currentName,
 ) async {
   final controller = TextEditingController(text: currentName);
+
   final name = await showDialog<String>(
     context: context,
     builder: (context) => AlertDialog(
@@ -185,56 +187,210 @@ Future<void> editDisplayName(
       ],
     ),
   );
+
   controller.dispose();
 
-  if (name == null || name.isEmpty || !context.mounted) return;
+  if (name == null || name.isEmpty || !context.mounted) {
+    return;
+  }
 
-  await _runAuthAction(
+  final success = await _runAuthAction(
     context,
     ref,
     () => ref
         .read(authNotifierProvider.notifier)
         .changeDisplayName(displayName: name),
-    'Nom mis à jour.',
   );
+
+  if (success && context.mounted) {
+    _showMessage(context, 'Nom mis à jour.');
+  }
 }
 
 Future<void> changePassword(BuildContext context, WidgetRef ref) async {
-  final controller = TextEditingController();
-  final password = await showDialog<String>(
+  final currentPasswordController = TextEditingController();
+  final newPasswordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+
+  var showCurrentPassword = false;
+  var showNewPassword = false;
+  var showConfirmPassword = false;
+
+  final credentials = await showDialog<Map<String, String>>(
     context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Changer le mot de passe'),
-      content: TextField(
-        controller: controller,
-        autofocus: true,
-        obscureText: true,
-        decoration: const InputDecoration(labelText: 'Nouveau mot de passe'),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Annuler'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.pop(context, controller.text),
-          child: const Text('Enregistrer'),
-        ),
-      ],
-    ),
-  );
-  controller.dispose();
+    builder: (dialogContext) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          final currentPassword = currentPasswordController.text;
+          final newPassword = newPasswordController.text;
+          final confirmPassword = confirmPasswordController.text;
 
-  if (password == null || password.isEmpty || !context.mounted) return;
+          final passwordsMatch =
+              newPassword.isNotEmpty &&
+              confirmPassword.isNotEmpty &&
+              newPassword == confirmPassword;
 
-  await _runAuthAction(
-    context,
-    ref,
-    () => ref
-        .read(authNotifierProvider.notifier)
-        .changePassword(newPassword: password),
-    'Mot de passe mis à jour.',
+          final passwordsDoNotMatch =
+              confirmPassword.isNotEmpty && newPassword != confirmPassword;
+
+          final valid =
+              currentPassword.isNotEmpty &&
+              newPassword.length >= 6 &&
+              passwordsMatch;
+
+          return AlertDialog(
+            title: const Text('Changer le mot de passe'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: currentPasswordController,
+                    autofocus: true,
+                    obscureText: !showCurrentPassword,
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      labelText: 'Mot de passe actuel',
+                      suffixIcon: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            showCurrentPassword = !showCurrentPassword;
+                          });
+                        },
+                        icon: Icon(
+                          showCurrentPassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: newPasswordController,
+                    obscureText: !showNewPassword,
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      labelText: 'Nouveau mot de passe',
+                      helperText: 'Au moins 6 caractères',
+                      suffixIcon: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            showNewPassword = !showNewPassword;
+                          });
+                        },
+                        icon: Icon(
+                          showNewPassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: confirmPasswordController,
+                    obscureText: !showConfirmPassword,
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      labelText: 'Confirmer le nouveau mot de passe',
+                      suffixIcon: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            showConfirmPassword = !showConfirmPassword;
+                          });
+                        },
+                        icon: Icon(
+                          showConfirmPassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (passwordsDoNotMatch) ...[
+                    const SizedBox(height: 8),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Les mots de passe ne correspondent pas.',
+                        style: TextStyle(color: AppPalette.error, fontSize: 12),
+                      ),
+                    ),
+                  ],
+                  if (passwordsMatch) ...[
+                    const SizedBox(height: 8),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Les mots de passe correspondent.',
+                        style: TextStyle(color: Colors.green, fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Annuler'),
+              ),
+              FilledButton(
+                onPressed: valid
+                    ? () {
+                        Navigator.pop(dialogContext, {
+                          'current': currentPassword,
+                          'new': newPassword,
+                        });
+                      }
+                    : null,
+                child: const Text('Enregistrer'),
+              ),
+            ],
+          );
+        },
+      );
+    },
   );
+
+  currentPasswordController.dispose();
+  newPasswordController.dispose();
+  confirmPasswordController.dispose();
+
+  if (credentials == null || !context.mounted) {
+    return;
+  }
+
+  final currentPassword = credentials['current'];
+  final newPassword = credentials['new'];
+
+  if (currentPassword == null ||
+      newPassword == null ||
+      currentPassword.isEmpty ||
+      newPassword.length < 6) {
+    return;
+  }
+
+  await ref
+      .read(authNotifierProvider.notifier)
+      .changePasswordWithReauthentication(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+
+  if (!context.mounted) {
+    return;
+  }
+
+  final error = ref.read(authNotifierProvider).error;
+
+  if (error != null) {
+    _showMessage(context, authErrorMessage(error));
+    return;
+  }
+
+  _showMessage(context, 'Mot de passe mis à jour.');
 }
 
 Future<void> sendPasswordReset(BuildContext context, WidgetRef ref) async {
@@ -245,23 +401,29 @@ Future<void> sendPasswordReset(BuildContext context, WidgetRef ref) async {
     return;
   }
 
-  await _runAuthAction(
+  final success = await _runAuthAction(
     context,
     ref,
     () => ref
         .read(authNotifierProvider.notifier)
         .sendPasswordResetEmail(email: email),
-    'Un lien de réinitialisation a été envoyé à $email.',
   );
+
+  if (success && context.mounted) {
+    _showMessage(context, 'Un lien de réinitialisation a été envoyé à $email.');
+  }
 }
 
 Future<void> sendEmailVerification(BuildContext context, WidgetRef ref) async {
-  await _runAuthAction(
+  final success = await _runAuthAction(
     context,
     ref,
     () => ref.read(authNotifierProvider.notifier).sendEmailVerification(),
-    'Un e-mail de vérification a été envoyé.',
   );
+
+  if (success && context.mounted) {
+    _showMessage(context, 'Un e-mail de vérification a été envoyé.');
+  }
 }
 
 Future<void> deleteAccount(BuildContext context, WidgetRef ref) async {
@@ -270,8 +432,8 @@ Future<void> deleteAccount(BuildContext context, WidgetRef ref) async {
     builder: (context) => AlertDialog(
       title: const Text('Supprimer mon compte'),
       content: const Text(
-        'Cette action est définitive. Votre compte et vos accès seront '
-        'supprimés.',
+        'Cette action est définitive. Votre compte et vos accès '
+        'seront supprimés.',
       ),
       actions: [
         TextButton(
@@ -287,14 +449,19 @@ Future<void> deleteAccount(BuildContext context, WidgetRef ref) async {
     ),
   );
 
-  if (confirmed != true || !context.mounted) return;
+  if (confirmed != true || !context.mounted) {
+    return;
+  }
 
-  await _runAuthAction(
+  final success = await _runAuthAction(
     context,
     ref,
     () => ref.read(authNotifierProvider.notifier).deleteAccount(),
-    'Compte supprimé.',
   );
+
+  if (success && context.mounted) {
+    _showMessage(context, 'Compte supprimé.');
+  }
 }
 
 Future<void> chooseTheme(

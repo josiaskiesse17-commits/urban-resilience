@@ -52,9 +52,9 @@ class HomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Connaissez votre zone avant la prochaine pluie.',
+                  'Connaissez votre zone avant la prochaine Catastrophe naturelle.',
                   style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 8),
