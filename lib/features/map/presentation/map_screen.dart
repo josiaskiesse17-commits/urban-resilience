@@ -108,7 +108,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       point: LatLng(zone.latitude, zone.longitude),
                       width: 120,
                       height: 62,
-                      alignment: Alignment.topCenter,
+                      alignment: const Alignment(0, 1 - 26 / 62),
                       child: ZoneMapMarker(
                         zone: zone,
                         onTap: () => _openZone(zone),

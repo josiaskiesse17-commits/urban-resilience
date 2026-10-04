@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart';
 
 import 'package:urban_resilience/features/map/presentation/map_screen.dart';
 import 'package:urban_resilience/features/map/presentation/providers/map_provider.dart';
@@ -88,8 +90,19 @@ void main() {
       findsNWidgets(RiskZoneCatalog.zones.length),
     );
 
+    final markerLayer = tester
+        .widgetList<MarkerLayer>(find.byType(MarkerLayer))
+        .last;
+
     for (final zone in RiskZoneCatalog.zones) {
       expect(find.text(zone.name), findsOneWidget);
+
+      final marker = markerLayer.markers.singleWhere(
+        (marker) => (marker.child as ZoneMapMarker).zone.id == zone.id,
+      );
+
+      expect(marker.point, LatLng(zone.latitude, zone.longitude));
+      expect(marker.alignment, const Alignment(0, 1 - 26 / 62));
     }
   });
 

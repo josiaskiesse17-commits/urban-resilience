@@ -9,20 +9,60 @@ class RiskZoneCatalog {
   const RiskZoneCatalog._();
 
   static const List<RiskZoneTarget> zones = <RiskZoneTarget>[
-    (id: 'zone-masina', name: 'Masina', latitude: -4.30, longitude: 15.35),
-    (id: 'zone-ndjili', name: "N'Djili", latitude: -4.36, longitude: 15.34),
-    (id: 'zone-limete', name: 'Limete', latitude: -4.34, longitude: 15.32),
-    (id: 'zone-gombe', name: 'Gombe', latitude: -4.31, longitude: 15.29),
+    (
+      id: 'zone-masina',
+      name: 'Masina',
+      latitude: -4.3661666,
+      longitude: 15.3909815,
+    ),
+    (
+      id: 'zone-ndjili',
+      name: "N'Djili",
+      latitude: -4.4069558,
+      longitude: 15.3754638,
+    ),
+    (
+      id: 'zone-limete',
+      name: 'Limete',
+      latitude: -4.3543467,
+      longitude: 15.3466854,
+    ),
+    (
+      id: 'zone-gombe',
+      name: 'Gombe',
+      latitude: -4.3119751,
+      longitude: 15.2894296,
+    ),
     (
       id: 'zone-kasa-vubu',
       name: 'Kasa-Vubu',
-      latitude: -4.31,
-      longitude: 15.28,
+      latitude: -4.3417150,
+      longitude: 15.3040174,
     ),
-    (id: 'zone-kalamu', name: 'Kalamu', latitude: -4.34, longitude: 15.24),
-    (id: 'zone-bumbu', name: 'Bumbu', latitude: -4.36, longitude: 15.27),
-    (id: 'zone-lingwala', name: 'Lingwala', latitude: -4.33, longitude: 15.29),
-    (id: 'zone-barumbu', name: 'Barumbu', latitude: -4.32, longitude: 15.31),
+    (
+      id: 'zone-kalamu',
+      name: 'Kalamu',
+      latitude: -4.3495584,
+      longitude: 15.3179297,
+    ),
+    (
+      id: 'zone-bumbu',
+      name: 'Bumbu',
+      latitude: -4.3725905,
+      longitude: 15.2934444,
+    ),
+    (
+      id: 'zone-lingwala',
+      name: 'Lingwala',
+      latitude: -4.3252537,
+      longitude: 15.3012644,
+    ),
+    (
+      id: 'zone-barumbu',
+      name: 'Barumbu',
+      latitude: -4.3190075,
+      longitude: 15.3256934,
+    ),
   ];
 
   static final DateTime historicalBaselineStart = DateTime.utc(2018, 1, 1);
