@@ -3,14 +3,95 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:urban_resilience/core/theme/app_palette.dart';
+import 'package:urban_resilience/features/observations/presentation/providers/observation_providers.dart';
 import 'package:urban_resilience/features/observations/presentation/report_chrome.dart';
 import 'package:urban_resilience/features/observations/presentation/report_draft.dart';
+import 'package:urban_resilience/features/observations/presentation/report_type_mapping.dart';
+import 'package:urban_resilience/features/risk/data/risk_repository.dart';
 
-class ReportSummaryScreen extends ConsumerWidget {
+class ReportSummaryScreen extends ConsumerStatefulWidget {
   const ReportSummaryScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ReportSummaryScreen> createState() =>
+      _ReportSummaryScreenState();
+}
+
+class _ReportSummaryScreenState extends ConsumerState<ReportSummaryScreen> {
+  bool _submitting = false;
+
+  Future<void> _submit() async {
+    if (_submitting) return;
+
+    final draft = ref.read(reportDraftProvider);
+
+    if (!draft.hasType || draft.description.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ajoutez un type et une description avant d’envoyer.'),
+        ),
+      );
+      return;
+    }
+
+    if (!draft.hasPlace) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Indiquez le lieu de l’événement avant d’envoyer.'),
+        ),
+      );
+      return;
+    }
+
+    final latitude = draft.latitude!;
+    final longitude = draft.longitude!;
+    final zoneId =
+        draft.zoneId?.trim().isNotEmpty == true
+            ? draft.zoneId!.trim()
+            : RiskZoneCatalog.nearest(latitude, longitude).id;
+    final hazardLabel = ReportTypeMapping.hazardLabel(
+      draft.typeId,
+      preferred: draft.hazardType,
+    );
+    final type = ReportTypeMapping.observationType(draft.typeId);
+
+    setState(() => _submitting = true);
+
+    try {
+      final id = await ref
+          .read(observationsRepositoryProvider)
+          .createWithOptionalPhoto(
+            zoneId: zoneId,
+            hazardType: hazardLabel,
+            latitude: latitude,
+            longitude: longitude,
+            type: type,
+            description: draft.description,
+            photoPath: draft.photoPath,
+          );
+
+      if (!mounted) return;
+
+      ref.read(reportDraftProvider.notifier).setContext(
+        zoneId: zoneId,
+        hazardType: hazardLabel,
+      );
+      ref.read(reportDraftProvider.notifier).setSubmittedId(id);
+      context.go('/report/received');
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Envoi impossible : $error')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _submitting = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final draft = ref.watch(reportDraftProvider);
 
     return Scaffold(
@@ -40,12 +121,13 @@ class ReportSummaryScreen extends ConsumerWidget {
                       'Vous pouvez encore modifier les informations.',
                       style: TextStyle(
                         fontSize: 13,
+                        height: 1.35,
                         color: AppPalette.textMuted,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Container(
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
@@ -58,15 +140,26 @@ class ReportSummaryScreen extends ConsumerWidget {
                             onEdit: () => context.go('/report'),
                             child: Row(
                               children: [
-                                SvgPicture.asset(
-                                  draft.typeIcon,
-                                  width: 20,
-                                  height: 20,
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: AppPalette.infoBoxBg,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: SvgPicture.asset(
+                                    draft.typeIcon,
+                                    width: 20,
+                                    height: 20,
+                                  ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
-                                    draft.typeTitle,
+                                    draft.typeTitle.isEmpty
+                                        ? 'Non renseigné'
+                                        : draft.typeTitle,
                                     style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
@@ -85,10 +178,12 @@ class ReportSummaryScreen extends ConsumerWidget {
                             title: 'Description',
                             onEdit: () => context.go('/report/description'),
                             child: Text(
-                              draft.description,
+                              draft.description.isEmpty
+                                  ? 'Aucune description'
+                                  : draft.description,
                               style: const TextStyle(
                                 fontSize: 13,
-                                height: 1.45,
+                                height: 1.4,
                                 color: AppPalette.textDark,
                               ),
                             ),
@@ -150,7 +245,9 @@ class ReportSummaryScreen extends ConsumerWidget {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        draft.street,
+                                        draft.street.isEmpty
+                                            ? 'Lieu sélectionné'
+                                            : draft.street,
                                         style: const TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w600,
@@ -158,7 +255,11 @@ class ReportSummaryScreen extends ConsumerWidget {
                                         ),
                                       ),
                                       Text(
-                                        draft.cityLine,
+                                        draft.cityLine.isEmpty
+                                            ? (draft.hasPlace
+                                                  ? '${draft.latitude!.toStringAsFixed(4)}, ${draft.longitude!.toStringAsFixed(4)}'
+                                                  : 'Non renseigné')
+                                            : draft.cityLine,
                                         style: const TextStyle(
                                           fontSize: 13,
                                           color: AppPalette.textMuted,
@@ -193,8 +294,10 @@ class ReportSummaryScreen extends ConsumerWidget {
                 ),
               ),
               ReportActionButton(
-                label: 'Envoyer le signalement',
-                onPressed: () => context.go('/report/received'),
+                label: _submitting
+                    ? 'Envoi en cours…'
+                    : 'Envoyer le signalement',
+                onPressed: _submitting ? () {} : _submit,
               ),
               const ReportNavigation(),
             ],

@@ -162,40 +162,62 @@ class ReportActionButton extends StatelessWidget {
   }
 }
 
+enum CitizenNavTab { alertes, carte, profil }
+
 class ReportNavigation extends StatelessWidget {
-  const ReportNavigation({super.key});
+  const ReportNavigation({
+    super.key,
+    this.selected,
+  });
+
+  /// Currently active tab; null when none of the three (e.g. report wizard).
+  final CitizenNavTab? selected;
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      height: 74,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: AppPalette.inputBorder)),
+      height: 80,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? const Color(0x40000000) : const Color(0x14000000),
+            blurRadius: 12,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _Item(
-            label: 'Carte',
-            asset: 'assets/icons/map-nav-map.svg',
-            onTap: () => context.go('/map'),
-          ),
-          const _Item(
-            label: 'Signaler',
-            asset: 'assets/icons/map-nav-plus.svg',
-            selected: true,
-          ),
           _Item(
             label: 'Alertes',
             asset: 'assets/icons/map-nav-bell.svg',
-            onTap: () => context.go('/alerts'),
+            selected: selected == CitizenNavTab.alertes,
+            onTap: selected == CitizenNavTab.alertes
+                ? null
+                : () => context.go('/alerts'),
+          ),
+          _Item(
+            label: 'Carte',
+            asset: 'assets/icons/map-nav-map.svg',
+            selected: selected == CitizenNavTab.carte,
+            onTap: selected == CitizenNavTab.carte
+                ? null
+                : () => context.go('/map'),
           ),
           _Item(
             label: 'Profil',
             asset: 'assets/icons/map-nav-user.svg',
-            onTap: () => context.push('/profile'),
+            selected: selected == CitizenNavTab.profil,
+            onTap: selected == CitizenNavTab.profil
+                ? null
+                : () => context.push('/profile'),
           ),
         ],
       ),
@@ -218,30 +240,44 @@ class _Item extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final iconColor = selected ? scheme.primary : scheme.onSurfaceVariant;
+    final pillColor =
+        selected ? scheme.primaryContainer : Colors.transparent;
+
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
         width: 76,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
               width: 36,
-              height: 28,
+              height: 26,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: selected ? AppPalette.infoBoxBg : Colors.transparent,
+                color: pillColor,
                 borderRadius: BorderRadius.circular(999),
               ),
-              child: SvgPicture.asset(asset, width: 20, height: 20),
+              child: SvgPicture.asset(
+                asset,
+                width: 20,
+                height: 20,
+                colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
+              ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 11,
+                height: 1.1,
                 fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                color: selected ? AppPalette.primary : AppPalette.textMuted,
+                color: selected ? scheme.primary : scheme.onSurfaceVariant,
               ),
             ),
           ],

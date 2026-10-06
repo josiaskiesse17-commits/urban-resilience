@@ -39,7 +39,10 @@ class _ReportDescriptionScreenState
     if (file == null) {
       return;
     }
-    ref.read(reportDraftProvider.notifier).setPhoto(file.name);
+    ref.read(reportDraftProvider.notifier).setPhoto(
+          name: file.name,
+          path: file.path,
+        );
   }
 
   @override

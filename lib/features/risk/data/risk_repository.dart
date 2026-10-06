@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 typedef RiskZoneTarget = ({
   String id,
   String name,
@@ -78,4 +80,46 @@ class RiskZoneCatalog {
 
     return null;
   }
+
+  /// Nearest catalog zone to [latitude]/[longitude] (haversine).
+  static RiskZoneTarget nearest(double latitude, double longitude) {
+    RiskZoneTarget? best;
+    var bestDistance = double.infinity;
+
+    for (final zone in zones) {
+      final distance = _haversineKm(
+        latitude,
+        longitude,
+        zone.latitude,
+        zone.longitude,
+      );
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = zone;
+      }
+    }
+
+    return best ?? zones.first;
+  }
+
+  static double _haversineKm(
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
+    const earthRadiusKm = 6371.0;
+    final dLat = _toRadians(lat2 - lat1);
+    final dLon = _toRadians(lon2 - lon1);
+    final a =
+        math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(_toRadians(lat1)) *
+            math.cos(_toRadians(lat2)) *
+            math.sin(dLon / 2) *
+            math.sin(dLon / 2);
+    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    return earthRadiusKm * c;
+  }
+
+  static double _toRadians(double degrees) => degrees * math.pi / 180;
 }

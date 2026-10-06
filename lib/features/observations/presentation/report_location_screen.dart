@@ -9,6 +9,7 @@ import 'package:urban_resilience/core/theme/app_palette.dart';
 import 'package:urban_resilience/features/location/presentation/selected_place_provider.dart';
 import 'package:urban_resilience/features/observations/presentation/report_chrome.dart';
 import 'package:urban_resilience/features/observations/presentation/report_draft.dart';
+import 'package:urban_resilience/features/risk/data/risk_repository.dart';
 
 class ReportLocationScreen extends ConsumerStatefulWidget {
   const ReportLocationScreen({super.key});
@@ -85,6 +86,8 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
   @override
   Widget build(BuildContext context) {
     final draft = ref.watch(reportDraftProvider);
+    final mapLat = draft.latitude ?? RiskZoneCatalog.zones.first.latitude;
+    final mapLng = draft.longitude ?? RiskZoneCatalog.zones.first.longitude;
 
     return Scaffold(
       backgroundColor: AppPalette.background,
@@ -127,10 +130,7 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                             FlutterMap(
                               mapController: _mapController,
                               options: MapOptions(
-                                initialCenter: LatLng(
-                                  draft.latitude,
-                                  draft.longitude,
-                                ),
+                                initialCenter: LatLng(mapLat, mapLng),
                                 initialZoom: 15,
                                 onMapEvent: (event) {
                                   if (event is MapEventMoveEnd) {
@@ -340,13 +340,19 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
               ReportActionButton(
                 label: 'Continuer vers le récapitulatif',
                 onPressed: () {
+                  final latitude = draft.latitude ?? mapLat;
+                  final longitude = draft.longitude ?? mapLng;
                   ref
                       .read(reportDraftProvider.notifier)
                       .setPlace(
-                        street: _street.text.trim(),
-                        cityLine: _city.text.trim(),
-                        latitude: draft.latitude,
-                        longitude: draft.longitude,
+                        street: _street.text.trim().isEmpty
+                            ? 'Lieu sélectionné'
+                            : _street.text.trim(),
+                        cityLine: _city.text.trim().isEmpty
+                            ? '${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}'
+                            : _city.text.trim(),
+                        latitude: latitude,
+                        longitude: longitude,
                       );
                   context.push('/report/summary');
                 },

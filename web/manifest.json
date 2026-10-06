@@ -1,11 +1,11 @@
 {
-    "name": "urban_resilience",
-    "short_name": "urban_resilience",
+    "name": "Urban Resilience",
+    "short_name": "Urban Resilience",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#176B72",
+    "theme_color": "#176B72",
+    "description": "Prévenir. Comprendre. Agir.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

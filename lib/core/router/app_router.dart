@@ -16,7 +16,12 @@ import '../../features/auth/presentation/screens/verify_email_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/location/presentation/location_permission_screen.dart';
 import '../../features/map/presentation/map_screen.dart';
+import '../../features/observations/presentation/new_report_screen.dart';
 import '../../features/observations/presentation/observations_screen.dart';
+import '../../features/observations/presentation/report_description_screen.dart';
+import '../../features/observations/presentation/report_location_screen.dart';
+import '../../features/observations/presentation/report_received_screen.dart';
+import '../../features/observations/presentation/report_summary_screen.dart';
 import '../../features/risk/presentation/risk_details_screen.dart';
 
 String? appRouteRedirect({
@@ -140,6 +145,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           zoneId: state.uri.queryParameters['zone'],
           hazardType: state.uri.queryParameters['hazard'],
         ),
+      ),
+      GoRoute(
+        path: '/report',
+        builder: (context, state) => NewReportScreen(
+          zoneId: state.uri.queryParameters['zone'],
+          hazardType: state.uri.queryParameters['hazard'],
+        ),
+      ),
+      GoRoute(
+        path: '/report/description',
+        builder: (context, state) => const ReportDescriptionScreen(),
+      ),
+      GoRoute(
+        path: '/report/location',
+        builder: (context, state) => const ReportLocationScreen(),
+      ),
+      GoRoute(
+        path: '/report/summary',
+        builder: (context, state) => const ReportSummaryScreen(),
+      ),
+      GoRoute(
+        path: '/report/received',
+        builder: (context, state) => const ReportReceivedScreen(),
       ),
       GoRoute(
         path: '/profile',
