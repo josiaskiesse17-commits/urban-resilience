@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" fill="none">
+  <!-- Shield outline -->
+  <path
+    d="M60 8
+       C72 8 92 14 104 22
+       V58
+       C104 92 84 118 60 132
+       C36 118 16 92 16 58
+       V22
+       C28 14 48 8 60 8Z"
+    stroke="#FFFFFF"
+    stroke-width="10"
+    stroke-linejoin="round"
+    fill="none"/>
+  <!-- Map pin with cutout -->
+  <path
+    fill-rule="evenodd"
+    fill="#FFFFFF"
+    d="M60 38
+       C48 38 38 48 38 60
+       C38 74 60 98 60 98
+       C60 98 82 74 82 60
+       C82 48 72 38 60 38Z
+       M60 49
+       A9 9 0 1 0 60 67
+       A9 9 0 1 0 60 49Z"/>
+  <!-- Orbit ellipse (dashed) -->
+  <ellipse
+    cx="60"
+    cy="96"
+    rx="34"
+    ry="10"
+    stroke="#FFFFFF"
+    stroke-width="3.5"
+    stroke-dasharray="4 5"
+    fill="none"/>
+  <!-- Orbit nodes -->
+  <circle cx="26" cy="96" r="4.5" fill="#FFFFFF"/>
+  <circle cx="94" cy="96" r="4.5" fill="#FFFFFF"/>
+</svg>

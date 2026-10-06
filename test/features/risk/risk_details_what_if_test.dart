@@ -186,6 +186,11 @@ void main() {
       expect(analyst.calls, 1);
       expect(find.text('AI summary for Masina.'), findsOneWidget);
 
+      final seeMore = find.text('Voir plus');
+      await tester.ensureVisible(seeMore);
+      await tester.tap(seeMore);
+      await tester.pumpAndSettle();
+
       double topOf(Finder finder) => tester.getTopLeft(finder).dy;
 
       expect(
@@ -223,6 +228,11 @@ void main() {
 
     await tester.pumpAndSettle();
     expect(analyst.calls, 1);
+
+    final seeMore = find.text('Voir plus');
+    await tester.ensureVisible(seeMore);
+    await tester.tap(seeMore);
+    await tester.pumpAndSettle();
 
     final slider = find.byType(Slider).first;
     await tester.ensureVisible(slider);

@@ -8,6 +8,7 @@ final observationsRepositoryProvider = Provider<ObservationsRepository>((ref) {
   return ObservationsRepository(
     ref.watch(firestoreProvider),
     ref.watch(firebaseAuthProvider),
+    ref.watch(firebaseStorageProvider),
   );
 });
 

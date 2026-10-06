@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../../risk/data/risk_repository.dart';
 import '../../risk/presentation/providers/risk_live_providers.dart';
+import '../../observations/presentation/report_chrome.dart';
 import 'providers/map_provider.dart';
 import 'widgets/map_search_bar.dart';
 import 'widgets/zone_active_risks_sheet.dart';
@@ -169,6 +170,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: const ReportNavigation(
+        selected: CitizenNavTab.carte,
       ),
     );
   }

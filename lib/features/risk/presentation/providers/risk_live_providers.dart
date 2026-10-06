@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import '../../../auth/presentation/providers/auth_providers.dart';
 
 import '../../data/firestore_risk_exposure_repository.dart';
 import '../../data/firestore_risk_result_repository.dart';
@@ -44,6 +45,7 @@ final observationsRepositoryProvider = Provider<ObservationsRepository>((ref) {
   return ObservationsRepository(
     FirebaseFirestore.instance,
     FirebaseAuth.instance,
+    ref.read(firebaseStorageProvider),
   );
 });
 
@@ -188,19 +190,19 @@ final zoneHazardRiskGeneratorProvider = Provider<ZoneHazardRiskGenerator>((
 
   return (zone, hazard) {
     if (hazard == HazardType.flooding) {
-  return floodService.calculateLiveRiskAndSave(
-    id: HazardRiskId.forZone(
-      zoneId: zone.id,
-      hazard: HazardType.flooding,
-    ),
-    zoneId: zone.id,
-    locationName: zone.name,
-    latitude: zone.latitude,
-    longitude: zone.longitude,
-    startDate: RiskZoneCatalog.historicalBaselineStart,
-    endDate: RiskZoneCatalog.historicalBaselineEnd,
-  );
-}
+      return floodService.calculateLiveRiskAndSave(
+        id: HazardRiskId.forZone(
+          zoneId: zone.id,
+          hazard: HazardType.flooding,
+        ),
+        zoneId: zone.id,
+        locationName: zone.name,
+        latitude: zone.latitude,
+        longitude: zone.longitude,
+        startDate: RiskZoneCatalog.historicalBaselineStart,
+        endDate: RiskZoneCatalog.historicalBaselineEnd,
+      );
+    }
 
     return hazardService.calculateAndSave(
       zoneId: zone.id,
@@ -217,3 +219,4 @@ final zoneRiskGeneratorProvider = Provider<ZoneRiskGenerator>((ref) {
 
   return (zone) => generator(zone, HazardType.flooding);
 });
+

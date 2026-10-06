@@ -50,6 +50,8 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
 
   final Map<String, double> _simulatedValues = <String, double>{};
 
+  bool _showMoreDetails = false;
+
   static const RiskSimulationService _simulationService =
       RiskSimulationService();
 
@@ -327,16 +329,60 @@ setState(() {
                           zoneId: HazardRiskId.zoneIdOf(widget.riskId),
                           hazardType: _selectedHazard,
                         ),
-                        const SizedBox(height: 12),
-                        _buildEvidenceCard(context, riskResult),
-                        const SizedBox(height: 12),
-                        _buildAdviceCard(context, riskResult),
-                        const SizedBox(height: 12),
-                        _buildObservationsCard(context, riskResult),
-                        const SizedBox(height: 12),
-                        _buildRefreshCard(context, riskResult),
-                        const SizedBox(height: 12),
-                        _buildWhatIfCard(context, riskResult),
+                        if (!_showMoreDetails) ...[
+                          const SizedBox(height: 16),
+                          Align(
+                            alignment: Alignment.center,
+                            child: TextButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  _showMoreDetails = true;
+                                });
+                              },
+                              icon: const Icon(Icons.expand_more),
+                              label: const Text('Voir plus'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppPalette.primary,
+                                textStyle: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                        if (_showMoreDetails) ...[
+                          const SizedBox(height: 12),
+                          _buildEvidenceCard(context, riskResult),
+                          const SizedBox(height: 12),
+                          _buildAdviceCard(context, riskResult),
+                          const SizedBox(height: 12),
+                          _buildObservationsCard(context, riskResult),
+                          const SizedBox(height: 12),
+                          _buildRefreshCard(context, riskResult),
+                          const SizedBox(height: 12),
+                          _buildWhatIfCard(context, riskResult),
+                          const SizedBox(height: 16),
+                          Align(
+                            alignment: Alignment.center,
+                            child: TextButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  _showMoreDetails = false;
+                                });
+                              },
+                              icon: const Icon(Icons.expand_less),
+                              label: const Text('Voir moins'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppPalette.primary,
+                                textStyle: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -345,12 +391,6 @@ setState(() {
             ),
           ),
           _RiskNavigation(
-            onReport: () {
-              context.push(
-                '/observations?zone=${Uri.encodeComponent(HazardRiskId.zoneIdOf(widget.riskId))}'
-                '&hazard=${Uri.encodeComponent(_selectedHazard.id)}',
-              );
-            },
             onAlerts: () {
               context.push(
                 '/alerts?zone=${Uri.encodeComponent(HazardRiskId.zoneIdOf(widget.riskId))}'
@@ -1470,9 +1510,8 @@ class _SectionTitle extends StatelessWidget {
 }
 
 class _RiskNavigation extends StatelessWidget {
-  const _RiskNavigation({required this.onReport, required this.onAlerts});
+  const _RiskNavigation({required this.onAlerts});
 
-  final VoidCallback onReport;
   final VoidCallback onAlerts;
 
   @override
@@ -1482,28 +1521,28 @@ class _RiskNavigation extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 12,
+            offset: Offset(0, -2),
+          ),
+        ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
+          _NavItem(
+            label: 'Alertes',
+            asset: 'assets/icons/map-nav-bell.svg',
+            onTap: onAlerts,
+          ),
           _NavItem(
             label: 'Carte',
             asset: 'assets/icons/map-nav-map.svg',
             selected: true,
             onTap: () => context.go('/map'),
-          ),
-          _NavItem(
-            label: 'Signaler',
-            asset: 'assets/icons/map-nav-plus.svg',
-            onTap: onReport,
-          ),
-          _NavItem(
-            label: 'Alertes',
-            asset: 'assets/icons/map-nav-bell.svg',
-            onTap: onAlerts,
           ),
           _NavItem(
             label: 'Profil',
