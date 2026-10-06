@@ -81,7 +81,7 @@ void main() {
 
     expect(result.baseline.locationName, 'Masina');
 
-    expect(result.baseline.evidence.measurements.length, 5);
+    expect(result.baseline.evidence.measurements.length, 6);
 
     expect(result.baseline.evidence.measurements.first.source, 'Fake Weather');
 

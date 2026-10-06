@@ -35,4 +35,65 @@ void main() {
 
     expect(result, [21, 27]);
   });
+
+  test('rolling six-hour totals never bridge a gap in the series', () {
+    const calculator = RainfallWindowCalculator();
+    final start = DateTime.utc(2022, 1, 1);
+
+    final times = <DateTime>[
+      for (var hour = 0; hour < 6; hour++)
+        start.add(Duration(hours: hour)),
+      // 14 missing hours before the next run of hourly samples.
+      for (var hour = 20; hour < 26; hour++)
+        start.add(Duration(hours: hour)),
+    ];
+
+    final result = calculator.rollingSixHourTotals(
+      List<double>.filled(12, 1),
+      times: times,
+    );
+
+    // Only the two complete hourly runs count; the legacy index-based loop
+    // would have produced seven windows, most spanning the gap.
+    expect(result, [6, 6]);
+  });
+
+  test('rolling six-hour totals sort unordered timestamped samples', () {
+    const calculator = RainfallWindowCalculator();
+    final start = DateTime.utc(2022, 1, 1);
+
+    final values = <double>[7, 6, 5, 4, 3, 2, 1];
+    final times = <DateTime>[
+      for (var hour = 6; hour >= 0; hour--)
+        start.add(Duration(hours: hour)),
+    ];
+
+    final result = calculator.rollingSixHourTotals(values, times: times);
+
+    expect(result, [21, 27]);
+  });
+
+  test('rolling six-hour totals refuse insufficient or invalid samples', () {
+    const calculator = RainfallWindowCalculator();
+
+    expect(calculator.rollingSixHourTotals([1, 2, 3]), isEmpty);
+
+    expect(
+      calculator.rollingSixHourTotals(List<double>.filled(7, double.nan)),
+      isEmpty,
+    );
+
+    final start = DateTime.utc(2022, 1, 1);
+    final times = <DateTime>[
+      for (var hour in [0, 1, 2, 3, 4, 10]) start.add(Duration(hours: hour)),
+    ];
+
+    expect(
+      calculator.rollingSixHourTotals(
+        List<double>.filled(6, 1),
+        times: times,
+      ),
+      isEmpty,
+    );
+  });
 }

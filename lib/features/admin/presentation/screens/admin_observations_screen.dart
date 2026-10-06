@@ -25,7 +25,7 @@ class AdminObservationsScreen extends ConsumerWidget {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 860),
                   child: ListView.separated(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(MediaQuery.sizeOf(context).width < 600 ? 12.0 : 16.0),
                     itemCount: observations.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
@@ -50,6 +50,7 @@ class AdminObservationsScreen extends ConsumerWidget {
       ObservationType.flooding => 'Inondation',
       ObservationType.blockedRoad => 'Route bloquée',
       ObservationType.landslide => 'Glissement de terrain',
+      ObservationType.heat => 'Chaleur',
       ObservationType.other => 'Autre',
     };
   }
@@ -91,7 +92,9 @@ class AdminObservationsScreen extends ConsumerWidget {
         title: const Text('Détail de l’observation'),
         content: SingleChildScrollView(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.sizeOf(context).width * 0.9 > 600 ? 600 : MediaQuery.sizeOf(context).width * 0.9,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -173,9 +176,16 @@ class AdminObservationsScreen extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Supprimer l’observation ?'),
-        content: const Text(
-          'Une observation rejetée sera supprimée définitivement '
-          'et ne sera plus visible dans les signalements.',
+        content: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.sizeOf(context).width * 0.9 > 600 ? 600 : MediaQuery.sizeOf(context).width * 0.9,
+            ),
+            child: const Text(
+              'Une observation rejetée sera supprimée définitivement '
+              'et ne sera plus visible dans les signalements.',
+            ),
+          ),
         ),
         actions: [
           TextButton(

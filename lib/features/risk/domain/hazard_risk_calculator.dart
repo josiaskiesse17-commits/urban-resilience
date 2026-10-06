@@ -55,6 +55,7 @@ class HazardRiskCalculator {
   static const double hazardWeight = 0.40;
   static const double vulnerabilityWeight = 0.25;
   static const double historicalExposureWeight = 0.15;
+  static const double observationWeight = 0.20;
 
   HazardRiskAssessment calculate(HazardRiskInput input) {
     final variableScores = <HazardVariableScore>[];
@@ -135,7 +136,9 @@ class HazardRiskCalculator {
     final factorWeights = <String, double>{};
 
     if (hazardAvailable) {
-      overallComponents.add((value: hazardScore, weight: hazardWeight));
+      overallComponents.add(
+        (value: hazardScore, weight: hazardWeight),
+      );
 
       factorWeights['hazard'] = hazardWeight;
     }
@@ -143,10 +146,12 @@ class HazardRiskCalculator {
     final vulnerability = input.vulnerabilityScore;
 
     if (vulnerability != null) {
-      overallComponents.add((
-        value: RiskScoreUtils.clamp(vulnerability),
-        weight: vulnerabilityWeight,
-      ));
+      overallComponents.add(
+        (
+          value: RiskScoreUtils.clamp(vulnerability),
+          weight: vulnerabilityWeight,
+        ),
+      );
 
       factorWeights['vulnerability'] = vulnerabilityWeight;
     }
@@ -154,13 +159,26 @@ class HazardRiskCalculator {
     final historicalExposure = input.historicalExposureScore;
 
     if (historicalExposure != null) {
-      overallComponents.add((
-        value: RiskScoreUtils.clamp(historicalExposure),
-        weight: historicalExposureWeight,
-      ));
+      overallComponents.add(
+        (
+          value: RiskScoreUtils.clamp(historicalExposure),
+          weight: historicalExposureWeight,
+        ),
+      );
 
       factorWeights['historicalExposure'] = historicalExposureWeight;
     }
+
+    final observationScore = RiskScoreUtils.clamp(input.observationScore);
+
+    overallComponents.add(
+      (
+        value: observationScore,
+        weight: observationWeight,
+      ),
+    );
+
+    factorWeights['currentObservations'] = observationWeight;
 
     final overallScore = RiskScoreUtils.weightedAverage(overallComponents);
 
@@ -205,6 +223,14 @@ class HazardRiskCalculator {
                   'of the same zone is not a measurement of this hazard'
             : null,
       ),
+      RiskFactorScore(
+        name: 'currentObservations',
+        label: RiskMeasurementLabel.of(name: 'currentObservations'),
+        score: observationScore,
+        weight: observationWeight,
+        usedInScore: true,
+        unavailableReason: null,
+      ),
     ];
 
     return HazardRiskAssessment(
@@ -216,7 +242,7 @@ class HazardRiskCalculator {
         rainfall: hazardScore,
         geographicVulnerability: vulnerability ?? 0,
         historicalExposure: historicalExposure ?? 0,
-        currentObservations: 0,
+        currentObservations: observationScore,
         primaryFactorLabel: input.primaryFactorLabel,
         entries: entries,
       ),

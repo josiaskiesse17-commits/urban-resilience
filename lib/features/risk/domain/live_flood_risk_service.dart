@@ -1,9 +1,11 @@
+import '../../observations/data/observations_repository.dart';
 import '../../observations/domain/observation.dart';
 import 'flood_environmental_data_source.dart';
 import 'flood_historical_baseline.dart';
 import 'flood_risk_context.dart';
 import 'flood_risk_input_factory.dart';
 import 'historical_flood_baseline_service.dart';
+import 'hazard_type.dart';
 import 'risk_intelligence_service.dart';
 import 'risk_result.dart';
 import 'risk_result_repository.dart';
@@ -16,12 +18,14 @@ class LiveFloodRiskService {
   final RiskIntelligenceService riskIntelligenceService;
   final RiskResultRepository? riskResultRepository;
   final HistoricalFloodBaselineService? historicalBaselineService;
+  final ObservationsRepository? observationsRepository;
 
   const LiveFloodRiskService({
     required this.dataSource,
     this.riskIntelligenceService = const RiskIntelligenceService(),
     this.riskResultRepository,
     this.historicalBaselineService,
+    this.observationsRepository,
   });
 
   Future<RiskResult> calculate({
@@ -75,12 +79,15 @@ class LiveFloodRiskService {
     required double latitude,
     required double longitude,
     required FloodHistoricalBaseline baseline,
-    required List<Observation> observations,
+    List<Observation>? observations,
   }) async {
     final environmentalData = await dataSource.fetch(
       latitude: latitude,
       longitude: longitude,
     );
+
+    final resolvedObservations =
+        observations ?? await _getConfirmedObservations(zoneId);
 
     final context = FloodRiskContext(
       rainfallBaselineMmPerHour: baseline.rainfallBaselineMmPerHour,
@@ -107,7 +114,7 @@ class LiveFloodRiskService {
           longitude: longitude,
           environmentalData: environmentalData,
           context: context,
-          observations: observations,
+          observations: resolvedObservations,
           baseline: baseline,
         );
   }
@@ -119,7 +126,7 @@ class LiveFloodRiskService {
     required double latitude,
     required double longitude,
     required FloodHistoricalBaseline baseline,
-    required List<Observation> observations,
+    List<Observation>? observations,
   }) async {
     final result = await calculateWithExposureAndObservations(
       id: id,
@@ -148,7 +155,7 @@ class LiveFloodRiskService {
     required double longitude,
     required DateTime startDate,
     required DateTime endDate,
-    required List<Observation> observations,
+    List<Observation>? observations,
   }) async {
     final baselineService = historicalBaselineService;
 
@@ -166,6 +173,9 @@ class LiveFloodRiskService {
       endDate: endDate,
     );
 
+    final resolvedObservations =
+        observations ?? await _getConfirmedObservations(zoneId);
+
     return calculateWithExposureAndObservationsAndSave(
       id: id,
       zoneId: zoneId,
@@ -173,7 +183,7 @@ class LiveFloodRiskService {
       latitude: latitude,
       longitude: longitude,
       baseline: baseline,
-      observations: observations,
+      observations: resolvedObservations,
     );
   }
 
@@ -235,18 +245,34 @@ class LiveFloodRiskService {
       context: context,
     );
 
-    return RiskScenarioService(riskIntelligenceService: riskIntelligenceService)
-        .simulateFloodRisk(
-          scenario: scenario,
-          id: id,
-          locationName: locationName,
-          latitude: latitude,
-          longitude: longitude,
-          baselineInput: input,
-          rainfallSource: environmentalData.rainfallSource,
-          riverSource: environmentalData.riverSource,
-          observedAt: environmentalData.observedAt,
-          baseline: baseline,
-        );
+    return RiskScenarioService(
+      riskIntelligenceService: riskIntelligenceService,
+    ).simulateFloodRisk(
+      scenario: scenario,
+      id: id,
+      locationName: locationName,
+      latitude: latitude,
+      longitude: longitude,
+      baselineInput: input,
+      rainfallSource: environmentalData.rainfallSource,
+      riverSource: environmentalData.riverSource,
+      observedAt: environmentalData.observedAt,
+      baseline: baseline,
+    );
+  }
+
+  Future<List<Observation>> _getConfirmedObservations(
+    String zoneId,
+  ) async {
+    final repository = observationsRepository;
+
+    if (repository == null) {
+      return const <Observation>[];
+    }
+
+    return repository.getConfirmedForContext(
+      zoneId: zoneId,
+      hazardType: HazardType.flooding.label,
+    );
   }
 }

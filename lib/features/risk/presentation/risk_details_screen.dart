@@ -129,13 +129,13 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
         return;
       }
 
-      setState(() {
-        _updateAttemptedForId = _riskId;
-        _updateError = StateError(
-          'No coordinates are known for "$_riskId", '
-          'so its risk cannot be calculated.',
-        );
-      });
+setState(() {
+         _updateAttemptedForId = _riskId;
+         _updateError = StateError(
+           'Aucune coordonnée n’est connue pour "$_riskId", '
+           'donc son risque ne peut pas être calculé.',
+         );
+       });
 
       return;
     }
@@ -327,6 +327,7 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
                         const SizedBox(height: 12),
                         RiskExposureCard(
                           zoneId: HazardRiskId.zoneIdOf(widget.riskId),
+                          hazardType: _selectedHazard,
                         ),
                         if (!_showMoreDetails) ...[
                           const SizedBox(height: 16),
@@ -391,7 +392,7 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
           ),
           _RiskNavigation(
             onAlerts: () {
-              context.go(
+              context.push(
                 '/alerts?zone=${Uri.encodeComponent(HazardRiskId.zoneIdOf(widget.riskId))}'
                 '&hazard=${Uri.encodeComponent(_selectedHazard.id)}',
               );

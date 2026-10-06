@@ -23,48 +23,49 @@ class AdminDashboardScreen extends ConsumerWidget {
           const SizedBox(width: 8),
         ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 1000;
+       body: LayoutBuilder(
+         builder: (context, constraints) {
+           final isWide = constraints.maxWidth >= 1000;
+           final responsivePadding = MediaQuery.sizeOf(context).width < 600 ? 16.0 : 24.0;
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1400),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildHeader(context),
-                    const SizedBox(height: 24),
-                    _buildMetrics(context, ref, isWide),
-                    const SizedBox(height: 24),
-                    if (isWide)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: _buildRiskOverview(context, ref),
-                          ),
-                          const SizedBox(width: 20),
-                          Expanded(flex: 2, child: _buildSystemStatus(context)),
-                        ],
-                      )
-                    else ...[
-                      _buildRiskOverview(context, ref),
-                      const SizedBox(height: 20),
-                      _buildSystemStatus(context),
-                    ],
-                    const SizedBox(height: 24),
-                    _buildRecentObservations(context),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
+           return SingleChildScrollView(
+             padding: EdgeInsets.all(responsivePadding),
+             child: Center(
+               child: ConstrainedBox(
+                 constraints: const BoxConstraints(maxWidth: 1400),
+                 child: Column(
+                   crossAxisAlignment: CrossAxisAlignment.stretch,
+                   children: [
+                     _buildHeader(context),
+                     const SizedBox(height: 24),
+                     _buildMetrics(context, ref, isWide),
+                     const SizedBox(height: 24),
+                     if (isWide)
+                       Row(
+                         crossAxisAlignment: CrossAxisAlignment.start,
+                         children: [
+                           Expanded(
+                             flex: 3,
+                             child: _buildRiskOverview(context, ref),
+                           ),
+                           const SizedBox(width: 20),
+                           Expanded(flex: 2, child: _buildSystemStatus(context)),
+                         ],
+                       )
+                     else ...[
+                       _buildRiskOverview(context, ref),
+                       const SizedBox(height: 20),
+                       _buildSystemStatus(context),
+                     ],
+                     const SizedBox(height: 24),
+                     _buildRecentObservations(context),
+                   ],
+                 ),
+               ),
+             ),
+           );
+         },
+       ),
     );
   }
 

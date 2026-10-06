@@ -146,7 +146,7 @@ void main() {
   });
 
   testWidgets(
-    'a zone without identified risk says so instead of showing zeroes',
+    'a stored zero score is still shown as an assessed active risk',
     (tester) async {
       final repository = StoredByHazardRepository()
         ..stored['zone-masina--landslide'] = _identified(
@@ -159,19 +159,21 @@ void main() {
       await _openSheet(tester, repository: repository, generated: <String>[]);
 
       expect(
+        find.text('1 risque actif identifié dans cette zone.'),
+        findsOneWidget,
+      );
+      expect(find.text('Risques actifs'), findsOneWidget);
+      expect(find.textContaining('Score 0/100'), findsOneWidget);
+      expect(find.text('FAIBLE'), findsOneWidget);
+      expect(
         find.text(
           'Aucun risque actif identifié dans cette zone pour le moment.',
         ),
-        findsOneWidget,
-      );
-      expect(find.text('Risques actifs'), findsNothing);
-      expect(
-        find.textContaining('aucune valeur n’est affichée comme un zéro'),
-        findsOneWidget,
+        findsNothing,
       );
 
-      expect(find.text('Aucun risque'), findsOneWidget);
       expect(find.text('Autres risques'), findsOneWidget);
+      expect(find.text('Non évalué'), findsNWidgets(2));
     },
   );
 

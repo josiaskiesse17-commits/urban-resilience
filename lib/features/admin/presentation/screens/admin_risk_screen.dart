@@ -154,62 +154,63 @@ class _AdminRiskScreenState extends ConsumerState<AdminRiskScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Intelligence des risques')),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 1000;
+       body: LayoutBuilder(
+         builder: (context, constraints) {
+           final isWide = constraints.maxWidth >= 1000;
+           final responsivePadding = MediaQuery.sizeOf(context).width < 600 ? 16.0 : 24.0;
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1400),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildHeader(context),
-                    const SizedBox(height: 20),
-                    _buildZoneSelector(context, zones, zone),
-                    const SizedBox(height: 20),
-                    _buildHazardSelector(context),
-                    const SizedBox(height: 20),
-                    _buildRiskSummary(context, zone, riskAsync),
-                    const SizedBox(height: 20),
-                    RiskExposureCard(zoneId: zone.id),
-                    if (riskResult == null) ...[
-                      const SizedBox(height: 20),
-                      _buildPendingAssessment(context, zone, riskAsync),
-                    ] else ...[
-                      const SizedBox(height: 20),
-                      if (isWide)
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: _buildMeasurements(context, riskResult),
-                            ),
-                            const SizedBox(width: 20),
-                            Expanded(child: _buildFactors(context, riskResult)),
-                          ],
-                        )
-                      else ...[
-                        _buildMeasurements(context, riskResult),
-                        const SizedBox(height: 20),
-                        _buildFactors(context, riskResult),
-                      ],
-                      const SizedBox(height: 20),
-                      _buildEvidence(context, riskResult),
-                      if (_selectedHazard == HazardType.flooding) ...[
-                        const SizedBox(height: 20),
-                        _buildScenarioSimulator(context, zone, riskResult),
-                      ],
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
+           return SingleChildScrollView(
+             padding: EdgeInsets.all(responsivePadding),
+             child: Center(
+               child: ConstrainedBox(
+                 constraints: const BoxConstraints(maxWidth: 1400),
+                 child: Column(
+                   crossAxisAlignment: CrossAxisAlignment.stretch,
+                   children: [
+                     _buildHeader(context),
+                     const SizedBox(height: 20),
+                     _buildZoneSelector(context, zones, zone),
+                     const SizedBox(height: 20),
+                     _buildHazardSelector(context),
+                     const SizedBox(height: 20),
+                     _buildRiskSummary(context, zone, riskAsync),
+                     const SizedBox(height: 20),
+                     RiskExposureCard(zoneId: zone.id, hazardType: _selectedHazard),
+                     if (riskResult == null) ...[
+                       const SizedBox(height: 20),
+                       _buildPendingAssessment(context, zone, riskAsync),
+                     ] else ...[
+                       const SizedBox(height: 20),
+                       if (isWide)
+                         Row(
+                           crossAxisAlignment: CrossAxisAlignment.start,
+                           children: [
+                             Expanded(
+                               child: _buildMeasurements(context, riskResult),
+                             ),
+                             const SizedBox(width: 20),
+                             Expanded(child: _buildFactors(context, riskResult)),
+                           ],
+                         )
+                       else ...[
+                         _buildMeasurements(context, riskResult),
+                         const SizedBox(height: 20),
+                         _buildFactors(context, riskResult),
+                       ],
+                       const SizedBox(height: 20),
+                       _buildEvidence(context, riskResult),
+                       if (_selectedHazard == HazardType.flooding) ...[
+                         const SizedBox(height: 20),
+                         _buildScenarioSimulator(context, zone, riskResult),
+                       ],
+                     ],
+                   ],
+                 ),
+               ),
+             ),
+           );
+         },
+       ),
     );
   }
 

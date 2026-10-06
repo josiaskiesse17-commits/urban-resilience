@@ -1,4 +1,4 @@
-enum ObservationType { flooding, blockedRoad, landslide, other }
+enum ObservationType { flooding, blockedRoad, landslide, heat, other }
 
 enum ObservationStatus { pending, confirmed, rejected }
 

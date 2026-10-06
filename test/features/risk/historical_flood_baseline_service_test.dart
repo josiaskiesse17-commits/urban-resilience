@@ -6,6 +6,8 @@ import 'package:urban_resilience/features/risk/domain/historical_flood_data.dart
 import 'package:urban_resilience/features/risk/domain/historical_flood_data_source.dart';
 
 class _FakeHistoricalFloodDataSource implements HistoricalFloodDataSource {
+  int calls = 0;
+
   @override
   Future<HistoricalFloodData> fetch({
     required double latitude,
@@ -13,6 +15,8 @@ class _FakeHistoricalFloodDataSource implements HistoricalFloodDataSource {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
+    calls++;
+
     return HistoricalFloodData(
       hourlyRainfallValues: [0, 1, 2, 3, 4, 5, 6, 8],
       riverDischargeValues: [100, 120, 150, 180, 220, 300],
@@ -44,5 +48,28 @@ void main() {
     expect(result.rainfallBaselineMmPerHour, greaterThanOrEqualTo(0));
 
     expect(result.riverDischargeBaselineM3s, greaterThan(0));
+  });
+
+  test('reuses a recent baseline instead of recalculating it', () async {
+    final source = _FakeHistoricalFloodDataSource();
+    final service = HistoricalFloodBaselineService(dataSource: source);
+
+    Future<FloodHistoricalBaseline> run() => service.generate(
+      latitude: -4.30,
+      longitude: 15.35,
+      startDate: DateTime.utc(2018, 1, 1),
+      endDate: DateTime.utc(2022, 7, 31),
+    );
+
+    final first = await run();
+    final second = await run();
+
+    expect(source.calls, 1);
+    expect(identical(first, second), isTrue);
+
+    service.clearBaselineCache();
+    await run();
+
+    expect(source.calls, 2);
   });
 }

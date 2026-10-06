@@ -62,9 +62,15 @@ void main() {
 
     expect(result.riskScore, lessThanOrEqualTo(100));
 
-    expect(result.evidence.measurements.length, 5);
+    expect(result.evidence.measurements.length, 6);
 
     expect(result.evidence.measurements.first.source, 'Fake Weather');
+
+    final observationMeasurement = result.evidence.measurements.firstWhere(
+      (measurement) => measurement.name == 'currentObservations',
+    );
+
+    expect(observationMeasurement.value, 60);
 
     expect(
       result.evidence.measurements.any(

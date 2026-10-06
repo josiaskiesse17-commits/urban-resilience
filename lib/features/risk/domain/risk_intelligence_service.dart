@@ -174,6 +174,17 @@ class RiskIntelligenceService {
           source: 'Risk Intelligence',
           observedAt: timestamp,
         ),
+        RiskMeasurement(
+          name: 'currentObservations',
+          value: input.observationScore,
+          unit: 'score/100',
+          referenceLabel:
+              'Observations citoyennes confirmées des dernières 24 h '
+              'autour de la zone',
+          referenceType: RiskReferenceType.threshold,
+          source: 'Observations citoyennes',
+          observedAt: timestamp,
+        ),
       ],
       qualitativeIndicators: [
         if (exposureProfileMissing)
@@ -351,6 +362,17 @@ class RiskIntelligenceService {
           source: 'Risk Intelligence',
           observedAt: timestamp,
         ),
+      RiskMeasurement(
+        name: 'currentObservations',
+        value: input.observationScore,
+        unit: 'score/100',
+        referenceLabel:
+            'Observations citoyennes confirmées des dernières 24 h '
+            'autour de la zone',
+        referenceType: RiskReferenceType.threshold,
+        source: 'Observations citoyennes',
+        observedAt: timestamp,
+      ),
     ];
 
     final indicators = <String>[];

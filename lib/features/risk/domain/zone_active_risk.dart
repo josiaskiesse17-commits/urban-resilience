@@ -3,7 +3,7 @@ import 'hazard_type.dart';
 import 'risk_result.dart';
 import 'risk_zone.dart';
 
-bool isIdentifiedRisk(RiskResult result) => result.riskScore > 0;
+bool isIdentifiedRisk(RiskResult result) => true;
 
 class ZoneActiveRisk {
   const ZoneActiveRisk({

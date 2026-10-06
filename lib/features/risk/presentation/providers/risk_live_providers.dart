@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import '../../../auth/presentation/providers/auth_providers.dart';
 
 import '../../data/firestore_risk_exposure_repository.dart';
 import '../../data/firestore_risk_result_repository.dart';
@@ -25,7 +27,7 @@ import '../../domain/risk_intelligence_service.dart';
 import '../../domain/risk_result.dart';
 import '../../domain/risk_result_repository.dart';
 import '../../domain/zone_active_risk.dart';
-import '../../../observations/domain/observation.dart';
+import '../../../observations/data/observations_repository.dart';
 
 final httpClientProvider = Provider<http.Client>((ref) {
   final client = http.Client();
@@ -37,6 +39,14 @@ final httpClientProvider = Provider<http.Client>((ref) {
 
 final riskExposureRepositoryProvider = Provider<RiskExposureRepository>((ref) {
   return FirestoreRiskExposureRepository(firestore: FirebaseFirestore.instance);
+});
+
+final observationsRepositoryProvider = Provider<ObservationsRepository>((ref) {
+  return ObservationsRepository(
+    FirebaseFirestore.instance,
+    FirebaseAuth.instance,
+    ref.read(firebaseStorageProvider),
+  );
 });
 
 final riskExposureEnricherProvider = Provider<FloodRiskInputExposureEnricher>((
@@ -98,6 +108,7 @@ final liveFloodRiskServiceProvider = Provider<LiveFloodRiskService>((ref) {
     riskIntelligenceService: ref.read(riskIntelligenceServiceProvider),
     riskResultRepository: ref.read(riskResultRepositoryProvider),
     historicalBaselineService: ref.read(historicalFloodBaselineServiceProvider),
+    observationsRepository: ref.read(observationsRepositoryProvider),
   );
 });
 
@@ -109,6 +120,7 @@ final hazardRiskServiceProvider = Provider<HazardRiskService>((ref) {
     referencePeriodEnd: RiskZoneCatalog.historicalBaselineEnd,
     exposureRepository: ref.read(riskExposureRepositoryProvider),
     riskResultRepository: ref.read(riskResultRepositoryProvider),
+    observationsRepository: ref.read(observationsRepositoryProvider),
     riskIntelligenceService: ref.read(riskIntelligenceServiceProvider),
   );
 });
@@ -179,14 +191,16 @@ final zoneHazardRiskGeneratorProvider = Provider<ZoneHazardRiskGenerator>((
   return (zone, hazard) {
     if (hazard == HazardType.flooding) {
       return floodService.calculateLiveRiskAndSave(
-        id: zone.id,
+        id: HazardRiskId.forZone(
+          zoneId: zone.id,
+          hazard: HazardType.flooding,
+        ),
         zoneId: zone.id,
         locationName: zone.name,
         latitude: zone.latitude,
         longitude: zone.longitude,
         startDate: RiskZoneCatalog.historicalBaselineStart,
         endDate: RiskZoneCatalog.historicalBaselineEnd,
-        observations: const <Observation>[],
       );
     }
 
@@ -205,3 +219,4 @@ final zoneRiskGeneratorProvider = Provider<ZoneRiskGenerator>((ref) {
 
   return (zone) => generator(zone, HazardType.flooding);
 });
+

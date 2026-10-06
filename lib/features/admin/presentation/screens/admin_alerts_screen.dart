@@ -171,26 +171,33 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
     setState(() => _expiresAt = selected);
   }
 
-  Future<void> _deleteAlert(RiskAlert alert) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Supprimer l’alerte ?'),
-        content: Text(
-          'L’alerte « ${alert.title} » sera supprimée définitivement.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
-    );
+   Future<void> _deleteAlert(RiskAlert alert) async {
+     final confirmed = await showDialog<bool>(
+       context: context,
+       builder: (context) => AlertDialog(
+         title: const Text('Supprimer l’alerte ?'),
+         content: SingleChildScrollView(
+           child: ConstrainedBox(
+             constraints: BoxConstraints(
+               maxWidth: MediaQuery.sizeOf(context).width * 0.9 > 600 ? 600 : MediaQuery.sizeOf(context).width * 0.9,
+             ),
+             child: Text(
+               'L’alerte « ${alert.title} » sera supprimée définitivement.',
+             ),
+           ),
+         ),
+         actions: [
+           TextButton(
+             onPressed: () => Navigator.pop(context, false),
+             child: const Text('Annuler'),
+           ),
+           FilledButton(
+             onPressed: () => Navigator.pop(context, true),
+             child: const Text('Supprimer'),
+           ),
+         ],
+       ),
+     );
 
     if (confirmed != true) {
       return;
@@ -212,36 +219,36 @@ class _AdminAlertsScreenState extends ConsumerState<AdminAlertsScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final zones = ref.watch(riskZoneCatalogProvider);
+   @override
+   Widget build(BuildContext context) {
+     final zones = ref.watch(riskZoneCatalogProvider);
 
-    if (_zoneId == null && zones.isNotEmpty) {
-      _zoneId = zones.first.id;
-    }
+     if (_zoneId == null && zones.isNotEmpty) {
+       _zoneId = zones.first.id;
+     }
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Alertes')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1200),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildHeader(context),
-                const SizedBox(height: 20),
-                _buildCreateCard(context, zones),
-                const SizedBox(height: 20),
-                _buildAlertsList(context),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+     return Scaffold(
+       appBar: AppBar(title: const Text('Alertes')),
+       body: SingleChildScrollView(
+         padding: EdgeInsets.all(MediaQuery.sizeOf(context).width < 600 ? 16.0 : 24.0),
+         child: Center(
+           child: ConstrainedBox(
+             constraints: const BoxConstraints(maxWidth: 1200),
+             child: Column(
+               crossAxisAlignment: CrossAxisAlignment.stretch,
+               children: [
+                 _buildHeader(context),
+                 const SizedBox(height: 20),
+                 _buildCreateCard(context, zones),
+                 const SizedBox(height: 20),
+                 _buildAlertsList(context),
+               ],
+             ),
+           ),
+         ),
+       ),
+     );
+   }
 
   Widget _buildHeader(BuildContext context) {
     return Column(

@@ -72,6 +72,7 @@ RiskResult _storedHeatResult() {
         ),
       ],
       vulnerabilityScore: 49.5,
+      historicalExposureScore: 35,
     ),
   );
 }
