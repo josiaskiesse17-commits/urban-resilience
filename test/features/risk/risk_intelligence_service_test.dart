@@ -40,7 +40,7 @@ void main() {
     expect(result.longitude, 15.322);
     expect(result.hazardType, 'Flooding');
 
-    expect(result.evidence.measurements.length, 5);
+    expect(result.evidence.measurements.length, 6);
 
     expect(
       result.evidence.measurements.map((measurement) => measurement.name),
@@ -50,6 +50,7 @@ void main() {
         'riverDischarge',
         'geographicVulnerability',
         'historicalExposure',
+        'currentObservations',
       ]),
     );
 
@@ -129,7 +130,7 @@ void main() {
       input: input,
     );
 
-    expect(result.evidence.measurements.length, 5);
+    expect(result.evidence.measurements.length, 6);
 
     final rainfallMeasurement = result.evidence.measurements.firstWhere(
       (measurement) => measurement.name == 'rainfallIntensity',

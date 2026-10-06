@@ -107,6 +107,11 @@ void main() {
 
     expect(
       result.evidence.measurements.map((measurement) => measurement.name),
+      contains('currentObservations'),
+    );
+
+    expect(
+      result.evidence.measurements.map((measurement) => measurement.name),
       isNot(contains('citizenObservationRisk')),
     );
 

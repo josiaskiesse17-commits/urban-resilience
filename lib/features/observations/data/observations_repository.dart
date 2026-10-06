@@ -25,6 +25,19 @@ class ObservationsRepository {
         .map(_mapSnapshots);
   }
 
+  Future<List<Observation>> getConfirmedForContext({
+    required String zoneId,
+    required String hazardType,
+  }) async {
+    final snapshot = await _collection
+        .where('zoneId', isEqualTo: zoneId)
+        .where('hazardType', isEqualTo: hazardType)
+        .where('status', isEqualTo: ObservationStatus.confirmed.name)
+        .get();
+
+    return _mapSnapshots(snapshot);
+  }
+
   Stream<List<Observation>> watchPending() {
     return _collection
         .where('status', isEqualTo: ObservationStatus.pending.name)
@@ -70,7 +83,10 @@ class ObservationsRepository {
     await reference.set(observation.toJson());
   }
 
-  Future<void> approve({required String id, required String reviewerId}) {
+  Future<void> approve({
+    required String id,
+    required String reviewerId,
+  }) {
     return _collection.doc(id).update({
       'status': ObservationStatus.confirmed.name,
       'reviewedAt': DateTime.now().toUtc().toIso8601String(),
@@ -93,11 +109,13 @@ class ObservationsRepository {
       data['id'] ??= document.id;
 
       final createdAt = data['createdAt'];
+
       if (createdAt is Timestamp) {
         data['createdAt'] = createdAt.toDate().toIso8601String();
       }
 
       final reviewedAt = data['reviewedAt'];
+
       if (reviewedAt is Timestamp) {
         data['reviewedAt'] = reviewedAt.toDate().toIso8601String();
       }
@@ -105,7 +123,9 @@ class ObservationsRepository {
       try {
         observations.add(Observation.fromJson(data));
       } catch (error, stackTrace) {
-        debugPrint('Observation invalide ignorée [${document.id}]: $error');
+        debugPrint(
+          'Observation invalide ignorée [${document.id}]: $error',
+        );
         debugPrintStack(stackTrace: stackTrace);
       }
     }

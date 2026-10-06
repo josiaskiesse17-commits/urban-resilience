@@ -7,7 +7,6 @@ import '../domain/risk_result.dart';
 class FirebaseAiRiskAnalyst implements RiskAnalyst {
   static const String _workerUrl = String.fromEnvironment(
     'AI_PROXY_URL',
-    defaultValue: 'http://localhost:8787',
   );
 
   final Dio _dio;

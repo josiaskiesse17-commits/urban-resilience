@@ -75,7 +75,7 @@ class OpenMeteoHistoricalFloodDataSource implements HistoricalFloodDataSource {
     final rainfall = _parseRainfall(weatherJson);
     final riverDischarge = _parseRiverDischarge(floodJson);
 
-    if (rainfall.isEmpty) {
+    if (rainfall.values.isEmpty) {
       throw const FormatException(
         'Historical weather API returned no rainfall values.',
       );
@@ -88,7 +88,8 @@ class OpenMeteoHistoricalFloodDataSource implements HistoricalFloodDataSource {
     }
 
     return HistoricalFloodData(
-      hourlyRainfallValues: rainfall,
+      hourlyRainfallValues: rainfall.values,
+      hourlyRainfallTimes: rainfall.times,
       riverDischargeValues: riverDischarge,
       referencePeriodStart: normalizedStart,
       referencePeriodEnd: normalizedEnd,
@@ -113,7 +114,16 @@ class OpenMeteoHistoricalFloodDataSource implements HistoricalFloodDataSource {
     return decoded;
   }
 
-  List<double> _parseRainfall(Map<String, dynamic> json) {
+  /// Pairs every rainfall sample with its timestamp.
+  ///
+  /// Samples with a missing/non-numeric value or an unparseable timestamp are
+  /// dropped (they would otherwise silently shift the six-hour windows), and
+  /// the surviving samples are sorted chronologically so downstream windowing
+  /// never sees an unordered series. When the response carries no timestamps
+  /// at all, the raw values are returned with an empty time list.
+  ({List<double> values, List<DateTime> times}) _parseRainfall(
+    Map<String, dynamic> json,
+  ) {
     final hourly = json['hourly'];
 
     if (hourly is! Map<String, dynamic>) {
@@ -130,7 +140,59 @@ class OpenMeteoHistoricalFloodDataSource implements HistoricalFloodDataSource {
       );
     }
 
-    return rain.whereType<num>().map((value) => value.toDouble()).toList();
+    final rawTimes = hourly['time'];
+
+    if (rawTimes == null) {
+      return (
+        values: rain.whereType<num>().map((value) => value.toDouble()).toList(),
+        times: const <DateTime>[],
+      );
+    }
+
+    if (rawTimes is! List) {
+      throw const FormatException(
+        'Historical weather response has a malformed time array.',
+      );
+    }
+
+    final samples = <({DateTime time, double value})>[];
+    final length =
+        rain.length < rawTimes.length ? rain.length : rawTimes.length;
+
+    for (var index = 0; index < length; index++) {
+      final value = rain[index];
+
+      if (value is! num || !value.isFinite) {
+        continue;
+      }
+
+      final parsed = DateTime.tryParse('${rawTimes[index]}');
+
+      if (parsed == null) {
+        continue;
+      }
+
+      // The API answers with timezone=UTC, so naive timestamps are UTC wall
+      // times; keeping them in UTC avoids machine-timezone/DST distortion.
+      final time = parsed.isUtc
+          ? parsed
+          : DateTime.utc(
+              parsed.year,
+              parsed.month,
+              parsed.day,
+              parsed.hour,
+              parsed.minute,
+            );
+
+      samples.add((time: time, value: value.toDouble()));
+    }
+
+    samples.sort((left, right) => left.time.compareTo(right.time));
+
+    return (
+      values: [for (final sample in samples) sample.value],
+      times: [for (final sample in samples) sample.time],
+    );
   }
 
   List<double> _parseRiverDischarge(Map<String, dynamic> json) {

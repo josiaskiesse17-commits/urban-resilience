@@ -86,6 +86,9 @@ class ObservationRiskCalculator {
       case ObservationType.landslide:
         return 10;
 
+      case ObservationType.heat:
+        return 15;
+
       case ObservationType.other:
         return 5;
     }

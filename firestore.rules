@@ -34,7 +34,17 @@ service cloud.firestore {
 
     match /risk_results/{riskId} {
       allow read: if isSignedIn();
-      allow create, update: if isSignedIn();
+      allow create: if isActiveAdmin();
+      allow update: if isSignedIn()
+        && request.resource.data.riskScore == resource.data.riskScore
+        && request.resource.data.riskLevel == resource.data.riskLevel
+        && request.resource.data.hazardType == resource.data.hazardType
+        && request.resource.data.locationName == resource.data.locationName
+        && request.resource.data.latitude == resource.data.latitude
+        && request.resource.data.longitude == resource.data.longitude
+        && request.resource.data.updatedAt == resource.data.updatedAt
+        && request.resource.data.factors == resource.data.factors
+        && request.resource.data.evidence == resource.data.evidence;
       allow delete: if isActiveAdmin();
     }
 

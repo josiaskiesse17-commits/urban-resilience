@@ -236,6 +236,7 @@ class ObservationsScreen extends ConsumerWidget {
       ObservationType.flooding => 'Inondation',
       ObservationType.blockedRoad => 'Route bloquée',
       ObservationType.landslide => 'Glissement de terrain',
+      ObservationType.heat => 'Chaleur',
       ObservationType.other => 'Autre',
     };
   }

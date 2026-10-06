@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/flood_risk_exposure_profile.dart';
+import '../../domain/hazard_type.dart';
 import '../providers/risk_live_providers.dart';
 
 class RiskExposureCard extends ConsumerWidget {
   final String zoneId;
+  final HazardType hazardType;
 
-  const RiskExposureCard({super.key, required this.zoneId});
+  const RiskExposureCard({
+    super.key,
+    required this.zoneId,
+    required this.hazardType,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -100,65 +106,77 @@ class RiskExposureCard extends ConsumerWidget {
 
   Widget _buildProfile(BuildContext context, FloodRiskExposureProfile profile) {
     final theme = Theme.of(context);
-    final updatedAt = profile.updatedAt;
-    final source = profile.source;
+
+    // Only display flood-specific metrics for Flooding hazard.
+    // For Heat/Landslide, show a neutral state.
+    final showFloodMetrics = hazardType == HazardType.flooding;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _ExposureBar(
-          label: 'Exposition de la population',
-          value: profile.populationExposureScore,
-        ),
-        _ExposureBar(
-          label: 'Exposition des infrastructures',
-          value: profile.infrastructureExposureScore,
-        ),
-        _ExposureBar(
-          label: 'Vulnérabilité du drainage',
-          value: profile.drainageVulnerabilityScore,
-        ),
-        _ExposureBar(
-          label: 'Exposition des équipements critiques',
-          value: profile.criticalFacilityExposureScore,
-        ),
-        _ExposureBar(
-          label: 'Exposition historique aux inondations',
-          value: profile.historicalFloodExposureScore,
-        ),
-        const SizedBox(height: 2),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Score de vulnérabilité',
+        if (showFloodMetrics) ...[
+          _ExposureBar(
+            label: 'Exposition de la population',
+            value: profile.populationExposureScore,
+          ),
+          _ExposureBar(
+            label: 'Exposition des infrastructures',
+            value: profile.infrastructureExposureScore,
+          ),
+          _ExposureBar(
+            label: 'Vulnérabilité du drainage',
+            value: profile.drainageVulnerabilityScore,
+          ),
+          _ExposureBar(
+            label: 'Exposition des équipements critiques',
+            value: profile.criticalFacilityExposureScore,
+          ),
+          _ExposureBar(
+            label: 'Exposition historique aux inondations',
+            value: profile.historicalFloodExposureScore,
+          ),
+          const SizedBox(height: 2),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Score de vulnérabilité',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Text(
+                '${profile.vulnerabilityScore.toStringAsFixed(0)}/100',
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
               ),
-            ),
-            Text(
-              '${profile.vulnerabilityScore.toStringAsFixed(0)}/100',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Text(
-          'Source : ${source ?? 'non renseignée'}',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+            ],
           ),
-        ),
-        Text(
-          'Mis à jour : '
-          '${updatedAt == null ? 'inconnu' : _formatDateTime(updatedAt)}',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+          const SizedBox(height: 10),
+          Text(
+            'Source : ${profile.source ?? 'non renseignée'}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
-        ),
+          Text(
+            'Mis à jour : '
+            '${profile.updatedAt == null ? 'inconnu' : _formatDateTime(profile.updatedAt!)}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ] else ...[
+          const Text(
+            'Aucune donnée d\'exposition n\'est disponible pour ce type de risque.',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey,
+            ),
+          ),
+        ],
       ],
     );
   }

@@ -63,9 +63,10 @@ void main() {
     expect(assessment.factorWeights, <String, double>{
       'hazard': 0.40,
       'vulnerability': 0.25,
+      'currentObservations': 0.20,
     });
 
-    expect(assessment.overallScore, closeTo(69.2307, 0.001));
+    expect(assessment.overallScore, closeTo(52.9412, 0.001));
     expect(assessment.riskLevel, RiskLevel.high);
 
     expect(assessment.variableScores, hasLength(3));
@@ -94,6 +95,8 @@ void main() {
     expect(assessment.hazardAvailable, isFalse);
     expect(assessment.overallScore, 0);
     expect(assessment.riskLevel, RiskLevel.low);
-    expect(assessment.factorWeights, isEmpty);
+    expect(assessment.factorWeights, <String, double>{
+      'currentObservations': 0.20,
+    });
   });
 }

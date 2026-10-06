@@ -76,10 +76,9 @@ RiskResult _storedHeatResult() {
         RiskFactorScore(
           name: 'historicalExposure',
           label: 'Historical exposure',
-          weight: 0,
-          usedInScore: false,
-          unavailableReason:
-              'no historical exposure of this zone is stored for heat',
+          score: 30,
+          weight: 0.15,
+          usedInScore: true,
         ),
         RiskFactorScore(
           name: 'citizenObservationRisk',

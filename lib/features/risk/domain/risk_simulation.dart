@@ -250,6 +250,21 @@ class RiskSimulationService {
         .where((variable) => variable.isAdjustable)
         .length;
 
+    final vulnerabilityScore = _factorScore(
+      name: 'geographicVulnerability',
+      factors: result.factors,
+      storedLegacyValue: result.factors.geographicVulnerability,
+    );
+
+    final historicalExposureScore = _factorScore(
+      name: 'historicalExposure',
+      factors: result.factors,
+      storedLegacyValue: result.factors.historicalExposure,
+    );
+
+    final factorDataMissing =
+        vulnerabilityScore == null || historicalExposureScore == null;
+
     return RiskSimulationModel(
       hazard: hazard,
       variables: variables,
@@ -259,21 +274,17 @@ class RiskSimulationService {
       unavailableReason: missingFloodReference
           ? 'The stored flooding assessment does not contain the complete '
                 'rainfall and river reference, so it cannot be re-run.'
+          : factorDataMissing
+          ? 'The stored assessment does not contain complete vulnerability '
+                'and historical exposure data, so no reliable scenario score '
+                'can be computed.'
           : adjustableCount == 0
           ? 'None of the stored measurements of this hazard has a '
                 'statistical reference, so no simulated score can be '
                 'computed.'
           : null,
-      vulnerabilityScore: _factorScore(
-        name: 'geographicVulnerability',
-        factors: result.factors,
-        storedLegacyValue: result.factors.geographicVulnerability,
-      ),
-      historicalExposureScore: _factorScore(
-        name: 'historicalExposure',
-        factors: result.factors,
-        storedLegacyValue: result.factors.historicalExposure,
-      ),
+      vulnerabilityScore: vulnerabilityScore,
+      historicalExposureScore: historicalExposureScore,
       observationScore: _observationScore(
         factorScores: factorScores,
         result: result,
@@ -377,6 +388,13 @@ class RiskSimulationService {
       return null;
     }
 
+    final vulnerabilityScore = model.vulnerabilityScore;
+    final historicalExposureScore = model.historicalExposureScore;
+
+    if (vulnerabilityScore == null || historicalExposureScore == null) {
+      return null;
+    }
+
     return FloodRiskInput(
       rainfallIntensityMmPerHour: values['rainfallIntensity']!,
       rainfallBaselineMmPerHour: rainfallBaseline,
@@ -387,8 +405,8 @@ class RiskSimulationService {
       riverDischargeM3s: values['riverDischarge']!,
       riverDischargeBaselineM3s: riverBaseline,
       riverDischargeCriticalM3s: riverCritical,
-      vulnerabilityScore: model.vulnerabilityScore ?? 0,
-      historicalExposureScore: model.historicalExposureScore ?? 0,
+      vulnerabilityScore: vulnerabilityScore,
+      historicalExposureScore: historicalExposureScore,
       observationScore: model.observationScore,
       observationCount: model.observationCount,
       confirmedObservationCount: model.confirmedObservationCount,

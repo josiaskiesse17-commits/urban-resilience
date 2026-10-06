@@ -1,3 +1,6 @@
+import '../../observations/data/observations_repository.dart';
+import '../../observations/domain/observation.dart';
+import '../../observations/domain/observation_risk_calculator.dart';
 import 'flood_risk_exposure_profile.dart';
 import 'hazard_baseline.dart';
 import 'hazard_baseline_service.dart';
@@ -31,6 +34,8 @@ class HazardRiskService {
     required this.referencePeriodEnd,
     this.exposureRepository,
     this.riskResultRepository,
+    this.observationsRepository,
+    this.observationRiskCalculator = const ObservationRiskCalculator(),
     this.riskIntelligenceService = const RiskIntelligenceService(),
     this.variableBuilder = const HazardVariableBuilder(),
     this.exposureExtractor = const HazardExposureExtractor(),
@@ -47,6 +52,10 @@ class HazardRiskService {
 
   final RiskExposureRepository? exposureRepository;
   final RiskResultRepository? riskResultRepository;
+
+  final ObservationsRepository? observationsRepository;
+  final ObservationRiskCalculator observationRiskCalculator;
+
   final RiskIntelligenceService riskIntelligenceService;
   final HazardVariableBuilder variableBuilder;
   final HazardExposureExtractor exposureExtractor;
@@ -64,6 +73,7 @@ class HazardRiskService {
     required double longitude,
     required HazardType hazard,
     bool useBaselineCache = true,
+    List<Observation>? observations,
   }) async {
     final definition = HazardCatalog.of(hazard);
 
@@ -105,6 +115,18 @@ class HazardRiskService {
       profile: profile,
     );
 
+    final resolvedObservations =
+        observations ?? await _getConfirmedObservations(
+          zoneId: zoneId,
+          hazard: hazard,
+        );
+
+    final observationCalculation = observationRiskCalculator.calculate(
+      latitude: latitude,
+      longitude: longitude,
+      observations: resolvedObservations,
+    );
+
     final notes = <String>[...live.providerNotes, ...baseline.notes];
 
     final input = HazardRiskInput(
@@ -114,6 +136,10 @@ class HazardRiskService {
       gaps: build.gaps,
       vulnerabilityScore: exposure.vulnerabilityScore,
       historicalExposureScore: exposure.historicalExposureScore,
+      observationScore: observationCalculation.score,
+      observationCount: observationCalculation.observationCount,
+      confirmedObservationCount:
+          observationCalculation.confirmedObservationCount,
       exposureProfileMissing: profile == null,
       exposureNote: exposure.note,
       limitations: definition.limitations,
@@ -144,6 +170,7 @@ class HazardRiskService {
     required double longitude,
     required HazardType hazard,
     bool useBaselineCache = true,
+    List<Observation>? observations,
   }) async {
     final result = await calculate(
       zoneId: zoneId,
@@ -152,6 +179,7 @@ class HazardRiskService {
       longitude: longitude,
       hazard: hazard,
       useBaselineCache: useBaselineCache,
+      observations: observations,
     );
 
     final repository = riskResultRepository;
@@ -165,6 +193,28 @@ class HazardRiskService {
 
   void clearBaselineCache() {
     _baselineCache.clear();
+  }
+
+  Future<List<Observation>> _getConfirmedObservations({
+    required String zoneId,
+    required HazardType hazard,
+  }) async {
+    final repository = observationsRepository;
+
+    if (repository == null) {
+      return const <Observation>[];
+    }
+
+    return repository.getConfirmedForContext(
+      zoneId: zoneId,
+      hazardType: _observationHazardType(hazard),
+    );
+  }
+
+  String _observationHazardType(HazardType hazard) {
+    // Observations are stored with the hazard label (see ObservationsScreen
+    // and the alerts convention), so the query must use the same value.
+    return hazard.label;
   }
 
   Future<HazardBaseline> _baselineFor({

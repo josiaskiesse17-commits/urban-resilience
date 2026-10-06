@@ -9,15 +9,15 @@ import 'risk_result_test_support.dart';
 
 void main() {
   group('isIdentifiedRisk', () {
-    test('only a positive stored score is an identified risk', () {
-      expect(isIdentifiedRisk(buildRiskResult(riskScore: 0)), isFalse);
+    test('any stored RiskResult is assessed, even with a score of zero', () {
+      expect(isIdentifiedRisk(buildRiskResult(riskScore: 0)), isTrue);
       expect(isIdentifiedRisk(buildRiskResult(riskScore: 0.4)), isTrue);
       expect(isIdentifiedRisk(buildRiskResult(riskScore: 62)), isTrue);
     });
   });
 
   group('zoneHazardAssessmentsFrom', () {
-    test('separates identified risks and stored zeroes', () {
+    test('keeps a stored zero score assessed and orders by score', () {
       final assessments = zoneHazardAssessmentsFrom('zone-masina', {
         HazardType.flooding: buildRiskResult(riskScore: 62),
         HazardType.heat: buildRiskResult(
@@ -46,9 +46,10 @@ void main() {
       final landslide = assessments.singleWhere(
         (assessment) => assessment.hazard == HazardType.landslide,
       );
-      expect(landslide.status, ZoneHazardStatus.notIdentified);
-      expect(landslide.isIdentified, isFalse);
-      expect(landslide.riskScore, isNull);
+      expect(landslide.status, ZoneHazardStatus.identified);
+      expect(landslide.isIdentified, isTrue);
+      expect(landslide.riskScore, 0);
+      expect(assessments[2].hazard, HazardType.landslide);
     });
 
     test('keeps every hazard of the zone reachable', () {

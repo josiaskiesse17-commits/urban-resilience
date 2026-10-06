@@ -59,10 +59,13 @@ class FloodRiskCalculator {
       input.historicalExposureScore,
     );
 
+    final observationScore = RiskScoreUtils.clamp(input.observationScore);
+
     final overallScore = RiskScoreUtils.weightedAverage([
       (value: hazardScore, weight: 0.40),
       (value: vulnerability, weight: 0.25),
       (value: historicalExposure, weight: 0.15),
+      (value: observationScore, weight: 0.20),
     ]);
 
     final riskLevel = RiskScoreUtils.riskLevelFromScore(overallScore);
@@ -71,13 +74,14 @@ class FloodRiskCalculator {
       rainfall: rainfallScore,
       geographicVulnerability: vulnerability,
       historicalExposure: historicalExposure,
-      currentObservations: 0,
+      currentObservations: observationScore,
       entries: _entries(
         rainfallScore: rainfallScore,
         rainfallAccumulationScore: rainfallAccumulationScore,
         riverDischargeScore: riverDischargeScore,
         vulnerability: vulnerability,
         historicalExposure: historicalExposure,
+        observationScore: observationScore,
       ),
     );
 
@@ -98,6 +102,7 @@ class FloodRiskCalculator {
     required double riverDischargeScore,
     required double vulnerability,
     required double historicalExposure,
+    required double observationScore,
   }) {
     return <RiskFactorScore>[
       RiskFactorScore(
@@ -155,6 +160,13 @@ class FloodRiskCalculator {
         label: RiskMeasurementLabel.of(name: 'historicalExposure'),
         score: historicalExposure,
         weight: 0.15,
+        usedInScore: true,
+      ),
+      RiskFactorScore(
+        name: 'currentObservations',
+        label: RiskMeasurementLabel.of(name: 'currentObservations'),
+        score: observationScore,
+        weight: 0.20,
         usedInScore: true,
       ),
     ];
