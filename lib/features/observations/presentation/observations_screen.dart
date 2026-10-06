@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../risk/data/risk_repository.dart';
 import '../../risk/domain/hazard_type.dart';
@@ -29,7 +30,20 @@ class ObservationsScreen extends ConsumerWidget {
     final mine = ref.watch(myObservationsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Observations citoyennes')),
+      appBar: AppBar(
+        title: const Text('Observations citoyennes'),
+        leading: IconButton(
+          tooltip: 'Retour',
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/map');
+            }
+          },
+        ),
+      ),
       body: !hasContext
           ? const Center(
               child: Text('Sélectionnez un risque pour voir ses observations.'),
@@ -40,75 +54,98 @@ class ObservationsScreen extends ConsumerWidget {
                 child: ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
-                    _sectionTitle(context, 'Observations citoyennes'),
-                    const SizedBox(height: 8),
-                    observations.when(
-                      loading: () => const Padding(
-                        padding: EdgeInsets.all(24),
-                        child: Center(child: CircularProgressIndicator()),
-                      ),
-                      error: (error, _) => _ObservationError(error: error),
-                      data: (items) => items.isEmpty
-                          ? const Text(
+                    _SectionCard(
+                      title: 'Observations citoyennes',
+                      child: observations.when(
+                        loading: () => const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                        error: (error, _) => _ObservationError(error: error),
+                        data: (items) {
+                          if (items.isEmpty) {
+                            return Text(
                               'Aucune observation citoyenne disponible.',
                               textAlign: TextAlign.center,
-                            )
-                          : Column(
-                              children: [
-                                for (final item in items) ...[
-                                  _ObservationTile(observation: item),
-                                  const SizedBox(height: 8),
-                                ],
+                              style: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                              ),
+                            );
+                          }
+
+                          final sorted = List<Observation>.of(items)
+                            ..sort(
+                              (a, b) => b.createdAt.compareTo(a.createdAt),
+                            );
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              for (var i = 0; i < sorted.length; i++) ...[
+                                if (i > 0) const Divider(height: 24),
+                                _ObservationTile(observation: sorted[i]),
                               ],
-                            ),
-                    ),
-                    const SizedBox(height: 24),
-                    _sectionTitle(context, 'Mes signalements'),
-                    const SizedBox(height: 8),
-                    mine.when(
-                      loading: () => const Padding(
-                        padding: EdgeInsets.all(24),
-                        child: Center(child: CircularProgressIndicator()),
-                      ),
-                      error: (error, _) => Text(
-                        'Vos signalements ne sont pas disponibles pour le '
-                        'moment.\n$error',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      data: (items) {
-                        final own = items
-                            .where(
-                              (item) =>
-                                  item.zoneId == zoneId &&
-                                  item.hazardType == hazardLabel,
-                            )
-                            .toList();
-
-                        if (own.isEmpty) {
-                          return Text(
-                            'Vous n’avez encore rien signalé pour ce risque '
-                            'dans cette zone.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
-                          );
-                        }
-
-                        return Column(
-                          children: [
-                            for (final item in own) ...[
-                              _MyObservationCard(observation: item),
-                              const SizedBox(height: 8),
                             ],
-                          ],
-                        );
-                      },
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _SectionCard(
+                      title: 'Mes signalements',
+                      child: mine.when(
+                        loading: () => const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+                        error: (error, _) => Text(
+                          'Vos signalements ne sont pas disponibles pour le '
+                          'moment.\n$error',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant,
+                          ),
+                        ),
+                        data: (items) {
+                          final own = items
+                              .where(
+                                (item) =>
+                                    item.zoneId == zoneId &&
+                                    item.hazardType == hazardLabel,
+                              )
+                              .toList()
+                            ..sort(
+                              (a, b) => b.createdAt.compareTo(a.createdAt),
+                            );
+
+                          if (own.isEmpty) {
+                            return Text(
+                              'Vous n’avez encore rien signalé pour ce risque '
+                              'dans cette zone.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                              ),
+                            );
+                          }
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              for (var i = 0; i < own.length; i++) ...[
+                                if (i > 0) const Divider(height: 24),
+                                _MyObservationCard(observation: own[i]),
+                              ],
+                            ],
+                          );
+                        },
+                      ),
                     ),
                     const SizedBox(height: 80),
                   ],
@@ -125,78 +162,11 @@ class ObservationsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _sectionTitle(BuildContext context, String title) {
-    return Text(
-      title,
-      style: Theme.of(context).textTheme.titleMedium
-          ?.copyWith(fontWeight: FontWeight.w700),
-    );
-  }
-
   Future<void> _createObservation(BuildContext context, WidgetRef ref) async {
-    final controller = TextEditingController();
-    var type = ObservationType.other;
     final result = await showDialog<({ObservationType type, String text})>(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 24,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: const Text('Nouvelle observation'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButtonFormField<ObservationType>(
-                  initialValue: type,
-                  decoration: const InputDecoration(labelText: 'Type'),
-                  items: ObservationType.values
-                      .map(
-                        (value) => DropdownMenuItem(
-                          value: value,
-                          child: Text(_typeLabel(value)),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) setState(() => type = value);
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: controller,
-                  maxLines: 4,
-                  decoration: const InputDecoration(
-                    labelText: 'Description',
-                    hintText: 'Décrivez ce que vous observez',
-                    alignLabelWithHint: true,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Annuler'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, (
-                type: type,
-                text: controller.text.trim(),
-              )),
-              child: const Text('Envoyer'),
-            ),
-          ],
-        ),
-      ),
+      builder: (context) => const _NewObservationDialog(),
     );
-    controller.dispose();
 
     if (result == null || result.text.isEmpty) return;
     final zone = RiskZoneCatalog.byId(zoneId!);
@@ -230,6 +200,30 @@ class ObservationsScreen extends ConsumerWidget {
       }
     }
   }
+}
+
+class _NewObservationDialog extends StatefulWidget {
+  const _NewObservationDialog();
+
+  @override
+  State<_NewObservationDialog> createState() => _NewObservationDialogState();
+}
+
+class _NewObservationDialogState extends State<_NewObservationDialog> {
+  late final TextEditingController _controller;
+  var _type = ObservationType.other;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   static String _typeLabel(ObservationType type) {
     return switch (type) {
@@ -238,6 +232,103 @@ class ObservationsScreen extends ConsumerWidget {
       ObservationType.landslide => 'Glissement de terrain',
       ObservationType.other => 'Autre',
     };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      insetPadding: const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 24,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      title: const Text('Nouvelle observation'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            DropdownButtonFormField<ObservationType>(
+              initialValue: _type,
+              decoration: const InputDecoration(labelText: 'Type'),
+              items: ObservationType.values
+                  .map(
+                    (value) => DropdownMenuItem(
+                      value: value,
+                      child: Text(_typeLabel(value)),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) setState(() => _type = value);
+              },
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _controller,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                hintText: 'Décrivez ce que vous observez',
+                alignLabelWithHint: true,
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Annuler'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, (
+            type: _type,
+            text: _controller.text.trim(),
+          )),
+          child: const Text('Envoyer'),
+        ),
+      ],
+    );
+  }
+}
+
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({required this.title, required this.child});
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return SizedBox(
+      width: double.infinity,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                title,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Divider(height: 1, color: scheme.outlineVariant),
+              const SizedBox(height: 12),
+              child,
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -282,12 +373,37 @@ class _ObservationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.visibility_outlined),
-        title: Text(observation.description ?? 'Observation'),
-        subtitle: Text(_formatDate(observation.createdAt)),
-      ),
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          Icons.visibility_outlined,
+          color: theme.colorScheme.primary,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                observation.description ?? 'Observation',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                _formatDate(observation.createdAt),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -302,45 +418,40 @@ class _MyObservationCard extends StatelessWidget {
     final theme = Theme.of(context);
     final status = observation.status;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          observation.description ?? 'Observation',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          _formatDate(observation.createdAt),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Text(
-              observation.description ?? 'Observation',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+            _statusChip(context, status),
+            if (status == ObservationStatus.rejected &&
+                (observation.rejectionReason?.isNotEmpty ?? false))
+              Text(
+                'Motif : ${observation.rejectionReason}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              _formatDate(observation.createdAt),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                _statusChip(context, status),
-                if (status == ObservationStatus.rejected &&
-                    (observation.rejectionReason?.isNotEmpty ?? false))
-                  Text(
-                    'Motif : ${observation.rejectionReason}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.error,
-                    ),
-                  ),
-              ],
-            ),
           ],
         ),
-      ),
+      ],
     );
   }
 

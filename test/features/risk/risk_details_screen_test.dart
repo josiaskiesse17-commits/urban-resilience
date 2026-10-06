@@ -229,6 +229,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(analyst.calls, 1);
 
+      final seeMore = find.text('Voir plus');
+      await tester.ensureVisible(seeMore);
+      await tester.tap(seeMore);
+      await tester.pumpAndSettle();
+
       final refresh = find.text('Recalculer le risque');
       await tester.ensureVisible(refresh);
       await tester.tap(refresh);

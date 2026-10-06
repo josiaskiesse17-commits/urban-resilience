@@ -21,41 +21,26 @@ class AuthScaffold extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Align(
-              alignment: Alignment.topCenter,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 390),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 14,
-                  ),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - 28,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: footer == null
-                          ? MainAxisAlignment.start
-                          : MainAxisAlignment.spaceBetween,
-                      children: [
-                        _AuthIntro(title: title, subtitle: subtitle),
-                        if (footer == null) ...[
-                          const SizedBox(height: 28),
-                          child,
-                        ] else ...[
-                          child,
-                          footer!,
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 390),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 72, 24, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _AuthIntro(title: title, subtitle: subtitle),
+                  const SizedBox(height: 28),
+                  child,
+                  if (footer != null) ...[
+                    const SizedBox(height: 20),
+                    footer!,
+                  ],
+                ],
               ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );
@@ -75,24 +60,20 @@ class _AuthIntro extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 46,
-              height: 46,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: AppPalette.primary,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const AuthIcon(
-                asset: 'assets/icons/shield-check.svg',
-                color: Colors.white,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(
+                'assets/brand/app_icon.png',
+                width: 54,
+                height: 54,
+                fit: BoxFit.cover,
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Text(
-              'urban-resilience',
+              'Urban Resilience',
               style: TextStyle(
-                fontSize: 22,
+                fontSize: 26,
                 fontWeight: FontWeight.w700,
                 color: Theme.of(context).colorScheme.onSurface,
                 height: 1,
@@ -100,11 +81,11 @@ class _AuthIntro extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
         Text(
           'Prévenir. Comprendre. Agir.',
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 14,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w500,
             height: 1,

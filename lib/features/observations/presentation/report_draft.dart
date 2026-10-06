@@ -1,46 +1,73 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ReportDraftData {
+  final String? typeId;
   final String typeTitle;
   final String typeIcon;
   final String description;
   final String? photoName;
+  final String? photoPath;
   final String street;
   final String cityLine;
-  final double latitude;
-  final double longitude;
+  final double? latitude;
+  final double? longitude;
+  final String? zoneId;
+  final String? hazardType;
+  final String? submittedId;
 
   const ReportDraftData({
+    this.typeId,
     required this.typeTitle,
     required this.typeIcon,
     required this.description,
-    required this.photoName,
+    this.photoName,
+    this.photoPath,
     required this.street,
     required this.cityLine,
-    required this.latitude,
-    required this.longitude,
+    this.latitude,
+    this.longitude,
+    this.zoneId,
+    this.hazardType,
+    this.submittedId,
   });
 
+  bool get hasType => typeId != null && typeId!.isNotEmpty;
+
+  bool get hasPlace => latitude != null && longitude != null;
+
   ReportDraftData copyWith({
+    String? typeId,
     String? typeTitle,
     String? typeIcon,
     String? description,
     String? photoName,
+    String? photoPath,
     bool clearPhoto = false,
     String? street,
     String? cityLine,
     double? latitude,
     double? longitude,
+    String? zoneId,
+    String? hazardType,
+    String? submittedId,
+    bool clearSubmittedId = false,
   }) {
     return ReportDraftData(
+      typeId: typeId ?? this.typeId,
       typeTitle: typeTitle ?? this.typeTitle,
       typeIcon: typeIcon ?? this.typeIcon,
       description: description ?? this.description,
       photoName: clearPhoto ? null : photoName ?? this.photoName,
+      photoPath: clearPhoto ? null : photoPath ?? this.photoPath,
       street: street ?? this.street,
       cityLine: cityLine ?? this.cityLine,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      zoneId: zoneId ?? this.zoneId,
+      hazardType: hazardType ?? this.hazardType,
+      submittedId: clearSubmittedId
+          ? null
+          : submittedId ?? this.submittedId,
     );
   }
 }
@@ -54,27 +81,44 @@ class ReportDraftNotifier extends Notifier<ReportDraftData> {
   @override
   ReportDraftData build() {
     return const ReportDraftData(
-      typeTitle: 'Séismes (tremblements de terre)',
-      typeIcon: 'assets/icons/report-waves.svg',
+      typeTitle: '',
+      typeIcon: 'assets/icons/report-alert.svg',
       description: '',
-      photoName: 'fissures-facade.jpg',
-      street: '24 rue Sainte',
-      cityLine: '13001 Marseille',
-      latitude: 43.295,
-      longitude: 5.375,
+      street: '',
+      cityLine: '',
     );
   }
 
-  void setType({required String title, required String icon}) {
-    state = state.copyWith(typeTitle: title, typeIcon: icon);
+  void reset() {
+    state = build();
+  }
+
+  void setContext({String? zoneId, String? hazardType}) {
+    state = state.copyWith(
+      zoneId: zoneId,
+      hazardType: hazardType,
+    );
+  }
+
+  void setType({
+    required String id,
+    required String title,
+    required String icon,
+  }) {
+    state = state.copyWith(typeId: id, typeTitle: title, typeIcon: icon);
   }
 
   void setDescription(String description) {
     state = state.copyWith(description: description);
   }
 
-  void setPhoto(String? name) {
-    state = state.copyWith(photoName: name, clearPhoto: name == null);
+  void setPhoto({String? name, String? path}) {
+    if (name == null && path == null) {
+      state = state.copyWith(clearPhoto: true);
+      return;
+    }
+
+    state = state.copyWith(photoName: name, photoPath: path);
   }
 
   void setPlace({
@@ -89,5 +133,9 @@ class ReportDraftNotifier extends Notifier<ReportDraftData> {
       latitude: latitude,
       longitude: longitude,
     );
+  }
+
+  void setSubmittedId(String id) {
+    state = state.copyWith(submittedId: id);
   }
 }

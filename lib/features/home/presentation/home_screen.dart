@@ -34,7 +34,13 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Risque d’inondation'),
+        title: Text(
+          'Urban Resilience',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         actions: [
           IconButton(
             tooltip: 'Profil et rôle',
@@ -51,23 +57,40 @@ class HomeScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  'Connaissez votre zone avant la prochaine Catastrophe naturelle.',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
+                Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Soyez informé des risques dans votre zone',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Inondation, chaleur ou glissement : ouvrez la carte '
+                          'pour voir le niveau de risque de votre zone et '
+                          'anticiper ce qui se passe autour de vous.',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Chaque zone combine les données environnementales en '
-                  'direct, la référence historique du même endroit et le '
-                  'profil d’exposition de la communauté enregistré, en une '
-                  'seule évaluation. La carte montre où un risque est '
-                  'identifié aujourd’hui.',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                const SizedBox(height: 24),
+                for (int index = 0; index < _steps.length; index++) ...[
+                  Card(
+                    clipBehavior: Clip.antiAlias,
+                    child: _StepTile(step: _steps[index]),
                   ),
-                ),
+                  if (index < _steps.length - 1) const SizedBox(height: 12),
+                ],
                 const SizedBox(height: 24),
                 FilledButton.icon(
                   onPressed: () => context.push('/map'),
@@ -76,18 +99,6 @@ class HomeScreen extends StatelessWidget {
                   ),
                   icon: const Icon(Icons.map_outlined),
                   label: const Text('Ouvrir la carte'),
-                ),
-                const SizedBox(height: 24),
-                Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    children: <Widget>[
-                      for (int index = 0; index < _steps.length; index++) ...[
-                        _StepTile(step: _steps[index]),
-                        if (index < _steps.length - 1) const Divider(height: 1),
-                      ],
-                    ],
-                  ),
                 ),
               ],
             ),

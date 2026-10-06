@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:urban_resilience/core/theme/app_palette.dart';
+import 'package:urban_resilience/features/observations/presentation/report_chrome.dart';
 import 'package:urban_resilience/features/observations/presentation/report_draft.dart';
 
 class _ReportType {
@@ -122,14 +123,39 @@ const _categories = [
 ];
 
 class NewReportScreen extends ConsumerStatefulWidget {
-  const NewReportScreen({super.key});
+  const NewReportScreen({super.key, this.zoneId, this.hazardType});
+
+  final String? zoneId;
+  final String? hazardType;
 
   @override
   ConsumerState<NewReportScreen> createState() => _NewReportScreenState();
 }
 
 class _NewReportScreenState extends ConsumerState<NewReportScreen> {
-  String _selectedId = 'earthquake';
+  String _selectedId = 'flood';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final notifier = ref.read(reportDraftProvider.notifier);
+      final previous = ref.read(reportDraftProvider);
+      // Keep context if already set; otherwise apply route query.
+      final zone = widget.zoneId?.trim().isNotEmpty == true
+          ? widget.zoneId!.trim()
+          : previous.zoneId;
+      final hazard = widget.hazardType?.trim().isNotEmpty == true
+          ? widget.hazardType!.trim()
+          : previous.hazardType;
+      notifier.reset();
+      if ((zone != null && zone.isNotEmpty) ||
+          (hazard != null && hazard.isNotEmpty)) {
+        notifier.setContext(zoneId: zone, hazardType: hazard);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -296,7 +322,11 @@ class _NewReportScreenState extends ConsumerState<NewReportScreen> {
                           .firstWhere((item) => item.id == _selectedId);
                       ref
                           .read(reportDraftProvider.notifier)
-                          .setType(title: type.title, icon: type.icon);
+                          .setType(
+                            id: type.id,
+                            title: type.title,
+                            icon: type.icon,
+                          );
                       context.push('/report/description');
                     },
                     style: ElevatedButton.styleFrom(
@@ -318,7 +348,7 @@ class _NewReportScreenState extends ConsumerState<NewReportScreen> {
                   ),
                 ),
               ),
-              const _ReportNavigation(),
+              const ReportNavigation(),
             ],
           ),
         ),
@@ -486,95 +516,6 @@ class _SelectionMark extends StatelessWidget {
               height: 12,
             )
           : null,
-    );
-  }
-}
-
-class _ReportNavigation extends StatelessWidget {
-  const _ReportNavigation();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 74,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: AppPalette.inputBorder)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _NavItem(
-            label: 'Carte',
-            asset: 'assets/icons/map-nav-map.svg',
-            onTap: () => context.go('/map'),
-          ),
-          const _NavItem(
-            label: 'Signaler',
-            asset: 'assets/icons/map-nav-plus.svg',
-            selected: true,
-          ),
-          _NavItem(
-            label: 'Alertes',
-            asset: 'assets/icons/map-nav-bell.svg',
-            onTap: () => context.go('/alerts'),
-          ),
-          _NavItem(
-            label: 'Profil',
-            asset: 'assets/icons/map-nav-user.svg',
-            onTap: () => context.push('/profile'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  final String label;
-  final String asset;
-  final bool selected;
-  final VoidCallback? onTap;
-
-  const _NavItem({
-    required this.label,
-    required this.asset,
-    this.selected = false,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: 76,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 36,
-              height: 28,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: selected ? AppPalette.infoBoxBg : Colors.transparent,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: SvgPicture.asset(asset, width: 20, height: 20),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                color: selected ? AppPalette.primary : AppPalette.textMuted,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
