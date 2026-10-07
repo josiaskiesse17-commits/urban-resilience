@@ -6,7 +6,6 @@ import '../../features/admin/presentation/screens/admin_alerts_screen.dart';
 import '../../features/admin/presentation/screens/admin_dashboard_screen.dart';
 import '../../features/admin/presentation/screens/admin_observations_screen.dart';
 import '../../features/admin/presentation/screens/admin_risk_screen.dart';
-import '../../features/alerts/presentation/alerts_screen.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
@@ -23,6 +22,7 @@ import '../../features/observations/presentation/report_location_screen.dart';
 import '../../features/observations/presentation/report_received_screen.dart';
 import '../../features/observations/presentation/report_summary_screen.dart';
 import '../../features/risk/presentation/risk_details_screen.dart';
+import '../../core/widgets/main_shell.dart';
 
 String? appRouteRedirect({
   required String location,
@@ -133,11 +133,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        path: '/report',
+        builder: (context, state) => const MainShell(initialIndex: 0),
+      ),
+      GoRoute(
         path: '/alerts',
-        builder: (context, state) => AlertsScreen(
-          zoneId: state.uri.queryParameters['zone'],
-          hazardType: state.uri.queryParameters['hazard'],
-        ),
+        builder: (context, state) => const MainShell(initialIndex: 1),
       ),
       GoRoute(
         path: '/observations',
@@ -147,7 +148,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
-        path: '/report',
+        path: '/report/new',
         builder: (context, state) => NewReportScreen(
           zoneId: state.uri.queryParameters['zone'],
           hazardType: state.uri.queryParameters['hazard'],
@@ -171,7 +172,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/profile',
-        builder: (context, state) => const ProfileScreen(),
+        builder: (context, state) => const MainShell(initialIndex: 2),
       ),
       ShellRoute(
         builder: (context, state, child) {

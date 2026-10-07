@@ -25,7 +25,9 @@ class AdminObservationsScreen extends ConsumerWidget {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 860),
                   child: ListView.separated(
-                    padding: EdgeInsets.all(MediaQuery.sizeOf(context).width < 600 ? 12.0 : 16.0),
+                    padding: EdgeInsets.all(
+                      MediaQuery.sizeOf(context).width < 600 ? 12.0 : 16.0,
+                    ),
                     itemCount: observations.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
@@ -33,9 +35,12 @@ class AdminObservationsScreen extends ConsumerWidget {
 
                       return _PendingObservationCard(
                         observation: observation,
-                        onOpen: () => _openDetails(context, observation),
-                        onApprove: () => _approve(context, ref, observation),
-                        onReject: () => _reject(context, ref, observation),
+                        onOpen: () =>
+                            _openDetails(context, observation),
+                        onApprove: () =>
+                            _approve(context, ref, observation),
+                        onReject: () =>
+                            _reject(context, ref, observation),
                       );
                     },
                   ),
@@ -93,7 +98,9 @@ class AdminObservationsScreen extends ConsumerWidget {
         content: SingleChildScrollView(
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: MediaQuery.sizeOf(context).width * 0.9 > 600 ? 600 : MediaQuery.sizeOf(context).width * 0.9,
+              maxWidth: MediaQuery.sizeOf(context).width * 0.9 > 600
+                  ? 600
+                  : MediaQuery.sizeOf(context).width * 0.9,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,9 +115,14 @@ class AdminObservationsScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
                 Text('Type : ${_typeLabel(observation.type)}'),
                 Text('Zone : ${_zoneLabel(observation.zoneId)}'),
-                Text('Risque : ${_hazardLabel(observation.hazardType)}'),
+                Text(
+                  'Risque : ${_hazardLabel(observation.hazardType)}',
+                ),
                 Text('Auteur : ${observation.userId}'),
-                Text('Envoyée le : ${_formatDate(observation.createdAt)}'),
+                Text(
+                  'Envoyée le : '
+                  '${_formatDate(observation.createdAt)}',
+                ),
                 Text(
                   'Coordonnées : '
                   '${observation.latitude.toStringAsFixed(4)}, '
@@ -141,7 +153,9 @@ class AdminObservationsScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Impossible d’identifier le compte administrateur.'),
+            content: Text(
+              'Impossible d’identifier le compte administrateur.',
+            ),
           ),
         );
       }
@@ -149,19 +163,24 @@ class AdminObservationsScreen extends ConsumerWidget {
     }
 
     try {
-      await ref
-          .read(observationsRepositoryProvider)
-          .approve(id: observation.id, reviewerId: reviewerId);
+      await ref.read(observationsRepositoryProvider).approve(
+            id: observation.id,
+            reviewerId: reviewerId,
+          );
 
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Observation approuvée.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Observation approuvée.'),
+          ),
+        );
       }
     } catch (error) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Approbation impossible : $error')),
+          SnackBar(
+            content: Text('Approbation impossible : $error'),
+          ),
         );
       }
     }
@@ -175,15 +194,19 @@ class AdminObservationsScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Supprimer l’observation ?'),
+        title: const Text('Rejeter l’observation ?'),
         content: SingleChildScrollView(
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: MediaQuery.sizeOf(context).width * 0.9 > 600 ? 600 : MediaQuery.sizeOf(context).width * 0.9,
+              maxWidth: MediaQuery.sizeOf(context).width * 0.9 > 600
+                  ? 600
+                  : MediaQuery.sizeOf(context).width * 0.9,
             ),
             child: const Text(
-              'Une observation rejetée sera supprimée définitivement '
-              'et ne sera plus visible dans les signalements.',
+              'Cette observation sera marquée comme rejetée. '
+              'Elle restera conservée dans l’historique et ne sera pas '
+              'prise en compte dans les observations confirmées ni dans '
+              'les calculs de risque.',
             ),
           ),
         ),
@@ -194,7 +217,7 @@ class AdminObservationsScreen extends ConsumerWidget {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Rejeter et supprimer'),
+            child: const Text('Rejeter'),
           ),
         ],
       ),
@@ -204,18 +227,40 @@ class AdminObservationsScreen extends ConsumerWidget {
       return;
     }
 
+    final reviewerId = ref.read(currentUserProvider)?.id;
+
+    if (reviewerId == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Impossible d’identifier le compte administrateur.',
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
     try {
-      await ref.read(observationsRepositoryProvider).delete(id: observation.id);
+      await ref.read(observationsRepositoryProvider).reject(
+            id: observation.id,
+            reviewerId: reviewerId,
+          );
 
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Observation supprimée.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Observation rejetée.'),
+          ),
+        );
       }
     } catch (error) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Suppression impossible : $error')),
+          SnackBar(
+            content: Text('Rejet impossible : $error'),
+          ),
         );
       }
     }
@@ -285,12 +330,15 @@ class _PendingObservationCard extends StatelessWidget {
                 children: [
                   OutlinedButton.icon(
                     onPressed: onOpen,
-                    icon: const Icon(Icons.visibility_outlined, size: 18),
+                    icon: const Icon(
+                      Icons.visibility_outlined,
+                      size: 18,
+                    ),
                     label: const Text('Inspecter'),
                   ),
                   OutlinedButton(
                     onPressed: onReject,
-                    child: const Text('Rejeter et supprimer'),
+                    child: const Text('Rejeter'),
                   ),
                   FilledButton(
                     onPressed: onApprove,

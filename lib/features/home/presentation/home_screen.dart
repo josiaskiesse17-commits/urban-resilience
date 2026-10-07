@@ -72,7 +72,7 @@ class HomeScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Inondation, chaleur ou glissement : ouvrez la carte '
+                          'Inondation, chaleur ou glissement de terrain : ouvrez la carte '
                           'pour voir le niveau de risque de votre zone et '
                           'anticiper ce qui se passe autour de vous.',
                           style: theme.textTheme.bodyLarge?.copyWith(

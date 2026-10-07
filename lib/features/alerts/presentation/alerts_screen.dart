@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../risk/domain/hazard_type.dart';
 import '../domain/risk_alert.dart';
 import 'alert_presentation.dart';
 import 'providers/alert_providers.dart';
+import '../../../core/widgets/retractable_bottom_nav_bar.dart';
+import '../../../features/observations/presentation/report_chrome.dart';
 
 class AlertsScreen extends ConsumerWidget {
-  const AlertsScreen({super.key, this.zoneId, this.hazardType});
+  const AlertsScreen({super.key, this.zoneId, this.hazardType, this.showNavBar = true});
 
   final String? zoneId;
-
   final String? hazardType;
+  final bool showNavBar;
 
   String? get _hazardLabel {
     final raw = hazardType;
@@ -31,65 +32,73 @@ class AlertsScreen extends ConsumerWidget {
     final zone = zoneId;
     final hazard = _hazardLabel;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Alertes'),
-        leading: IconButton(
-          tooltip: 'Retour',
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/map');
-            }
-          },
-        ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-      ),
-      body: SafeArea(
-        child: zone == null || hazard == null
-            ? const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Text(
-                    'Sélectionnez un risque pour consulter ses alertes.',
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              )
-            : Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 720),
-                  child: ref
-                      .watch(
-                        alertsForContextProvider((
-                          zoneId: zone,
-                          hazardType: hazard,
-                        )),
-                      )
-                      .when(
-                        loading: () =>
-                            const Center(child: CircularProgressIndicator()),
-                        error: (error, _) => _ErrorView(error: error),
-                        data: (alerts) => alerts.isEmpty
-                            ? const Center(
-                                child: Text('Aucune alerte pour ce risque.'),
-                              )
-                            : ListView.separated(
-                                padding: const EdgeInsets.all(16),
-                                itemCount: alerts.length,
-                                separatorBuilder: (_, _) =>
-                                    const SizedBox(height: 10),
-                                itemBuilder: (context, index) =>
-                                    _AlertCard(alert: alerts[index]),
-                              ),
-                      ),
-                ),
+    final body = SafeArea(
+      child: zone == null || hazard == null
+          ? Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: ref
+                    .watch(allActiveAlertsProvider)
+                    .when(
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (error, _) => _ErrorView(error: error),
+                      data: (alerts) => alerts.isEmpty
+                          ? const Center(
+                              child: Text('Aucune alerte active.'),
+                            )
+                          : ListView.separated(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: alerts.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(height: 10),
+                              itemBuilder: (context, index) =>
+                                  _AlertCard(alert: alerts[index]),
+                            ),
+                    ),
               ),
-      ),
+            )
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: ref
+                    .watch(
+                      alertsForContextProvider((
+                        zoneId: zone,
+                        hazardType: hazard,
+                      )),
+                    )
+                    .when(
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (error, _) => _ErrorView(error: error),
+                      data: (alerts) => alerts.isEmpty
+                          ? const Center(
+                              child: Text('Aucune alerte pour ce risque.'),
+                            )
+                          : ListView.separated(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: alerts.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(height: 10),
+                              itemBuilder: (context, index) =>
+                                  _AlertCard(alert: alerts[index]),
+                            ),
+                    ),
+              ),
+            ),
     );
+
+    if (showNavBar) {
+      return Scaffold(
+        body: body,
+        bottomNavigationBar: const RetractableBottomNavBar(
+          selectedTab: CitizenNavTab.alertes,
+        ),
+      );
+    }
+
+    return body;
   }
 }
 

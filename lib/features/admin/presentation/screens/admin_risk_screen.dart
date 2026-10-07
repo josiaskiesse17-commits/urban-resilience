@@ -986,12 +986,34 @@ class _MeasurementTile extends StatelessWidget {
 
 class _FactorBar extends StatelessWidget {
   final String title;
-  final double value;
+  final double? value;
 
   const _FactorBar({required this.title, required this.value});
 
   @override
   Widget build(BuildContext context) {
+    if (value == null) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(child: Text(title)),
+                const Text(
+                  'Non configuré',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            LinearProgressIndicator(value: 0),
+          ],
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
       child: Column(
@@ -1000,11 +1022,11 @@ class _FactorBar extends StatelessWidget {
           Row(
             children: [
               Expanded(child: Text(title)),
-              Text('${value.toStringAsFixed(0)}/100'),
+              Text('${value!.toStringAsFixed(0)}/100'),
             ],
           ),
           const SizedBox(height: 8),
-          LinearProgressIndicator(value: (value / 100).clamp(0.0, 1.0)),
+          LinearProgressIndicator(value: (value! / 100).clamp(0.0, 1.0)),
         ],
       ),
     );

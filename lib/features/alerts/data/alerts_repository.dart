@@ -68,11 +68,18 @@ class AlertsRepository {
     return controller.stream;
   }
 
-  Stream<List<RiskAlert>> watchAll() {
-    return _collection.snapshots().map(_mapSnapshots);
+   Stream<List<RiskAlert>> watchAll() {
+     return _collection.snapshots().map(_mapSnapshots);
+   }
+
+  Stream<List<RiskAlert>> watchAllActive() {
+    return _collection
+        .where('active', isEqualTo: true)
+        .snapshots()
+        .map((snapshot) => _visibleOf(_mapSnapshots(snapshot)));
   }
 
-  Future<void> setActive({required String id, required bool active}) {
+   Future<void> setActive({required String id, required bool active}) {
     return _collection.doc(id).update({'active': active});
   }
 

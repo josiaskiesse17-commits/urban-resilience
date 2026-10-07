@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:urban_resilience/core/theme/app_palette.dart';
 import 'package:urban_resilience/features/observations/presentation/providers/observation_providers.dart';
 import 'package:urban_resilience/features/observations/presentation/report_chrome.dart';
 import 'package:urban_resilience/features/observations/presentation/report_draft.dart';
@@ -95,7 +94,7 @@ class _ReportSummaryScreenState extends ConsumerState<ReportSummaryScreen> {
     final draft = ref.watch(reportDraftProvider);
 
     return Scaffold(
-      backgroundColor: AppPalette.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Align(
         alignment: Alignment.topCenter,
         child: ConstrainedBox(
@@ -108,71 +107,71 @@ class _ReportSummaryScreenState extends ConsumerState<ReportSummaryScreen> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
                   children: [
-                    const Text(
+                    Text(
                       'Vérifiez avant d’envoyer',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: AppPalette.textDark,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       'Vous pouvez encore modifier les informations.',
                       style: TextStyle(
                         fontSize: 13,
                         height: 1.35,
-                        color: AppPalette.textMuted,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppPalette.inputBorder),
+                        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
                       ),
                       child: Column(
                         children: [
                           _Section(
-                            title: 'Type de catastrophe',
-                            onEdit: () => context.go('/report'),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: AppPalette.infoBoxBg,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: SvgPicture.asset(
-                                    draft.typeIcon,
-                                    width: 20,
-                                    height: 20,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    draft.typeTitle.isEmpty
-                                        ? 'Non renseigné'
-                                        : draft.typeTitle,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppPalette.textDark,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+            title: 'Type de catastrophe',
+            onEdit: () => context.go('/report'),
+child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: SvgPicture.asset(
+                    draft.typeIcon,
+                    width: 20,
+                    height: 20,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    draft.typeTitle.isEmpty
+                        ? 'Non renseigné'
+                        : draft.typeTitle,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              ],
+            ),
                           ),
-                          const Divider(
+                          Divider(
                             height: 20,
-                            color: AppPalette.inputBorder,
+                            color: Theme.of(context).colorScheme.outlineVariant,
                           ),
                           _Section(
                             title: 'Description',
@@ -181,26 +180,26 @@ class _ReportSummaryScreenState extends ConsumerState<ReportSummaryScreen> {
                               draft.description.isEmpty
                                   ? 'Aucune description'
                                   : draft.description,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 height: 1.4,
-                                color: AppPalette.textDark,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ),
-                          const Divider(
+                          Divider(
                             height: 20,
-                            color: AppPalette.inputBorder,
+                            color: Theme.of(context).colorScheme.outlineVariant,
                           ),
                           _Section(
                             title: 'Photo jointe',
                             onEdit: () => context.go('/report/description'),
                             child: draft.photoName == null
-                                ? const Text(
+                                ? Text(
                                     'Aucune photo',
                                     style: TextStyle(
                                       fontSize: 13,
-                                      color: AppPalette.textMuted,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
                                   )
                                 : Row(
@@ -214,24 +213,24 @@ class _ReportSummaryScreenState extends ConsumerState<ReportSummaryScreen> {
                                       Expanded(
                                         child: Text(
                                           draft.photoName!,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w600,
-                                            color: AppPalette.textDark,
+                                            color: Theme.of(context).colorScheme.onSurface,
                                           ),
                                         ),
                                       ),
                                     ],
                                   ),
-                          ),
-                          const Divider(
+),
+                          Divider(
                             height: 20,
-                            color: AppPalette.inputBorder,
+                            color: Theme.of(context).colorScheme.outlineVariant,
                           ),
                           _Section(
                             title: 'Lieu de l’événement',
                             onEdit: () => context.go('/report/location'),
-                            child: Row(
+child: Row(
                               children: [
                                 SvgPicture.asset(
                                   'assets/icons/report-pin.svg',
@@ -245,26 +244,26 @@ class _ReportSummaryScreenState extends ConsumerState<ReportSummaryScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        draft.street.isEmpty
-                                            ? 'Lieu sélectionné'
-                                            : draft.street,
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppPalette.textDark,
-                                        ),
-                                      ),
-                                      Text(
-                                        draft.cityLine.isEmpty
-                                            ? (draft.hasPlace
-                                                  ? '${draft.latitude!.toStringAsFixed(4)}, ${draft.longitude!.toStringAsFixed(4)}'
-                                                  : 'Non renseigné')
-                                            : draft.cityLine,
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          color: AppPalette.textMuted,
-                                        ),
-                                      ),
+                                         draft.street.isEmpty
+                                             ? 'Lieu sélectionné'
+                                             : draft.street,
+                                       style: TextStyle(
+                                         fontSize: 13,
+                                         fontWeight: FontWeight.w600,
+                                         color: Theme.of(context).colorScheme.onSurface,
+                                       ),
+                                     ),
+                                     Text(
+                                       draft.cityLine.isEmpty
+                                           ? (draft.hasPlace
+                                                 ? '${draft.latitude!.toStringAsFixed(4)}, ${draft.longitude!.toStringAsFixed(4)}'
+                                                 : 'Non renseigné')
+                                           : draft.cityLine,
+                                       style: TextStyle(
+                                         fontSize: 13,
+                                         color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                       ),
+                                     ),
                                     ],
                                   ),
                                 ),
@@ -274,21 +273,21 @@ class _ReportSummaryScreenState extends ConsumerState<ReportSummaryScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 12),
+const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppPalette.infoBoxBg,
+                        color: Theme.of(context).colorScheme.primaryContainer,
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: const Text(
-                        'Votre signalement sera vérifié par nos équipes avant toute publication.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.35,
-                          color: AppPalette.infoText,
-                        ),
+                      child: Text(
+                          'Votre signalement sera vérifié par nos équipes avant toute publication.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.35,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
+                    ),
                     ),
                   ],
                 ),
@@ -329,21 +328,21 @@ class _Section extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: AppPalette.textDark,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
             GestureDetector(
               onTap: onEdit,
-              child: const Text(
+              child: Text(
                 'Modifier',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppPalette.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
             ),

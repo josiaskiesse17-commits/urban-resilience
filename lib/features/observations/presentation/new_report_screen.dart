@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:urban_resilience/core/theme/app_palette.dart';
 import 'package:urban_resilience/features/observations/presentation/report_chrome.dart';
 import 'package:urban_resilience/features/observations/presentation/report_draft.dart';
 
@@ -29,94 +28,25 @@ class _ReportCategory {
 
 const _categories = [
   _ReportCategory(
-    label: 'SISMES & VOLCANS',
+    label: 'Risques naturels',
     types: [
-      _ReportType(
-        id: 'earthquake',
-        title: 'Séismes (tremblements de terre)',
-        subtitle: 'Secousses, fissures, instabilité du sol',
-        icon: 'assets/icons/report-waves.svg',
-      ),
-      _ReportType(
-        id: 'volcano',
-        title: 'Éruptions volcaniques',
-        subtitle: 'Cendres, coulées, fumées et explosions',
-        icon: 'assets/icons/report-mountain.svg',
-      ),
-    ],
-  ),
-  _ReportCategory(
-    label: 'MER & TEMPESTES',
-    types: [
-      _ReportType(
-        id: 'tsunami',
-        title: 'Tsunamis',
-        subtitle: 'Vagues exceptionnelles, submersion côtière',
-        icon: 'assets/icons/report-waves-water.svg',
-      ),
-      _ReportType(
-        id: 'landslide',
-        title: 'Mouvements de terrain et avalanches',
-        subtitle: 'Glissements, éboulements, coulées de neige',
-        icon: 'assets/icons/report-mountain.svg',
-      ),
       _ReportType(
         id: 'flood',
-        title: 'Inondations',
+        title: 'Inondation',
         subtitle: 'Crues, débordements, eaux montantes',
         icon: 'assets/icons/report-waves-water.svg',
       ),
       _ReportType(
-        id: 'marine',
-        title: 'Submersions marines',
-        subtitle: 'Tempêtes, surcotes, inondations côtières',
-        icon: 'assets/icons/report-waves-water.svg',
-      ),
-      _ReportType(
-        id: 'cyclone',
-        title: 'Cyclones, ouragans et typhons',
-        subtitle: 'Vents violents, pluies intenses, submersions',
-        icon: 'assets/icons/report-wind.svg',
-      ),
-      _ReportType(
-        id: 'tornado',
-        title: 'Tornades',
-        subtitle: 'Colonnes d’air violentes, dégâts localisés',
-        icon: 'assets/icons/report-alert.svg',
-      ),
-    ],
-  ),
-  _ReportCategory(
-    label: 'MÉTÉO EXTREME',
-    types: [
-      _ReportType(
-        id: 'blizzard',
-        title: 'Tempêtes de neige et blizzards',
-        subtitle: 'Chutes abondantes, visibilité nulle, froid intense',
-        icon: 'assets/icons/report-wind.svg',
-      ),
-      _ReportType(
-        id: 'drought',
-        title: 'Sécheresses',
-        subtitle: 'Manque d’eau, sévère aridité, impacts sur l’environnement',
-        icon: 'assets/icons/report-sun.svg',
-      ),
-      _ReportType(
         id: 'heatwave',
-        title: 'Canicules',
-        subtitle: 'Chaleur extrême, vagues de chaleur prolongées',
+        title: 'Chaleur',
+        subtitle: 'Canicules, chaleur extrême, vagues de chaleur prolongées',
         icon: 'assets/icons/report-sun.svg',
       ),
-    ],
-  ),
-  _ReportCategory(
-    label: 'INCENDIES',
-    types: [
       _ReportType(
-        id: 'wildfire',
-        title: 'Feux de forêt (incendies)',
-        subtitle: 'Feux de végétation, fumées, propagation rapide',
-        icon: 'assets/icons/report-flame.svg',
+        id: 'landslide',
+        title: 'Glissement de terrain',
+        subtitle: 'Glissements, éboulements, coulées de neige',
+        icon: 'assets/icons/report-mountain.svg',
       ),
     ],
   ),
@@ -157,10 +87,10 @@ class _NewReportScreenState extends ConsumerState<NewReportScreen> {
     });
   }
 
-  @override
+@override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppPalette.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Align(
         alignment: Alignment.topCenter,
         child: ConstrainedBox(
@@ -183,7 +113,7 @@ class _NewReportScreenState extends ConsumerState<NewReportScreen> {
                         },
                       ),
                       const SizedBox(width: 12),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -192,15 +122,15 @@ class _NewReportScreenState extends ConsumerState<NewReportScreen> {
                               style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w700,
-                                color: AppPalette.textDark,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
-                              'Aidez à informer votre quartier',
+                              'Aidez à informer votre zone',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: AppPalette.textMuted,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ],
@@ -217,7 +147,7 @@ class _NewReportScreenState extends ConsumerState<NewReportScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppPalette.infoBoxBg,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Row(
@@ -230,11 +160,11 @@ class _NewReportScreenState extends ConsumerState<NewReportScreen> {
                           SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'En cas de danger immédiat, appelez le 112.',
+                              'En cas de danger immédiat, contacter les autorités compétentes.',
                               style: TextStyle(
                                 fontSize: 13,
                                 height: 1.35,
-                                color: AppPalette.infoText,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ),
@@ -244,15 +174,15 @@ class _NewReportScreenState extends ConsumerState<NewReportScreen> {
                     const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppPalette.inputBorder),
-                      ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+                        ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Row(
+                          Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
@@ -264,22 +194,22 @@ class _NewReportScreenState extends ConsumerState<NewReportScreen> {
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w700,
-                                        color: AppPalette.textDark,
+                                        color: Theme.of(context).colorScheme.onSurface,
                                       ),
                                     ),
-                                    SizedBox(height: 4),
+                                    const SizedBox(height: 4),
                                     Text(
                                       'Sélectionnez le phénomène principal pour mieux cadrer votre signalement.',
                                       style: TextStyle(
                                         fontSize: 13,
                                         height: 1.35,
-                                        color: AppPalette.textMuted,
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              SizedBox(width: 8),
+                              const SizedBox(width: 8),
                               _StepChip(),
                             ],
                           ),
@@ -287,10 +217,10 @@ class _NewReportScreenState extends ConsumerState<NewReportScreen> {
                           for (final category in _categories) ...[
                             Text(
                               category.label,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
-                                color: AppPalette.textMuted,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -316,36 +246,36 @@ class _NewReportScreenState extends ConsumerState<NewReportScreen> {
                   height: 52,
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      final type = _categories
-                          .expand((category) => category.types)
-                          .firstWhere((item) => item.id == _selectedId);
-                      ref
-                          .read(reportDraftProvider.notifier)
-                          .setType(
-                            id: type.id,
-                            title: type.title,
-                            icon: type.icon,
-                          );
-                      context.push('/report/description');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      elevation: 0,
-                      backgroundColor: AppPalette.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        side: const BorderSide(color: AppPalette.primary),
-                      ),
-                    ),
-                    child: const Text(
-                      'Continuer vers la description',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+          onPressed: () {
+            final type = _categories
+                .expand((category) => category.types)
+                .firstWhere((item) => item.id == _selectedId);
+            ref
+                .read(reportDraftProvider.notifier)
+                .setType(
+                  id: type.id,
+                  title: type.title,
+                  icon: type.icon,
+                );
+            context.push('/report/description');
+          },
+          style: ElevatedButton.styleFrom(
+            elevation: 0,
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(color: Theme.of(context).colorScheme.primary),
+            ),
+          ),
+          child: const Text(
+            'Continuer vers la description',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
                 ),
               ),
               const ReportNavigation(),
@@ -365,7 +295,7 @@ class _HeaderButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
@@ -376,12 +306,16 @@ class _HeaderButton extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppPalette.inputBorder),
+            border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
           ),
           child: SvgPicture.asset(
             'assets/icons/risk-arrow-left.svg',
             width: 20,
             height: 20,
+            colorFilter: ColorFilter.mode(
+              Theme.of(context).colorScheme.onSurface,
+              BlendMode.srcIn,
+            ),
           ),
         ),
       ),
@@ -397,19 +331,19 @@ class _StepChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: AppPalette.infoBoxBg,
-        borderRadius: BorderRadius.circular(999),
+        color: Theme.of(context).colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
           SvgPicture.asset('assets/icons/report-dot.svg', width: 8, height: 8),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           Text(
             'Étape 1',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: AppPalette.primary,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
         ],
@@ -429,10 +363,10 @@ class _TypeRow extends StatelessWidget {
     required this.onTap,
   });
 
-  @override
+@override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? AppPalette.infoBoxBg : Colors.white,
+      color: selected ? Theme.of(context).colorScheme.primaryContainer : Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
@@ -442,7 +376,7 @@ class _TypeRow extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: selected ? AppPalette.primary : AppPalette.inputBorder,
+              color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outlineVariant,
             ),
           ),
           child: Row(
@@ -452,7 +386,7 @@ class _TypeRow extends StatelessWidget {
                 height: 36,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: selected ? Colors.white : AppPalette.infoBoxBg,
+                  color: selected ? Theme.of(context).colorScheme.surface : Theme.of(context).colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: SvgPicture.asset(type.icon, width: 20, height: 20),
@@ -464,18 +398,18 @@ class _TypeRow extends StatelessWidget {
                   children: [
                     Text(
                       type.title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: AppPalette.textDark,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       type.subtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: AppPalette.textMuted,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -503,10 +437,10 @@ class _SelectionMark extends StatelessWidget {
       height: 20,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: selected ? AppPalette.primary : Colors.white,
+        color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.surface,
         shape: BoxShape.circle,
         border: Border.all(
-          color: selected ? AppPalette.primary : AppPalette.inputBorder,
+          color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outlineVariant,
         ),
       ),
       child: selected

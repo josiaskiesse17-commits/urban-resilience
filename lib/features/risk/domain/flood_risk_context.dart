@@ -8,8 +8,8 @@ class FloodRiskContext {
   final double riverDischargeBaselineM3s;
   final double riverDischargeCriticalM3s;
 
-  final double vulnerabilityScore;
-  final double historicalExposureScore;
+  final double? vulnerabilityScore;
+  final double? historicalExposureScore;
   final double observationScore;
 
   final int observationCount;

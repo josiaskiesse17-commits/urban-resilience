@@ -48,9 +48,29 @@ class ObservationsRepository {
         .map(_mapSnapshots);
   }
 
+  /// Watches only the current user's observations that are still awaiting
+  /// admin review.
+  ///
+  /// Confirmed and rejected observations remain in Firestore for history and
+  /// auditing, but are intentionally excluded from the citizen's pending list.
+  Stream<List<Observation>> watchMyPending(String userId) {
+    return _collection
+        .where('userId', isEqualTo: userId)
+        .where('status', isEqualTo: ObservationStatus.pending.name)
+        .snapshots()
+        .map(_mapSnapshots);
+  }
+
   Stream<List<Observation>> watchMine(String userId) {
     return _collection
         .where('userId', isEqualTo: userId)
+        .snapshots()
+        .map(_mapSnapshots);
+  }
+
+  Stream<List<Observation>> watchAllConfirmed() {
+    return _collection
+        .where('status', isEqualTo: ObservationStatus.confirmed.name)
         .snapshots()
         .map(_mapSnapshots);
   }
@@ -62,7 +82,6 @@ class ObservationsRepository {
     required double longitude,
     required ObservationType type,
     required String description,
-    String? imageUrl,
   }) async {
     final user = _auth.currentUser;
 
@@ -80,7 +99,6 @@ class ObservationsRepository {
       latitude: latitude,
       longitude: longitude,
       type: type,
-      imageUrl: imageUrl,
       description: description.trim(),
       createdAt: DateTime.now().toUtc(),
     );
@@ -94,17 +112,25 @@ class ObservationsRepository {
     required String localPath,
   }) async {
     final user = _auth.currentUser;
+
     if (user == null) {
       throw StateError('Utilisateur non connecté');
     }
 
     final bytes = await XFile(localPath).readAsBytes();
-    final ref = _storage.ref('observations/${user.uid}/$observationId.jpg');
-    await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
+
+    final ref = _storage.ref(
+      'observations/${user.uid}/$observationId.jpg',
+    );
+
+    await ref.putData(
+      bytes,
+      SettableMetadata(contentType: 'image/jpeg'),
+    );
+
     return ref.getDownloadURL();
   }
 
-  /// Creates the observation, optionally uploading [photoPath] first.
   Future<String> createWithOptionalPhoto({
     required String zoneId,
     required String hazardType,
@@ -115,11 +141,13 @@ class ObservationsRepository {
     String? photoPath,
   }) async {
     final user = _auth.currentUser;
+
     if (user == null) {
       throw StateError('Utilisateur non connecté');
     }
 
     final reference = _collection.doc();
+
     String? imageUrl;
 
     if (photoPath != null && photoPath.isNotEmpty) {
@@ -148,6 +176,7 @@ class ObservationsRepository {
     );
 
     await reference.set(observation.toJson());
+
     return reference.id;
   }
 
@@ -162,6 +191,25 @@ class ObservationsRepository {
     });
   }
 
+  /// Rejects an observation without deleting it.
+  ///
+  /// Rejected observations remain in Firestore so that the decision is
+  /// auditable and the original submission is preserved.
+  Future<void> reject({
+    required String id,
+    required String reviewerId,
+  }) {
+    return _collection.doc(id).update({
+      'status': ObservationStatus.rejected.name,
+      'reviewedAt': DateTime.now().toUtc().toIso8601String(),
+      'reviewedBy': reviewerId,
+    });
+  }
+
+  /// Permanently deletes an observation.
+  ///
+  /// This is intentionally separate from rejection. Rejection must use
+  /// [reject] so rejected observations remain available for audit/history.
   Future<void> delete({required String id}) {
     return _collection.doc(id).delete();
   }

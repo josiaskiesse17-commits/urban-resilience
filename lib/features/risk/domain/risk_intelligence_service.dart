@@ -78,7 +78,7 @@ class RiskIntelligenceService {
 
     final riverReference = _riverReference(input: input, baseline: baseline);
 
-    final evidence = RiskEvidence(
+final evidence = RiskEvidence(
       measurements: [
         RiskMeasurement(
           name: 'rainfallIntensity',
@@ -156,24 +156,26 @@ class RiskIntelligenceService {
           source: riverSource,
           observedAt: riverTime,
         ),
-        RiskMeasurement(
-          name: 'geographicVulnerability',
-          value: input.vulnerabilityScore,
-          unit: 'score/100',
-          referenceLabel: 'Score de vulnérabilité géographique',
-          referenceType: RiskReferenceType.threshold,
-          source: 'Risk Intelligence',
-          observedAt: timestamp,
-        ),
-        RiskMeasurement(
-          name: 'historicalExposure',
-          value: input.historicalExposureScore,
-          unit: 'score/100',
-          referenceLabel: 'Score d’exposition historique',
-          referenceType: RiskReferenceType.historicalAverage,
-          source: 'Risk Intelligence',
-          observedAt: timestamp,
-        ),
+        if (input.vulnerabilityScore != null)
+          RiskMeasurement(
+            name: 'geographicVulnerability',
+            value: input.vulnerabilityScore!,
+            unit: 'score/100',
+            referenceLabel: 'Score de vulnérabilité géographique',
+            referenceType: RiskReferenceType.threshold,
+            source: 'Risk Intelligence',
+            observedAt: timestamp,
+          ),
+        if (input.historicalExposureScore != null)
+          RiskMeasurement(
+            name: 'historicalExposure',
+            value: input.historicalExposureScore!,
+            unit: 'score/100',
+            referenceLabel: 'Score d\'exposition historique',
+            referenceType: RiskReferenceType.historicalAverage,
+            source: 'Risk Intelligence',
+            observedAt: timestamp,
+          ),
         RiskMeasurement(
           name: 'currentObservations',
           value: input.observationScore,
