@@ -11,6 +11,7 @@ import 'providers/map_provider.dart';
 import 'widgets/map_search_bar.dart';
 import 'widgets/zone_active_risks_sheet.dart';
 import 'widgets/zone_map_marker.dart';
+import '../../../core/widgets/scaffold_with_nav_bar.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -21,7 +22,6 @@ class MapScreen extends ConsumerStatefulWidget {
 
 class _MapScreenState extends ConsumerState<MapScreen> {
   final MapController _mapController = MapController();
-  bool _isNavExpanded = true;
 
   @override
   void initState() {
@@ -30,10 +30,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     Future<void>.microtask(() {
       ref.read(mapControllerProvider.notifier).initialize();
     });
-  }
-
-  void _toggleNavExpanded() {
-    setState(() => _isNavExpanded = !_isNavExpanded);
   }
 
   void _moveTo(LatLng location) {
@@ -60,6 +56,40 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final state = ref.watch(mapControllerProvider);
     final zones = ref.watch(riskZoneCatalogProvider);
 
+    final currentLocationMarkers = state.currentLocation != null
+        ? [
+            Marker(
+              point: state.currentLocation!,
+              width: 45,
+              height: 45,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 3),
+                ),
+                child: const Icon(
+                  Icons.my_location,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+            ),
+          ]
+        : <Marker>[];
+
+    final zoneMarkers = zones
+        .map(
+          (zone) => Marker(
+            point: LatLng(zone.latitude, zone.longitude),
+            width: 120,
+            height: 62,
+            alignment: const Alignment(0, 1 - 26 / 62),
+            child: ZoneMapMarker(zone: zone, onTap: () => _openZone(zone)),
+          ),
+        )
+        .toList();
+
     ref.listen<MapState>(mapControllerProvider, (previous, next) {
       final error = next.error;
 
@@ -69,119 +99,70 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       }
     });
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: state.selectedLocation,
-              initialZoom: 13,
-              minZoom: 4,
-              maxZoom: 19,
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.namegmail.urban_resilience',
-              ),
-              if (state.currentLocation != null)
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: state.currentLocation!,
-                      width: 45,
-                      height: 45,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3),
-                        ),
-                        child: const Icon(
-                          Icons.my_location,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              MarkerLayer(
-                markers: [
-                  for (final zone in zones)
-                    Marker(
-                      point: LatLng(zone.latitude, zone.longitude),
-                      width: 120,
-                      height: 62,
-                      alignment: const Alignment(0, 1 - 26 / 62),
-                      child: ZoneMapMarker(
-                        zone: zone,
-                        onTap: () => _openZone(zone),
-                      ),
-                    ),
-                ],
-              ),
-            ],
+    final mapBody = Stack(
+      children: [
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            initialCenter: state.selectedLocation,
+            initialZoom: 13,
+            minZoom: 4,
+            maxZoom: 19,
           ),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  _MapActionButton(
-                    icon: Icons.arrow_back,
-                    tooltip: 'Retour',
-                    onTap: () {
-                      if (context.canPop()) {
-                        context.pop();
-                      } else {
-                        context.go('/home');
-                      }
+          children: [
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.namegmail.urban_resilience',
+            ),
+            MarkerLayer(markers: currentLocationMarkers),
+            MarkerLayer(markers: zoneMarkers),
+          ],
+        ),
+
+        SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                _MapActionButton(
+                  icon: Icons.arrow_back,
+                  tooltip: 'Retour',
+                  onTap: () {
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go('/home');
+                    }
+                  },
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: MapSearchBar(
+                    onLocationSelected: (location) async {
+                      _moveTo(location);
                     },
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: MapSearchBar(
-                      onLocationSelected: (location) async {
-                        _moveTo(location);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            right: 16,
-            bottom: 30,
-            child: Column(
-              children: [
-                FloatingActionButton(
-                  heroTag: 'zones_refresh_button',
-                  tooltip: 'Actualiser les risques identifiés',
-                  onPressed: () =>
-                      ref.invalidate(zoneHazardAssessmentsProvider),
-                  child: const Icon(Icons.refresh),
-                ),
-                const SizedBox(height: 12),
-                FloatingActionButton(
-                  heroTag: 'location_button',
-                  tooltip: 'Me localiser',
-                  onPressed: _recenter,
-                  child: const Icon(Icons.my_location),
                 ),
               ],
             ),
           ),
-        ],
-      ),
-      bottomNavigationBar: ReportNavigation(
-        selected: CitizenNavTab.carte,
-        isExpanded: _isNavExpanded,
-        onToggle: _toggleNavExpanded,
-      ),
+        ),
+
+        // Keep the location control above the retractable navigation bar.
+        Positioned(
+          right: 16,
+          bottom: 92,
+          child: FloatingActionButton(
+            heroTag: 'location_button',
+            tooltip: 'Me localiser',
+            onPressed: _recenter,
+            child: const Icon(Icons.my_location),
+          ),
+        ),
+      ],
     );
+
+    return ScaffoldWithNavBar(selectedTab: CitizenNavTab.carte, body: mapBody);
   }
 }
 

@@ -30,18 +30,28 @@ final pendingObservationsProvider =
       (ref) => ref.watch(observationsRepositoryProvider).watchPending(),
     );
 
-final myObservationsProvider = StreamProvider.autoDispose<List<Observation>>((
-  ref,
-) {
-  final user = ref.watch(currentUserProvider);
+/// Citizen-facing list.
+///
+/// Only observations that are still pending admin review are returned.
+/// Confirmed and rejected observations remain in Firestore but disappear
+/// from this pending list automatically after their status changes.
+final myObservationsProvider =
+    StreamProvider.autoDispose<List<Observation>>((ref) {
+      final user = ref.watch(currentUserProvider);
 
-  if (user == null) {
-    return Stream<List<Observation>>.value(const <Observation>[]);
-  }
+      if (user == null) {
+        return Stream<List<Observation>>.value(
+          const <Observation>[],
+        );
+      }
 
-  return ref.watch(observationsRepositoryProvider).watchMine(user.id);
-});
+      return ref
+          .watch(observationsRepositoryProvider)
+          .watchMyPending(user.id);
+    });
 
-final allConfirmedObservationsProvider = StreamProvider.autoDispose<List<Observation>>(
-  (ref) => ref.watch(observationsRepositoryProvider).watchAllConfirmed(),
-);
+final allConfirmedObservationsProvider =
+    StreamProvider.autoDispose<List<Observation>>(
+      (ref) =>
+          ref.watch(observationsRepositoryProvider).watchAllConfirmed(),
+    );

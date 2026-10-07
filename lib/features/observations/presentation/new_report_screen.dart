@@ -127,7 +127,7 @@ class _NewReportScreenState extends ConsumerState<NewReportScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Aidez à informer votre quartier',
+                              'Aidez à informer votre zone',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -160,7 +160,7 @@ class _NewReportScreenState extends ConsumerState<NewReportScreen> {
                           SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'En cas de danger immédiat, appelez le 112.',
+                              'En cas de danger immédiat, contacter les autorités compétentes.',
                               style: TextStyle(
                                 fontSize: 13,
                                 height: 1.35,
@@ -312,6 +312,10 @@ class _HeaderButton extends StatelessWidget {
             'assets/icons/risk-arrow-left.svg',
             width: 20,
             height: 20,
+            colorFilter: ColorFilter.mode(
+              Theme.of(context).colorScheme.onSurface,
+              BlendMode.srcIn,
+            ),
           ),
         ),
       ),

@@ -2,8 +2,8 @@ import 'risk_factor_score.dart';
 
 class RiskFactors {
   final double rainfall;
-  final double geographicVulnerability;
-  final double historicalExposure;
+  final double? geographicVulnerability;
+  final double? historicalExposure;
   final double currentObservations;
 
   final String primaryFactorLabel;
@@ -20,7 +20,13 @@ class RiskFactors {
   });
 
   factory RiskFactors.fromJson(Map<String, dynamic> json) {
-    double read(String key) {
+    double? readNullable(String key) {
+      final value = json[key];
+
+      return value is num ? value.toDouble() : null;
+    }
+
+    double readNonNullable(String key) {
       final value = json[key];
 
       return value is num ? value.toDouble() : 0;
@@ -30,10 +36,10 @@ class RiskFactors {
     final entries = json['entries'];
 
     return RiskFactors(
-      rainfall: read('rainfall'),
-      geographicVulnerability: read('geographicVulnerability'),
-      historicalExposure: read('historicalExposure'),
-      currentObservations: read('currentObservations'),
+      rainfall: readNonNullable('rainfall'),
+      geographicVulnerability: readNullable('geographicVulnerability'),
+      historicalExposure: readNullable('historicalExposure'),
+      currentObservations: readNonNullable('currentObservations'),
       primaryFactorLabel: label is String && label.isNotEmpty
           ? label
           : 'Rainfall',

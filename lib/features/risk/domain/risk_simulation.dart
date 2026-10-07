@@ -439,7 +439,7 @@ class RiskSimulationService {
   double? _factorScore({
     required String name,
     required RiskFactors factors,
-    required double storedLegacyValue,
+    required double? storedLegacyValue,
   }) {
     for (final entry in factors.entries) {
       if (entry.name == name) {
@@ -447,7 +447,9 @@ class RiskSimulationService {
       }
     }
 
-    return storedLegacyValue > 0 ? storedLegacyValue : null;
+    return storedLegacyValue != null && storedLegacyValue > 0
+        ? storedLegacyValue
+        : null;
   }
 
   double _observationScore({

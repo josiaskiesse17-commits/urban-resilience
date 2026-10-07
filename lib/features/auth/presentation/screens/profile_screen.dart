@@ -4,7 +4,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
-import 'package:go_router/go_router.dart';
 
 import 'package:urban_resilience/core/theme/app_palette.dart';
 import 'package:urban_resilience/core/theme/theme_provider.dart';
@@ -12,6 +11,7 @@ import 'package:urban_resilience/features/auth/presentation/auth_error_message.d
 import 'package:urban_resilience/features/auth/presentation/providers/auth_providers.dart';
 import 'package:urban_resilience/features/location/presentation/selected_place_provider.dart';
 import 'package:urban_resilience/features/observations/presentation/report_chrome.dart';
+import 'package:urban_resilience/core/widgets/retractable_bottom_nav_bar.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -211,7 +211,9 @@ final profileReportUpdatesProvider = NotifierProvider<FirestoreBoolPrefNotifier,
 });
 
 class ProfileScreen extends ConsumerWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, this.showNavBar = true});
+
+  final bool showNavBar;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -231,138 +233,122 @@ class ProfileScreen extends ConsumerWidget {
         ? place!.label
         : null;
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: theme.colorScheme.onSurface),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/map');
-            }
-          },
-        ),
-        title: Text(
-          'Profil',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
-        backgroundColor: theme.scaffoldBackgroundColor,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-      ),
-      body: SafeArea(
-        bottom: false,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 390),
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-              children: [
-                const SizedBox(height: 8),
-                _IdentityCard(
-                  name: name,
-                  email: email,
-                  onEdit: () =>
-                      editDisplayName(context, ref, displayName ?? ''),
-                ),
-                const SizedBox(height: 16),
-                _SectionCard(
-                  title: 'Compte',
-                  children: [
-                    _AccountRow(
-                      iconAsset: 'assets/icons/lock-keyhole.svg',
-                      title: 'Changer le mot de passe',
-                      onTap: () => changePassword(context, ref),
+    final body = SafeArea(
+      bottom: false,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 390),
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+            children: [
+              const SizedBox(height: 8),
+              _IdentityCard(
+                name: name,
+                email: email,
+                onEdit: () =>
+                    editDisplayName(context, ref, displayName ?? ''),
+              ),
+              const SizedBox(height: 16),
+              _SectionCard(
+                title: 'Compte',
+                children: [
+                  _AccountRow(
+                    iconAsset: 'assets/icons/lock-keyhole.svg',
+                    title: 'Changer le mot de passe',
+                    onTap: () => changePassword(context, ref),
+                  ),
+                  Divider(
+                    height: 1,
+                    color: theme.colorScheme.outlineVariant,
+                  ),
+                  _AccountRow(
+                    iconAsset: 'assets/icons/profile-help.svg',
+                    title: 'Mot de passe oublié',
+                    subtitle:
+                        'Recevoir un lien de réinitialisation par e-mail',
+                    onTap: () => sendPasswordReset(context, ref),
+                  ),
+                  Divider(
+                    height: 1,
+                    color: theme.colorScheme.outlineVariant,
+                  ),
+                  _AccountRow(
+                    iconAsset: 'assets/icons/mail.svg',
+                    title: 'Vérifier mon adresse e-mail',
+                    subtitle: (user?.emailVerified ?? false)
+                        ? 'Adresse e-mail vérifiée'
+                        : 'Adresse e-mail non vérifiée',
+                    showChevron: !(user?.emailVerified ?? false),
+                    onTap: (user?.emailVerified ?? false)
+                        ? null
+                        : () => sendEmailVerification(context, ref),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _SectionCard(
+                title: 'Préférences de notifications',
+                children: [
+                  _ToggleRow(
+                    title: 'Alertes près de chez moi',
+                    subtitle: cityLabel == null
+                        ? 'Risques autour de vous'
+                        : 'Risques autour de $cityLabel',
+                    value: nearbyAlerts,
+                    onChanged: (value) => ref
+                        .read(profileNearbyAlertsProvider.notifier)
+                        .setValue(value),
+                  ),
+                  Divider(
+                    height: 1,
+                    color: theme.colorScheme.outlineVariant,
+                  ),
+                  _ToggleRow(
+                    title: 'Suivi de mes signalements',
+                    subtitle: 'Validation et changements de statut',
+                    value: reportUpdates,
+                    onChanged: (value) => ref
+                        .read(profileReportUpdatesProvider.notifier)
+                        .setValue(value),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _SectionCard(
+                title: 'Thème',
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
+                    child: _ThemeSegment(
+                      mode: themeMode,
+                      onSelect: (mode) => ref
+                          .read(themeModeProvider.notifier)
+                          .setThemeMode(mode),
                     ),
-                    Divider(
-                      height: 1,
-                      color: theme.colorScheme.outlineVariant,
-                    ),
-                    _AccountRow(
-                      iconAsset: 'assets/icons/profile-help.svg',
-                      title: 'Mot de passe oublié',
-                      subtitle:
-                          'Recevoir un lien de réinitialisation par e-mail',
-                      onTap: () => sendPasswordReset(context, ref),
-                    ),
-                    Divider(
-                      height: 1,
-                      color: theme.colorScheme.outlineVariant,
-                    ),
-                    _AccountRow(
-                      iconAsset: 'assets/icons/mail.svg',
-                      title: 'Vérifier mon adresse e-mail',
-                      subtitle: (user?.emailVerified ?? false)
-                          ? 'Adresse e-mail vérifiée'
-                          : 'Adresse e-mail non vérifiée',
-                      showChevron: !(user?.emailVerified ?? false),
-                      onTap: (user?.emailVerified ?? false)
-                          ? null
-                          : () => sendEmailVerification(context, ref),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _SectionCard(
-                  title: 'Préférences de notifications',
-                  children: [
-                    _ToggleRow(
-                      title: 'Alertes près de chez moi',
-                      subtitle: cityLabel == null
-                          ? 'Risques autour de vous'
-                          : 'Risques autour de $cityLabel',
-                      value: nearbyAlerts,
-                      onChanged: (value) => ref
-                          .read(profileNearbyAlertsProvider.notifier)
-                          .setValue(value),
-                    ),
-                    Divider(
-                      height: 1,
-                      color: theme.colorScheme.outlineVariant,
-                    ),
-                    _ToggleRow(
-                      title: 'Suivi de mes signalements',
-                      subtitle: 'Validation et changements de statut',
-                      value: reportUpdates,
-                      onChanged: (value) => ref
-                          .read(profileReportUpdatesProvider.notifier)
-                          .setValue(value),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _SectionCard(
-                  title: 'Thème',
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
-                      child: _ThemeSegment(
-                        mode: themeMode,
-                        onSelect: (mode) => ref
-                            .read(themeModeProvider.notifier)
-                            .setThemeMode(mode),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _LogoutButton(
-                  onTap: () =>
-                      ref.read(authNotifierProvider.notifier).logout(),
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _LogoutButton(
+                onTap: () =>
+                    ref.read(authNotifierProvider.notifier).logout(),
+              ),
+            ],
           ),
         ),
       ),
-      bottomNavigationBar: const ReportNavigation(selected: CitizenNavTab.profil),
     );
+
+    if (showNavBar) {
+      return Scaffold(
+        body: body,
+        bottomNavigationBar: const RetractableBottomNavBar(
+          selectedTab: CitizenNavTab.profil,
+        ),
+      );
+    }
+
+    return body;
   }
 }
 
@@ -567,7 +553,7 @@ class _AccountRow extends StatelessWidget {
             if (showChevron)
               Icon(
                 Icons.chevron_right,
-                color: scheme.onSurfaceVariant,
+                color: scheme.onSurface,
                 size: 22,
               ),
           ],

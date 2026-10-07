@@ -224,7 +224,7 @@ void main() {
 
     expect(result.factors.geographicVulnerability, closeTo(49.5, 0.001));
 
-    expect(result.factors.historicalExposure, 0);
+    expect(result.factors.historicalExposure, isNull);
 
     final names = result.evidence.measurements
         .map((item) => item.name)

@@ -129,13 +129,13 @@ class _RiskDetailsScreenState extends ConsumerState<RiskDetailsScreen> {
         return;
       }
 
-setState(() {
-         _updateAttemptedForId = _riskId;
-         _updateError = StateError(
-           'Aucune coordonnée n’est connue pour "$_riskId", '
-           'donc son risque ne peut pas être calculé.',
-         );
-       });
+      setState(() {
+        _updateAttemptedForId = _riskId;
+        _updateError = StateError(
+          'Aucune coordonnée n’est connue pour "$_riskId", '
+          'donc son risque ne peut pas être calculé.',
+        );
+      });
 
       return;
     }
@@ -149,7 +149,10 @@ setState(() {
     await _generate(zone);
   }
 
-  Future<void> _analyzeRisk(RiskResult riskResult, {bool force = false}) async {
+  Future<void> _analyzeRisk(
+    RiskResult riskResult, {
+    bool force = false,
+  }) async {
     final version = _riskVersion(riskResult);
 
     if (_isAnalyzing || (!force && _analyzedRiskVersion == version)) {
@@ -339,7 +342,10 @@ setState(() {
                                   _showMoreDetails = true;
                                 });
                               },
-                              icon: const Icon(Icons.expand_more),
+                              icon: Icon(
+                                Icons.expand_more,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
                               label: const Text('Voir plus'),
                               style: TextButton.styleFrom(
                                 foregroundColor: AppPalette.primary,
@@ -355,13 +361,11 @@ setState(() {
                           const SizedBox(height: 12),
                           _buildEvidenceCard(context, riskResult),
                           const SizedBox(height: 12),
-                          _buildAdviceCard(context, riskResult),
+                          _buildObservationsCard(context, riskResult),
                           const SizedBox(height: 12),
-                           _buildObservationsCard(context, riskResult),
-                           const SizedBox(height: 12),
-                           _buildAlertsCard(context, riskResult),
-                           const SizedBox(height: 12),
-                           _buildRefreshCard(context, riskResult),
+                          _buildAlertsCard(context, riskResult),
+                          const SizedBox(height: 12),
+                          _buildRefreshCard(context, riskResult),
                           const SizedBox(height: 12),
                           _buildWhatIfCard(context, riskResult),
                           const SizedBox(height: 16),
@@ -455,13 +459,23 @@ setState(() {
     );
   }
 
-  Widget _buildObservationsCard(BuildContext context, RiskResult riskResult) {
+  Widget _buildObservationsCard(
+    BuildContext context,
+    RiskResult riskResult,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Card(
       child: ListTile(
         leading: const Icon(Icons.visibility_outlined),
         title: const Text('Observations citoyennes'),
-        subtitle: const Text('Signaler ou consulter les observations validées'),
-        trailing: const Icon(Icons.chevron_right),
+        subtitle: const Text(
+          'Signaler ou consulter les observations validées',
+        ),
+        trailing: Icon(
+          Icons.chevron_right,
+          color: scheme.onSurface,
+        ),
         onTap: () {
           context.push(
             '/observations?zone=${Uri.encodeComponent(HazardRiskId.zoneIdOf(widget.riskId))}'
@@ -472,13 +486,21 @@ setState(() {
     );
   }
 
-  Widget _buildAlertsCard(BuildContext context, RiskResult riskResult) {
+  Widget _buildAlertsCard(
+    BuildContext context,
+    RiskResult riskResult,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Card(
       child: ListTile(
         leading: const Icon(Icons.warning_amber_outlined),
         title: const Text('Alertes'),
         subtitle: const Text('Consulter les alertes actives pour ce risque'),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: Icon(
+          Icons.chevron_right,
+          color: scheme.onSurface,
+        ),
         onTap: () {
           context.push(
             '/alerts?zone=${Uri.encodeComponent(HazardRiskId.zoneIdOf(widget.riskId))}'
@@ -489,7 +511,10 @@ setState(() {
     );
   }
 
-  Widget _buildSummaryCard(BuildContext context, RiskResult riskResult) {
+  Widget _buildSummaryCard(
+    BuildContext context,
+    RiskResult riskResult,
+  ) {
     final color = _riskColor(context, riskResult.riskLevel);
 
     return Container(
@@ -538,7 +563,10 @@ setState(() {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _RiskLevelChip(level: riskResult.riskLevel, color: color),
+                _RiskLevelChip(
+                  level: riskResult.riskLevel,
+                  color: color,
+                ),
                 const SizedBox(height: 8),
                 Text(
                   _hazardFrenchLabel(riskResult.hazardType),
@@ -579,7 +607,10 @@ setState(() {
     return _analysis ?? riskResult.analysis;
   }
 
-  Widget _buildWhyCard(BuildContext context, RiskResult riskResult) {
+  Widget _buildWhyCard(
+    BuildContext context,
+    RiskResult riskResult,
+  ) {
     final theme = Theme.of(context);
     final analysis = _visibleAnalysis(riskResult);
 
@@ -588,7 +619,9 @@ setState(() {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
         boxShadow: const [RiskDetailsScreen._cardShadow],
       ),
       child: Column(
@@ -596,34 +629,9 @@ setState(() {
         children: [
           const _SectionTitle(
             asset: 'assets/icons/risk-cloud-wind.svg',
-            title: 'Pourquoi ce niveau ?',
+            title: 'Analyse du risque par IA',
           ),
           const SizedBox(height: 12),
-          if (riskResult.evidence.qualitativeIndicators.isNotEmpty)
-            ...riskResult.evidence.qualitativeIndicators.map(
-              (indicator) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  indicator,
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.45,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-            )
-          else
-            Text(
-              'Ce niveau est basé sur les données environnementales '
-              'mesurées et les facteurs ci-dessous.',
-              style: TextStyle(
-                fontSize: 13,
-                height: 1.45,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          const SizedBox(height: 14),
           if (_isAnalyzing)
             const Row(
               children: [
@@ -633,7 +641,11 @@ setState(() {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
                 SizedBox(width: 10),
-                Expanded(child: Text('Interprétation IA en préparation...')),
+                Expanded(
+                  child: Text(
+                    'Interprétation IA en préparation...',
+                  ),
+                ),
               ],
             )
           else if (_analysisError != null)
@@ -653,20 +665,31 @@ setState(() {
                 ),
                 const SizedBox(height: 4),
                 TextButton.icon(
-                  onPressed: () => _analyzeRisk(riskResult, force: true),
+                  onPressed: () => _analyzeRisk(
+                    riskResult,
+                    force: true,
+                  ),
                   icon: const Icon(Icons.refresh, size: 18),
                   label: const Text('Réessayer l’analyse IA'),
                 ),
               ],
             )
           else if (analysis != null)
-            _buildWhyInterpretation(context, analysis),
+            _buildWhyInterpretation(context, analysis)
+          else
+            Text(
+              'Aucune interprétation IA n’est disponible pour le moment.',
+              style: theme.textTheme.bodyMedium,
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildWhyInterpretation(BuildContext context, RiskAnalysis analysis) {
+  Widget _buildWhyInterpretation(
+    BuildContext context,
+    RiskAnalysis analysis,
+  ) {
     final theme = Theme.of(context);
 
     return Column(
@@ -680,7 +703,8 @@ setState(() {
             ),
           ),
         if (analysis.explanation.isNotEmpty) ...[
-          if (analysis.summary.isNotEmpty) const SizedBox(height: 6),
+          if (analysis.summary.isNotEmpty)
+            const SizedBox(height: 8),
           Text(
             analysis.explanation,
             style: TextStyle(
@@ -691,7 +715,7 @@ setState(() {
           ),
         ],
         if (analysis.mainFactors.isNotEmpty) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Text(
             'Facteurs principaux identifiés par l’analyse',
             style: theme.textTheme.titleSmall?.copyWith(
@@ -725,11 +749,61 @@ setState(() {
             ),
           ),
         ],
+        if (analysis.recommendations.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Text(
+            'Gestes recommandés',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...analysis.recommendations.map(
+            (recommendation) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 30,
+                    height: 30,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .secondaryContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: SvgPicture.asset(
+                      'assets/icons/risk-shield.svg',
+                      width: 16,
+                      height: 16,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      recommendation,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.35,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
 
-  Widget _buildFactorsCard(BuildContext context, RiskResult riskResult) {
+  Widget _buildFactorsCard(
+    BuildContext context,
+    RiskResult riskResult,
+  ) {
     final theme = Theme.of(context);
 
     final factors = riskResult.factors;
@@ -740,7 +814,11 @@ setState(() {
 
     if (entries.isEmpty) {
       rows.addAll([
-        _buildFactorRow(context, factors.primaryFactorLabel, factors.rainfall),
+        _buildFactorRow(
+          context,
+          factors.primaryFactorLabel,
+          factors.rainfall,
+        ),
         _buildFactorRow(
           context,
           'Vulnérabilité géographique',
@@ -769,7 +847,9 @@ setState(() {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
         boxShadow: const [RiskDetailsScreen._cardShadow],
       ),
       child: Column(
@@ -796,7 +876,38 @@ setState(() {
     );
   }
 
-  Widget _buildFactorRow(BuildContext context, String title, double value) {
+  Widget _buildFactorRow(
+    BuildContext context,
+    String title,
+    double? value,
+  ) {
+    if (value == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              const Text(
+                'Non configuré',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+          const SizedBox(height: 7),
+          LinearProgressIndicator(value: 0),
+        ],
+      );
+    }
+
     final clamped = value.clamp(0.0, 100.0);
 
     return Column(
@@ -825,7 +936,10 @@ setState(() {
     );
   }
 
-  Widget _buildUnavailableFactorRow(BuildContext context, dynamic entry) {
+  Widget _buildUnavailableFactorRow(
+    BuildContext context,
+    dynamic entry,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -848,7 +962,10 @@ setState(() {
     );
   }
 
-  Widget _buildEvidenceCard(BuildContext context, RiskResult riskResult) {
+  Widget _buildEvidenceCard(
+    BuildContext context,
+    RiskResult riskResult,
+  ) {
     final theme = Theme.of(context);
 
     final evidence = riskResult.evidence;
@@ -858,7 +975,9 @@ setState(() {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
         boxShadow: const [RiskDetailsScreen._cardShadow],
       ),
       child: Column(
@@ -885,7 +1004,10 @@ setState(() {
           if (evidence.measurements.isNotEmpty) ...[
             const SizedBox(height: 16),
             ...evidence.measurements.map(
-              (measurement) => _buildMeasurement(context, measurement),
+              (measurement) => _buildMeasurement(
+                context,
+                measurement,
+              ),
             ),
           ],
         ],
@@ -893,7 +1015,10 @@ setState(() {
     );
   }
 
-  Widget _buildMeasurement(BuildContext context, RiskMeasurement measurement) {
+  Widget _buildMeasurement(
+    BuildContext context,
+    RiskMeasurement measurement,
+  ) {
     final theme = Theme.of(context);
 
     return Padding(
@@ -960,82 +1085,10 @@ setState(() {
     );
   }
 
-  Widget _buildAdviceCard(BuildContext context, RiskResult riskResult) {
-    final theme = Theme.of(context);
-    final analysis = _visibleAnalysis(riskResult);
-
-    if (analysis == null && !_isAnalyzing) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-        boxShadow: const [RiskDetailsScreen._cardShadow],
-      ),
-      child: Column(
-        children: [
-          const _SectionTitle(
-            asset: 'assets/icons/risk-shield.svg',
-            title: 'Gestes recommandés',
-          ),
-          const SizedBox(height: 12),
-          if (_isAnalyzing)
-            const Text('Préparation des recommandations...')
-          else if (_analysisError != null)
-            Text(
-              'Recommandations indisponibles.',
-              style: theme.textTheme.bodySmall,
-            )
-          else if (analysis?.recommendations.isEmpty ?? true)
-            const Text(
-              'Aucune recommandation n’a été retournée par l’analyse IA.',
-            )
-          else
-            ...analysis!.recommendations.map(
-              (recommendation) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.secondaryContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: SvgPicture.asset(
-                        'assets/icons/risk-shield.svg',
-                        width: 17,
-                        height: 17,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        recommendation,
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.35,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRefreshCard(BuildContext context, RiskResult riskResult) {
+  Widget _buildRefreshCard(
+    BuildContext context,
+    RiskResult riskResult,
+  ) {
     final theme = Theme.of(context);
 
     return Container(
@@ -1043,7 +1096,9 @@ setState(() {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1093,9 +1148,14 @@ setState(() {
                       ? const SizedBox(
                           width: 18,
                           height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
                         )
-                      : const Icon(Icons.refresh, size: 19),
+                      : const Icon(
+                          Icons.refresh,
+                          size: 19,
+                        ),
                   const SizedBox(width: 8),
                   Text(
                     _isUpdatingRisk
@@ -1111,27 +1171,36 @@ setState(() {
     );
   }
 
-  Widget _buildWhatIfCard(BuildContext context, RiskResult riskResult) {
+  Widget _buildWhatIfCard(
+    BuildContext context,
+    RiskResult riskResult,
+  ) {
     final theme = Theme.of(context);
 
     final model = _simulationService.modelFrom(riskResult);
 
-    final variables = model?.variables ?? const <RiskSimulationVariable>[];
+    final variables =
+        model?.variables ?? const <RiskSimulationVariable>[];
 
     final values = <String, double>{
       for (final variable in variables)
-        variable.name: _simulatedValues[variable.name] ?? variable.currentValue,
+        variable.name:
+            _simulatedValues[variable.name] ?? variable.currentValue,
     };
 
     final changed = model == null
         ? false
         : model.adjustable.any(
             (variable) =>
-                (values[variable.name]! - variable.currentValue).abs() > 0.0001,
+                (values[variable.name]! - variable.currentValue).abs() >
+                0.0001,
           );
 
     final outcome = model != null && model.isSimulatable
-        ? _simulationService.simulate(model: model, values: values)
+        ? _simulationService.simulate(
+            model: model,
+            values: values,
+          )
         : null;
 
     return Container(
@@ -1139,7 +1208,9 @@ setState(() {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
         boxShadow: const [RiskDetailsScreen._cardShadow],
       ),
       child: Column(
@@ -1210,9 +1281,15 @@ setState(() {
             }),
             const SizedBox(height: 12),
             if (!changed)
-              const Text('Modifiez une valeur pour voir le résultat simulé.')
+              const Text(
+                'Modifiez une valeur pour voir le résultat simulé.',
+              )
             else if (outcome != null)
-              _buildSimulationResult(context, model, outcome),
+              _buildSimulationResult(
+                context,
+                model,
+                outcome,
+              ),
             TextButton.icon(
               onPressed: changed
                   ? () => setState(_simulatedValues.clear)
@@ -1262,12 +1339,15 @@ setState(() {
               const SizedBox(width: 12),
               Text(
                 outcome.level.name.toUpperCase(),
-                style: TextStyle(fontWeight: FontWeight.w700, color: color),
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(
+          const Text(
             'Simulation uniquement : ce n’est pas une prévision et rien n’est enregistré.',
           ),
         ],
@@ -1278,7 +1358,9 @@ setState(() {
   Widget _buildPreparing(BuildContext context) {
     final theme = Theme.of(context);
 
-    final zone = RiskZoneCatalog.byId(HazardRiskId.zoneIdOf(widget.riskId));
+    final zone = RiskZoneCatalog.byId(
+      HazardRiskId.zoneIdOf(widget.riskId),
+    );
 
     return SafeArea(
       child: Column(
@@ -1338,7 +1420,10 @@ setState(() {
     );
   }
 
-  Widget _buildLoadError(BuildContext context, Object error) {
+  Widget _buildLoadError(
+    BuildContext context,
+    Object error,
+  ) {
     final theme = Theme.of(context);
 
     return SafeArea(
@@ -1387,7 +1472,10 @@ setState(() {
     return HazardType.fromLabel(label)?.labelFr ?? label;
   }
 
-  Color _riskColor(BuildContext context, RiskLevel level) {
+  Color _riskColor(
+    BuildContext context,
+    RiskLevel level,
+  ) {
     switch (level) {
       case RiskLevel.low:
         return Colors.green;
@@ -1403,7 +1491,8 @@ setState(() {
   String _formatDateTime(DateTime dateTime) {
     final local = dateTime.toLocal();
 
-    String twoDigits(int value) => value.toString().padLeft(2, '0');
+    String twoDigits(int value) =>
+        value.toString().padLeft(2, '0');
 
     return '${local.year}-'
         '${twoDigits(local.month)}-'
@@ -1429,7 +1518,10 @@ class _HeaderButton extends StatelessWidget {
   final String asset;
   final VoidCallback? onTap;
 
-  const _HeaderButton({required this.asset, this.onTap});
+  const _HeaderButton({
+    required this.asset,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1449,7 +1541,11 @@ class _HeaderButton extends StatelessWidget {
               color: Theme.of(context).colorScheme.outlineVariant,
             ),
           ),
-          child: SvgPicture.asset(asset, width: 20, height: 20),
+          child: SvgPicture.asset(
+            asset,
+            width: 20,
+            height: 20,
+          ),
         ),
       ),
     );
@@ -1460,12 +1556,18 @@ class _RiskLevelChip extends StatelessWidget {
   final RiskLevel level;
   final Color color;
 
-  const _RiskLevelChip({required this.level, required this.color});
+  const _RiskLevelChip({
+    required this.level,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 7,
+      ),
       decoration: BoxDecoration(
         color: color.withAlpha(25),
         borderRadius: BorderRadius.circular(999),
@@ -1477,7 +1579,10 @@ class _RiskLevelChip extends StatelessWidget {
           Container(
             width: 8,
             height: 8,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+            ),
           ),
           const SizedBox(width: 8),
           Text(
@@ -1507,13 +1612,20 @@ class _SectionTitle extends StatelessWidget {
   final String asset;
   final String title;
 
-  const _SectionTitle({required this.asset, required this.title});
+  const _SectionTitle({
+    required this.asset,
+    required this.title,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        SvgPicture.asset(asset, width: 20, height: 20),
+        SvgPicture.asset(
+          asset,
+          width: 20,
+          height: 20,
+        ),
         const SizedBox(width: 8),
         Text(
           title,
@@ -1529,7 +1641,9 @@ class _SectionTitle extends StatelessWidget {
 }
 
 class _RiskNavigation extends StatelessWidget {
-  const _RiskNavigation({required this.onAlerts});
+  const _RiskNavigation({
+    required this.onAlerts,
+  });
 
   final VoidCallback onAlerts;
 
@@ -1537,10 +1651,15 @@ class _RiskNavigation extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 74,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 8,
+      ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(20),
+        ),
         boxShadow: const [
           BoxShadow(
             color: Color(0x14000000),
@@ -1603,11 +1722,17 @@ class _NavItem extends StatelessWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: selected
-                    ? Theme.of(context).colorScheme.secondaryContainer
+                    ? Theme.of(context)
+                        .colorScheme
+                        .secondaryContainer
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(999),
               ),
-              child: SvgPicture.asset(asset, width: 20, height: 20),
+              child: SvgPicture.asset(
+                asset,
+                width: 20,
+                height: 20,
+              ),
             ),
             const SizedBox(height: 3),
             Text(
@@ -1617,10 +1742,13 @@ class _NavItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 height: 1,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                fontWeight:
+                    selected ? FontWeight.w600 : FontWeight.w500,
                 color: selected
                     ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                    : Theme.of(context)
+                        .colorScheme
+                        .onSurfaceVariant,
               ),
             ),
           ],

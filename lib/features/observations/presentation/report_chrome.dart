@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:urban_resilience/core/theme/app_palette.dart';
 
 class ReportHeader extends StatelessWidget {
   const ReportHeader({super.key});
@@ -35,6 +36,10 @@ class ReportHeader extends StatelessWidget {
                   'assets/icons/risk-arrow-left.svg',
                   width: 20,
                   height: 20,
+                  colorFilter: ColorFilter.mode(
+                    Theme.of(context).colorScheme.onSurface,
+                    BlendMode.srcIn,
+                  ),
                 ),
               ),
             ),
@@ -54,7 +59,7 @@ class ReportHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Aidez à informer votre quartier',
+                  'Aidez à informer votre zone',
                   style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ],
@@ -185,9 +190,7 @@ class ReportNavigation extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (!isExpanded) {
-      return _CollapsedNav(
-        scheme: scheme,
-        isDark: isDark,
+      return CollapsedNavHandle(
         onTap: onToggle,
       );
     }
@@ -260,15 +263,12 @@ class ReportNavigation extends StatelessWidget {
   }
 }
 
-class _CollapsedNav extends StatelessWidget {
-  const _CollapsedNav({
-    required this.scheme,
-    required this.isDark,
+class CollapsedNavHandle extends StatelessWidget {
+  const CollapsedNavHandle({
+    super.key,
     this.onTap,
   });
 
-  final ColorScheme scheme;
-  final bool isDark;
   final VoidCallback? onTap;
 
   @override
@@ -276,39 +276,11 @@ class _CollapsedNav extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 56,
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        height: 5,
+        width: 120,
         decoration: BoxDecoration(
-          color: scheme.surface,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: isDark ? const Color(0x40000000) : const Color(0x14000000),
-              blurRadius: 16,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.keyboard_arrow_up_rounded,
-              size: 28,
-              color: scheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Navigation',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          ],
+          color: AppPalette.primary,
+          borderRadius: BorderRadius.circular(2.5),
         ),
       ),
     );
@@ -341,7 +313,7 @@ class _CollapseButton extends StatelessWidget {
         child: Icon(
           Icons.keyboard_arrow_down_rounded,
           size: 24,
-          color: scheme.primary,
+          color: scheme.onSurface,
         ),
       ),
     );

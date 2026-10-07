@@ -79,7 +79,7 @@ void main() {
 
     expect(assessment.factors.primaryFactorLabel, 'Heat');
     expect(assessment.factors.geographicVulnerability, 80);
-    expect(assessment.factors.historicalExposure, 0);
+    expect(assessment.factors.historicalExposure, isNull);
     expect(assessment.factors.currentObservations, 0);
   });
 

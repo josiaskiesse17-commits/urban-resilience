@@ -53,20 +53,37 @@ class FloodRiskCalculator {
       (value: riverDischargeScore, weight: 0.30),
     ]);
 
-    final vulnerability = RiskScoreUtils.clamp(input.vulnerabilityScore);
+    final vulnerability = input.vulnerabilityScore != null
+        ? RiskScoreUtils.clamp(input.vulnerabilityScore!)
+        : null;
 
-    final historicalExposure = RiskScoreUtils.clamp(
-      input.historicalExposureScore,
-    );
+    final historicalExposure = input.historicalExposureScore != null
+        ? RiskScoreUtils.clamp(input.historicalExposureScore!)
+        : null;
 
     final observationScore = RiskScoreUtils.clamp(input.observationScore);
 
-    final overallScore = RiskScoreUtils.weightedAverage([
-      (value: hazardScore, weight: 0.40),
-      (value: vulnerability, weight: 0.25),
-      (value: historicalExposure, weight: 0.15),
-      (value: observationScore, weight: 0.20),
-    ]);
+    final overallComponents = <({double value, double weight})>[];
+    final factorWeights = <String, double>{};
+
+    // Hazard is always available
+    overallComponents.add((value: hazardScore, weight: 0.40));
+    factorWeights['hazard'] = 0.40;
+
+    if (vulnerability != null) {
+      overallComponents.add((value: vulnerability, weight: 0.25));
+      factorWeights['geographicVulnerability'] = 0.25;
+    }
+
+    if (historicalExposure != null) {
+      overallComponents.add((value: historicalExposure, weight: 0.15));
+      factorWeights['historicalExposure'] = 0.15;
+    }
+
+    overallComponents.add((value: observationScore, weight: 0.20));
+    factorWeights['currentObservations'] = 0.20;
+
+    final overallScore = RiskScoreUtils.weightedAverage(overallComponents);
 
     final riskLevel = RiskScoreUtils.riskLevelFromScore(overallScore);
 
@@ -100,8 +117,8 @@ class FloodRiskCalculator {
     required double rainfallScore,
     required double rainfallAccumulationScore,
     required double riverDischargeScore,
-    required double vulnerability,
-    required double historicalExposure,
+    required double? vulnerability,
+    required double? historicalExposure,
     required double observationScore,
   }) {
     return <RiskFactorScore>[
@@ -152,15 +169,21 @@ class FloodRiskCalculator {
         name: 'geographicVulnerability',
         label: RiskMeasurementLabel.of(name: 'geographicVulnerability'),
         score: vulnerability,
-        weight: 0.25,
-        usedInScore: true,
+        weight: vulnerability == null ? 0 : 0.25,
+        usedInScore: vulnerability != null,
+        unavailableReason: vulnerability == null
+            ? 'Aucun profil d\'exposition enregistré n\'a été trouvé pour cette zone. La vulnérabilité géographique est inconnue et exclue du score.'
+            : null,
       ),
       RiskFactorScore(
         name: 'historicalExposure',
         label: RiskMeasurementLabel.of(name: 'historicalExposure'),
         score: historicalExposure,
-        weight: 0.15,
-        usedInScore: true,
+        weight: historicalExposure == null ? 0 : 0.15,
+        usedInScore: historicalExposure != null,
+        unavailableReason: historicalExposure == null
+            ? 'Aucun profil d\'exposition enregistré n\'a été trouvé pour cette zone. L\'exposition historique est inconnue et exclue du score.'
+            : null,
       ),
       RiskFactorScore(
         name: 'currentObservations',
@@ -168,6 +191,7 @@ class FloodRiskCalculator {
         score: observationScore,
         weight: 0.20,
         usedInScore: true,
+        unavailableReason: null,
       ),
     ];
   }

@@ -240,8 +240,8 @@ class HazardRiskCalculator {
       riskLevel: RiskScoreUtils.riskLevelFromScore(overallScore),
       factors: RiskFactors(
         rainfall: hazardScore,
-        geographicVulnerability: vulnerability ?? 0,
-        historicalExposure: historicalExposure ?? 0,
+        geographicVulnerability: vulnerability,
+        historicalExposure: historicalExposure,
         currentObservations: observationScore,
         primaryFactorLabel: input.primaryFactorLabel,
         entries: entries,

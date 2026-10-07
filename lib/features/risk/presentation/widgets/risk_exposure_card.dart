@@ -87,8 +87,7 @@ class RiskExposureCard extends ConsumerWidget {
         Text(
           'La vulnérabilité géographique et l’exposition historique sont '
           'inconnues, et non nulles : le score ci-dessous ne les inclut '
-          'pas. Un administrateur doit ajouter le profil d’exposition de '
-          'risk_zones/$zoneId pour que l’évaluation soit complète.',
+          'pas.',
           style: theme.textTheme.bodyMedium,
         ),
         if (error != null) ...[

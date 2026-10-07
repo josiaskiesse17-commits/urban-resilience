@@ -44,8 +44,9 @@ class RiskScenarioService {
           scenario.rainfallAccumulationMultiplier,
       riverDischargeM3s:
           baselineInput.riverDischargeM3s + scenario.riverDischargeDeltaM3s,
-      vulnerabilityScore:
-          baselineInput.vulnerabilityScore + scenario.vulnerabilityDelta,
+      vulnerabilityScore: baselineInput.vulnerabilityScore != null
+          ? baselineInput.vulnerabilityScore! + scenario.vulnerabilityDelta
+          : null,
       observationScore:
           baselineInput.observationScore + scenario.observationScoreDelta,
       observationCount:

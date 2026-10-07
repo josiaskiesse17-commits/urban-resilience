@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../domain/observation.dart';
@@ -48,12 +48,25 @@ class ObservationsRepository {
         .map(_mapSnapshots);
   }
 
-   Stream<List<Observation>> watchMine(String userId) {
-     return _collection
-         .where('userId', isEqualTo: userId)
-         .snapshots()
-         .map(_mapSnapshots);
-   }
+  /// Watches only the current user's observations that are still awaiting
+  /// admin review.
+  ///
+  /// Confirmed and rejected observations remain in Firestore for history and
+  /// auditing, but are intentionally excluded from the citizen's pending list.
+  Stream<List<Observation>> watchMyPending(String userId) {
+    return _collection
+        .where('userId', isEqualTo: userId)
+        .where('status', isEqualTo: ObservationStatus.pending.name)
+        .snapshots()
+        .map(_mapSnapshots);
+  }
+
+  Stream<List<Observation>> watchMine(String userId) {
+    return _collection
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .map(_mapSnapshots);
+  }
 
   Stream<List<Observation>> watchAllConfirmed() {
     return _collection
@@ -62,14 +75,14 @@ class ObservationsRepository {
         .map(_mapSnapshots);
   }
 
-   Future<String> create({
-     required String zoneId,
-     required String hazardType,
-     required double latitude,
-     required double longitude,
-     required ObservationType type,
-     required String description,
-   }) async {
+  Future<String> create({
+    required String zoneId,
+    required String hazardType,
+    required double latitude,
+    required double longitude,
+    required ObservationType type,
+    required String description,
+  }) async {
     final user = _auth.currentUser;
 
     if (user == null) {
@@ -79,83 +92,93 @@ class ObservationsRepository {
     final reference = _collection.doc();
 
     final observation = Observation(
-       id: reference.id,
-       userId: user.uid,
-       zoneId: zoneId,
-       hazardType: hazardType,
-       latitude: latitude,
-       longitude: longitude,
-       type: type,
-       description: description.trim(),
-       createdAt: DateTime.now().toUtc(),
-     );
+      id: reference.id,
+      userId: user.uid,
+      zoneId: zoneId,
+      hazardType: hazardType,
+      latitude: latitude,
+      longitude: longitude,
+      type: type,
+      description: description.trim(),
+      createdAt: DateTime.now().toUtc(),
+    );
 
     await reference.set(observation.toJson());
     return reference.id;
-   }
-    Future<String?> uploadPhoto({
-     required String observationId,
-     required String localPath,
-   }) async {
-     final user = _auth.currentUser;
-     if (user == null) {
-       throw StateError('Utilisateur non connecté');
-     }
+  }
 
-     final bytes = await XFile(localPath).readAsBytes();
-     final ref = _storage.ref('observations/${user.uid}/$observationId.jpg');
-     await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
-     return ref.getDownloadURL();
-   }
+  Future<String?> uploadPhoto({
+    required String observationId,
+    required String localPath,
+  }) async {
+    final user = _auth.currentUser;
 
-    /// Creates the observation, optionally uploading [photoPath] first.
-    Future<String> createWithOptionalPhoto({
-     required String zoneId,
-     required String hazardType,
-     required double latitude,
-     required double longitude,
-     required ObservationType type,
-     required String description,
-     String? photoPath,
-   }) async {
-     final user = _auth.currentUser;
-     if (user == null) {
-       throw StateError('Utilisateur non connecté');
-     }
+    if (user == null) {
+      throw StateError('Utilisateur non connecté');
+    }
 
-     final reference = _collection.doc();
-     String? imageUrl;
+    final bytes = await XFile(localPath).readAsBytes();
 
-     if (photoPath != null && photoPath.isNotEmpty) {
-       try {
-         imageUrl = await uploadPhoto(
-           observationId: reference.id,
-           localPath: photoPath,
-         );
-       } catch (error, stackTrace) {
-         debugPrint('Upload photo observation échoué: $error');
-         debugPrintStack(stackTrace: stackTrace);
-       }
-     }
+    final ref = _storage.ref(
+      'observations/${user.uid}/$observationId.jpg',
+    );
 
-     final observation = Observation(
-       id: reference.id,
-       userId: user.uid,
-       zoneId: zoneId,
-       hazardType: hazardType,
-       latitude: latitude,
-       longitude: longitude,
-       type: type,
-       imageUrl: imageUrl,
-       description: description.trim(),
-       createdAt: DateTime.now().toUtc(),
-     );
+    await ref.putData(
+      bytes,
+      SettableMetadata(contentType: 'image/jpeg'),
+    );
 
-     await reference.set(observation.toJson());
-     return reference.id;
-   }
+    return ref.getDownloadURL();
+  }
 
+  Future<String> createWithOptionalPhoto({
+    required String zoneId,
+    required String hazardType,
+    required double latitude,
+    required double longitude,
+    required ObservationType type,
+    required String description,
+    String? photoPath,
+  }) async {
+    final user = _auth.currentUser;
 
+    if (user == null) {
+      throw StateError('Utilisateur non connecté');
+    }
+
+    final reference = _collection.doc();
+
+    String? imageUrl;
+
+    if (photoPath != null && photoPath.isNotEmpty) {
+      try {
+        imageUrl = await uploadPhoto(
+          observationId: reference.id,
+          localPath: photoPath,
+        );
+      } catch (error, stackTrace) {
+        debugPrint('Upload photo observation échoué: $error');
+        debugPrintStack(stackTrace: stackTrace);
+      }
+    }
+
+    final observation = Observation(
+      id: reference.id,
+      userId: user.uid,
+      zoneId: zoneId,
+      hazardType: hazardType,
+      latitude: latitude,
+      longitude: longitude,
+      type: type,
+      imageUrl: imageUrl,
+      description: description.trim(),
+      createdAt: DateTime.now().toUtc(),
+    );
+
+    await reference.set(observation.toJson());
+
+    return reference.id;
+  }
 
   Future<void> approve({
     required String id,
@@ -168,6 +191,25 @@ class ObservationsRepository {
     });
   }
 
+  /// Rejects an observation without deleting it.
+  ///
+  /// Rejected observations remain in Firestore so that the decision is
+  /// auditable and the original submission is preserved.
+  Future<void> reject({
+    required String id,
+    required String reviewerId,
+  }) {
+    return _collection.doc(id).update({
+      'status': ObservationStatus.rejected.name,
+      'reviewedAt': DateTime.now().toUtc().toIso8601String(),
+      'reviewedBy': reviewerId,
+    });
+  }
+
+  /// Permanently deletes an observation.
+  ///
+  /// This is intentionally separate from rejection. Rejection must use
+  /// [reject] so rejected observations remain available for audit/history.
   Future<void> delete({required String id}) {
     return _collection.doc(id).delete();
   }
