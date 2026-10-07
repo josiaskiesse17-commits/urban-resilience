@@ -48,47 +48,62 @@ class AlertsScreen extends ConsumerWidget {
         backgroundColor: Theme.of(context).colorScheme.surface,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
       ),
-      body: SafeArea(
-        child: zone == null || hazard == null
-            ? const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Text(
-                    'Sélectionnez un risque pour consulter ses alertes.',
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              )
-            : Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 720),
-                  child: ref
-                      .watch(
-                        alertsForContextProvider((
-                          zoneId: zone,
-                          hazardType: hazard,
-                        )),
-                      )
-                      .when(
-                        loading: () =>
-                            const Center(child: CircularProgressIndicator()),
-                        error: (error, _) => _ErrorView(error: error),
-                        data: (alerts) => alerts.isEmpty
-                            ? const Center(
-                                child: Text('Aucune alerte pour ce risque.'),
-                              )
-                            : ListView.separated(
-                                padding: const EdgeInsets.all(16),
-                                itemCount: alerts.length,
-                                separatorBuilder: (_, _) =>
-                                    const SizedBox(height: 10),
-                                itemBuilder: (context, index) =>
-                                    _AlertCard(alert: alerts[index]),
-                              ),
-                      ),
-                ),
-              ),
-      ),
+       body: SafeArea(
+         child: zone == null || hazard == null
+             ? Center(
+                 child: ConstrainedBox(
+                   constraints: const BoxConstraints(maxWidth: 720),
+                   child: ref
+                       .watch(allActiveAlertsProvider)
+                       .when(
+                         loading: () =>
+                             const Center(child: CircularProgressIndicator()),
+                         error: (error, _) => _ErrorView(error: error),
+                         data: (alerts) => alerts.isEmpty
+                             ? const Center(
+                                 child: Text('Aucune alerte active.'),
+                               )
+                             : ListView.separated(
+                                 padding: const EdgeInsets.all(16),
+                                 itemCount: alerts.length,
+                                 separatorBuilder: (_, _) =>
+                                     const SizedBox(height: 10),
+                                 itemBuilder: (context, index) =>
+                                     _AlertCard(alert: alerts[index]),
+                               ),
+                       ),
+                 ),
+               )
+             : Center(
+                 child: ConstrainedBox(
+                   constraints: const BoxConstraints(maxWidth: 720),
+                   child: ref
+                       .watch(
+                         alertsForContextProvider((
+                           zoneId: zone,
+                           hazardType: hazard,
+                         )),
+                       )
+                       .when(
+                         loading: () =>
+                             const Center(child: CircularProgressIndicator()),
+                         error: (error, _) => _ErrorView(error: error),
+                         data: (alerts) => alerts.isEmpty
+                             ? const Center(
+                                 child: Text('Aucune alerte pour ce risque.'),
+                               )
+                             : ListView.separated(
+                                 padding: const EdgeInsets.all(16),
+                                 itemCount: alerts.length,
+                                 separatorBuilder: (_, _) =>
+                                     const SizedBox(height: 10),
+                                 itemBuilder: (context, index) =>
+                                     _AlertCard(alert: alerts[index]),
+                               ),
+                       ),
+                 ),
+               ),
+       ),
     );
   }
 }

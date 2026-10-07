@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
+import 'package:go_router/go_router.dart';
 
 import 'package:urban_resilience/core/theme/app_palette.dart';
 import 'package:urban_resilience/core/theme/theme_provider.dart';
@@ -10,39 +13,202 @@ import 'package:urban_resilience/features/auth/presentation/providers/auth_provi
 import 'package:urban_resilience/features/location/presentation/selected_place_provider.dart';
 import 'package:urban_resilience/features/observations/presentation/report_chrome.dart';
 
-final profileNearbyAlertsProvider =
-    NotifierProvider<_BoolPrefNotifier, bool>(() {
-      return _BoolPrefNotifier('pref_nearby_alerts', true);
-    });
+import 'package:firebase_auth/firebase_auth.dart';
 
-final profileReportUpdatesProvider =
-    NotifierProvider<_BoolPrefNotifier, bool>(() {
-      return _BoolPrefNotifier('pref_report_updates', true);
-    });
+/// Firestore-backed boolean preference notifier that synchronizes with SharedPreferences.
+class FirestoreBoolPrefNotifier extends Notifier<bool> {
+  FirestoreBoolPrefNotifier._internal({
+    required this.auth,
+    required this.firestore,
+    required this.key,
+    required this.defaultValue,
+  });
 
-class _BoolPrefNotifier extends Notifier<bool> {
-  _BoolPrefNotifier(this.key, this.defaultValue);
-
+  final FirebaseAuth auth;
+  final FirebaseFirestore firestore;
   final String key;
   final bool defaultValue;
 
+  StreamSubscription<User?>? _authSub;
+  StreamSubscription<DocumentSnapshot>? _firestoreSub;
+
   @override
   bool build() {
-    _load();
+    // Initialize with default value, then load asynchronously
+    _init();
     return defaultValue;
   }
 
-  Future<void> _load() async {
-    final preferences = await SharedPreferences.getInstance();
-    state = preferences.getBool(key) ?? defaultValue;
+  void _init() {
+    // Listen to auth state changes
+    _authSub = auth.authStateChanges().listen(_onAuthStateChanged);
+    // Load initial value for current user (if any)
+    _loadValue();
   }
 
-  Future<void> setValue(bool value) async {
+  Future<void> _onAuthStateChanged(User? user) async {
+    // Cancel any existing Firestore listener
+    await _firestoreSub?.cancel();
+
+    if (user == null) {
+      // User signed out -> fall back to SharedPreferences
+      await _loadFromSharedPreferences();
+      return;
+    }
+
+    // User signed in: load from Firestore (or fallback) and set up real-time listener
+    final uid = user.uid;
+    final docRef = firestore
+        .collection('users')
+        .doc(uid)
+        .collection('notificationPreferences')
+        .doc('prefs');
+
+    try {
+      final doc = await docRef.get();
+      if (doc.exists) {
+        final data = doc.data();
+        final value = data?[key] as bool?;
+        if (value != null) {
+          state = value;
+          await _saveToSharedPreferences(value);
+        } else {
+          await _loadFromSharedPreferences();
+          await _saveToFirestore(state);
+        }
+      } else {
+        // Document doesn't exist -> migrate from SharedPreferences
+        await _loadFromSharedPreferences();
+        await _saveToFirestore(state);
+      }
+    } catch (e) {
+      debugPrint('Failed to load preference $key from Firestore: $e');
+      await _loadFromSharedPreferences();
+    }
+
+    // Real-time listener for cross-device sync
+    _firestoreSub = firestore
+        .collection('users')
+        .doc(uid)
+        .collection('notificationPreferences')
+        .doc('prefs')
+        .snapshots()
+        .listen((snapshot) {
+      if (snapshot.exists) {
+        final data = snapshot.data();
+        final value = data?[key] as bool?;
+        if (value != null && value != state) {
+          state = value;
+          _saveToSharedPreferences(value);
+        }
+      }
+    });
+  }
+
+  Future<void> _loadValue() async {
+    final user = auth.currentUser;
+    if (user == null) {
+      await _loadFromSharedPreferences();
+      return;
+    }
+
+    try {
+      final doc = await firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('notificationPreferences')
+          .doc('prefs')
+          .get();
+
+      if (doc.exists) {
+        final data = doc.data();
+        final value = data?[key] as bool?;
+        if (value != null) {
+          state = value;
+          await _saveToSharedPreferences(value);
+          return;
+        }
+      }
+
+      // Document doesn't exist or key missing: fall back to SharedPreferences
+      await _loadFromSharedPreferences();
+      // Then save the fallback value to Firestore
+      await _saveToFirestore(state);
+    } catch (e) {
+      debugPrint('Failed to load preference $key from Firestore: $e');
+      await _loadFromSharedPreferences();
+    }
+  }
+
+  Future<void> _loadFromSharedPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getBool(key) ?? defaultValue;
     state = value;
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.setBool(key, value);
+  }
+
+  Future<void> _saveToSharedPreferences(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, value);
+  }
+
+  Future<void> _saveToFirestore(bool value) async {
+    final user = auth.currentUser;
+    if (user == null) return;
+
+    try {
+      await firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('notificationPreferences')
+          .doc('prefs')
+          .set({
+        key: value,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Failed to save preference $key to Firestore: $e');
+      rethrow;
+    }
+  }
+
+  void setValue(bool value) {
+    final oldValue = state;
+    state = value;
+
+    _saveToSharedPreferences(value).catchError((e) {
+      debugPrint('Failed to save $key to SharedPreferences: $e');
+    });
+
+    _saveToFirestore(value).catchError((e) {
+      state = oldValue;
+      _saveToSharedPreferences(oldValue);
+      debugPrint('Failed to save $key to Firestore: $e');
+    });
+  }
+
+  void dispose() {
+    _authSub?.cancel();
+    _firestoreSub?.cancel();
   }
 }
+
+final profileNearbyAlertsProvider = NotifierProvider<FirestoreBoolPrefNotifier, bool>(() {
+  return FirestoreBoolPrefNotifier._internal(
+    auth: FirebaseAuth.instance,
+    firestore: FirebaseFirestore.instance,
+    key: 'pref_nearby_alerts',
+    defaultValue: true,
+  );
+});
+
+final profileReportUpdatesProvider = NotifierProvider<FirestoreBoolPrefNotifier, bool>(() {
+  return FirestoreBoolPrefNotifier._internal(
+    auth: FirebaseAuth.instance,
+    firestore: FirebaseFirestore.instance,
+    key: 'pref_report_updates',
+    defaultValue: true,
+  );
+});
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -67,119 +233,135 @@ class ProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: theme.colorScheme.onSurface),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/map');
+            }
+          },
+        ),
+        title: Text(
+          'Profil',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        backgroundColor: theme.scaffoldBackgroundColor,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+      ),
       body: SafeArea(
         bottom: false,
-        child: Column(
-          children: [
-            Expanded(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 390),
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-                    children: [
-                      const _Header(),
-                      const SizedBox(height: 16),
-                      _IdentityCard(
-                        name: name,
-                        email: email,
-                        onEdit: () =>
-                            editDisplayName(context, ref, displayName ?? ''),
-                      ),
-                      const SizedBox(height: 16),
-                      _SectionCard(
-                        title: 'Compte',
-                        children: [
-                          _AccountRow(
-                            iconAsset: 'assets/icons/lock-keyhole.svg',
-                            title: 'Changer le mot de passe',
-                            onTap: () => changePassword(context, ref),
-                          ),
-                          Divider(
-                            height: 1,
-                            color: theme.colorScheme.outlineVariant,
-                          ),
-                          _AccountRow(
-                            iconAsset: 'assets/icons/profile-help.svg',
-                            title: 'Mot de passe oublié',
-                            subtitle:
-                                'Recevoir un lien de réinitialisation par e-mail',
-                            onTap: () => sendPasswordReset(context, ref),
-                          ),
-                          Divider(
-                            height: 1,
-                            color: theme.colorScheme.outlineVariant,
-                          ),
-                          _AccountRow(
-                            iconAsset: 'assets/icons/mail.svg',
-                            title: 'Vérifier mon adresse e-mail',
-                            subtitle: (user?.emailVerified ?? false)
-                                ? 'Adresse e-mail vérifiée'
-                                : 'Adresse e-mail non vérifiée',
-                            showChevron: !(user?.emailVerified ?? false),
-                            onTap: (user?.emailVerified ?? false)
-                                ? null
-                                : () => sendEmailVerification(context, ref),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      _SectionCard(
-                        title: 'Préférences de notifications',
-                        children: [
-                          _ToggleRow(
-                            title: 'Alertes près de chez moi',
-                            subtitle: cityLabel == null
-                                ? 'Risques autour de vous'
-                                : 'Risques autour de $cityLabel',
-                            value: nearbyAlerts,
-                            onChanged: (value) => ref
-                                .read(profileNearbyAlertsProvider.notifier)
-                                .setValue(value),
-                          ),
-                          Divider(
-                            height: 1,
-                            color: theme.colorScheme.outlineVariant,
-                          ),
-                          _ToggleRow(
-                            title: 'Suivi de mes signalements',
-                            subtitle: 'Validation et changements de statut',
-                            value: reportUpdates,
-                            onChanged: (value) => ref
-                                .read(profileReportUpdatesProvider.notifier)
-                                .setValue(value),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      _SectionCard(
-                        title: 'Thème',
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
-                            child: _ThemeSegment(
-                              mode: themeMode,
-                              onSelect: (mode) => ref
-                                  .read(themeModeProvider.notifier)
-                                  .setThemeMode(mode),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      _LogoutButton(
-                        onTap: () =>
-                            ref.read(authNotifierProvider.notifier).logout(),
-                      ),
-                    ],
-                  ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 390),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+              children: [
+                const SizedBox(height: 8),
+                _IdentityCard(
+                  name: name,
+                  email: email,
+                  onEdit: () =>
+                      editDisplayName(context, ref, displayName ?? ''),
                 ),
-              ),
+                const SizedBox(height: 16),
+                _SectionCard(
+                  title: 'Compte',
+                  children: [
+                    _AccountRow(
+                      iconAsset: 'assets/icons/lock-keyhole.svg',
+                      title: 'Changer le mot de passe',
+                      onTap: () => changePassword(context, ref),
+                    ),
+                    Divider(
+                      height: 1,
+                      color: theme.colorScheme.outlineVariant,
+                    ),
+                    _AccountRow(
+                      iconAsset: 'assets/icons/profile-help.svg',
+                      title: 'Mot de passe oublié',
+                      subtitle:
+                          'Recevoir un lien de réinitialisation par e-mail',
+                      onTap: () => sendPasswordReset(context, ref),
+                    ),
+                    Divider(
+                      height: 1,
+                      color: theme.colorScheme.outlineVariant,
+                    ),
+                    _AccountRow(
+                      iconAsset: 'assets/icons/mail.svg',
+                      title: 'Vérifier mon adresse e-mail',
+                      subtitle: (user?.emailVerified ?? false)
+                          ? 'Adresse e-mail vérifiée'
+                          : 'Adresse e-mail non vérifiée',
+                      showChevron: !(user?.emailVerified ?? false),
+                      onTap: (user?.emailVerified ?? false)
+                          ? null
+                          : () => sendEmailVerification(context, ref),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _SectionCard(
+                  title: 'Préférences de notifications',
+                  children: [
+                    _ToggleRow(
+                      title: 'Alertes près de chez moi',
+                      subtitle: cityLabel == null
+                          ? 'Risques autour de vous'
+                          : 'Risques autour de $cityLabel',
+                      value: nearbyAlerts,
+                      onChanged: (value) => ref
+                          .read(profileNearbyAlertsProvider.notifier)
+                          .setValue(value),
+                    ),
+                    Divider(
+                      height: 1,
+                      color: theme.colorScheme.outlineVariant,
+                    ),
+                    _ToggleRow(
+                      title: 'Suivi de mes signalements',
+                      subtitle: 'Validation et changements de statut',
+                      value: reportUpdates,
+                      onChanged: (value) => ref
+                          .read(profileReportUpdatesProvider.notifier)
+                          .setValue(value),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _SectionCard(
+                  title: 'Thème',
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
+                      child: _ThemeSegment(
+                        mode: themeMode,
+                        onSelect: (mode) => ref
+                            .read(themeModeProvider.notifier)
+                            .setThemeMode(mode),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _LogoutButton(
+                  onTap: () =>
+                      ref.read(authNotifierProvider.notifier).logout(),
+                ),
+              ],
             ),
-            const ReportNavigation(selected: CitizenNavTab.profil),
-          ],
+          ),
         ),
       ),
+      bottomNavigationBar: const ReportNavigation(selected: CitizenNavTab.profil),
     );
   }
 }
@@ -195,40 +377,6 @@ String _initials(String name) {
     return parts.first.substring(0, 1).toUpperCase();
   }
   return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
-}
-
-class _Header extends StatelessWidget {
-  const _Header();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final onSurface = theme.colorScheme.onSurface;
-    final muted = theme.colorScheme.onSurfaceVariant;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Profil',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
-            color: onSurface,
-            height: 1.1,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Mon compte et mes préférences',
-          style: TextStyle(
-            fontSize: 13,
-            color: muted,
-          ),
-        ),
-      ],
-    );
-  }
 }
 
 class _IdentityCard extends StatelessWidget {

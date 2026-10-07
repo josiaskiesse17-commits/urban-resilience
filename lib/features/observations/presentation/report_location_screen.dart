@@ -5,7 +5,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:urban_resilience/core/theme/app_palette.dart';
 import 'package:urban_resilience/features/location/presentation/selected_place_provider.dart';
 import 'package:urban_resilience/features/observations/presentation/report_chrome.dart';
 import 'package:urban_resilience/features/observations/presentation/report_draft.dart';
@@ -90,7 +89,7 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
     final mapLng = draft.longitude ?? RiskZoneCatalog.zones.first.longitude;
 
     return Scaffold(
-      backgroundColor: AppPalette.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Align(
         alignment: Alignment.topCenter,
         child: ConstrainedBox(
@@ -103,21 +102,21 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
                   children: [
-                    const Text(
+                    Text(
                       'Où se situe l’événement ?',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: AppPalette.textDark,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       'Placez le repère au plus près du lieu observé.',
                       style: TextStyle(
                         fontSize: 13,
                         height: 1.35,
-                        color: AppPalette.textMuted,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -163,7 +162,7 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                                   vertical: 7,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.surface,
                                   borderRadius: BorderRadius.circular(999),
                                 ),
                                 child: Row(
@@ -176,30 +175,30 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                                     const SizedBox(width: 6),
                                     Text(
                                       draft.cityLine,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
-                                        color: AppPalette.textDark,
+                                        color: Theme.of(context).colorScheme.onSurface,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
                             ),
-                            const Center(
+                            Center(
                               child: Icon(
                                 Icons.location_on,
-                                color: AppPalette.primary,
+                                color: Theme.of(context).colorScheme.primary,
                                 size: 40,
                               ),
                             ),
-                            const Positioned(
+                            Positioned(
                               left: 12,
                               right: 12,
                               bottom: 12,
                               child: DecoratedBox(
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.surface,
                                   borderRadius: BorderRadius.all(
                                     Radius.circular(14),
                                   ),
@@ -212,7 +211,7 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w500,
-                                      color: AppPalette.primary,
+                                      color: Theme.of(context).colorScheme.primary,
                                     ),
                                   ),
                                 ),
@@ -226,19 +225,19 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppPalette.inputBorder),
+                        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Adresse de l’événement',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
-                              color: AppPalette.textDark,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -266,17 +265,17 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                                     children: [
                                       Text(
                                         _street.text,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w600,
-                                          color: AppPalette.textDark,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                         ),
                                       ),
                                       Text(
                                         _city.text,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 13,
-                                          color: AppPalette.textMuted,
+                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                                         ),
                                       ),
                                     ],
@@ -289,12 +288,12 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                             onTap: () => setState(
                               () => _editingAddress = !_editingAddress,
                             ),
-                            child: const Text(
+                            child: Text(
                               'Corriger l’adresse',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
-                                color: AppPalette.primary,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
                           ),
@@ -306,8 +305,8 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                       onPressed: _useMyPosition,
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size.fromHeight(52),
-                        foregroundColor: AppPalette.primary,
-                        side: const BorderSide(color: AppPalette.inputBorder),
+                        foregroundColor: Theme.of(context).colorScheme.primary,
+                        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -326,12 +325,12 @@ class _ReportLocationScreenState extends ConsumerState<ReportLocationScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const Text(
+                    Text(
                       'Votre position peut être différente du lieu de l’événement. Vérifiez le repère avant de continuer.',
                       style: TextStyle(
                         fontSize: 11,
                         height: 1.4,
-                        color: AppPalette.textMuted,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],

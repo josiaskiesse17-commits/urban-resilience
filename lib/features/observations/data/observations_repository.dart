@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../domain/observation.dart';
@@ -48,22 +48,28 @@ class ObservationsRepository {
         .map(_mapSnapshots);
   }
 
-  Stream<List<Observation>> watchMine(String userId) {
+   Stream<List<Observation>> watchMine(String userId) {
+     return _collection
+         .where('userId', isEqualTo: userId)
+         .snapshots()
+         .map(_mapSnapshots);
+   }
+
+  Stream<List<Observation>> watchAllConfirmed() {
     return _collection
-        .where('userId', isEqualTo: userId)
+        .where('status', isEqualTo: ObservationStatus.confirmed.name)
         .snapshots()
         .map(_mapSnapshots);
   }
 
-  Future<String> create({
-    required String zoneId,
-    required String hazardType,
-    required double latitude,
-    required double longitude,
-    required ObservationType type,
-    required String description,
-    String? imageUrl,
-  }) async {
+   Future<String> create({
+     required String zoneId,
+     required String hazardType,
+     required double latitude,
+     required double longitude,
+     required ObservationType type,
+     required String description,
+   }) async {
     final user = _auth.currentUser;
 
     if (user == null) {
@@ -73,83 +79,83 @@ class ObservationsRepository {
     final reference = _collection.doc();
 
     final observation = Observation(
-      id: reference.id,
-      userId: user.uid,
-      zoneId: zoneId,
-      hazardType: hazardType,
-      latitude: latitude,
-      longitude: longitude,
-      type: type,
-      imageUrl: imageUrl,
-      description: description.trim(),
-      createdAt: DateTime.now().toUtc(),
-    );
+       id: reference.id,
+       userId: user.uid,
+       zoneId: zoneId,
+       hazardType: hazardType,
+       latitude: latitude,
+       longitude: longitude,
+       type: type,
+       description: description.trim(),
+       createdAt: DateTime.now().toUtc(),
+     );
 
     await reference.set(observation.toJson());
     return reference.id;
-  }
+   }
+    Future<String?> uploadPhoto({
+     required String observationId,
+     required String localPath,
+   }) async {
+     final user = _auth.currentUser;
+     if (user == null) {
+       throw StateError('Utilisateur non connecté');
+     }
 
-  Future<String?> uploadPhoto({
-    required String observationId,
-    required String localPath,
-  }) async {
-    final user = _auth.currentUser;
-    if (user == null) {
-      throw StateError('Utilisateur non connecté');
-    }
+     final bytes = await XFile(localPath).readAsBytes();
+     final ref = _storage.ref('observations/${user.uid}/$observationId.jpg');
+     await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
+     return ref.getDownloadURL();
+   }
 
-    final bytes = await XFile(localPath).readAsBytes();
-    final ref = _storage.ref('observations/${user.uid}/$observationId.jpg');
-    await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
-    return ref.getDownloadURL();
-  }
+    /// Creates the observation, optionally uploading [photoPath] first.
+    Future<String> createWithOptionalPhoto({
+     required String zoneId,
+     required String hazardType,
+     required double latitude,
+     required double longitude,
+     required ObservationType type,
+     required String description,
+     String? photoPath,
+   }) async {
+     final user = _auth.currentUser;
+     if (user == null) {
+       throw StateError('Utilisateur non connecté');
+     }
 
-  /// Creates the observation, optionally uploading [photoPath] first.
-  Future<String> createWithOptionalPhoto({
-    required String zoneId,
-    required String hazardType,
-    required double latitude,
-    required double longitude,
-    required ObservationType type,
-    required String description,
-    String? photoPath,
-  }) async {
-    final user = _auth.currentUser;
-    if (user == null) {
-      throw StateError('Utilisateur non connecté');
-    }
+     final reference = _collection.doc();
+     String? imageUrl;
 
-    final reference = _collection.doc();
-    String? imageUrl;
+     if (photoPath != null && photoPath.isNotEmpty) {
+       try {
+         imageUrl = await uploadPhoto(
+           observationId: reference.id,
+           localPath: photoPath,
+         );
+       } catch (error, stackTrace) {
+         debugPrint('Upload photo observation échoué: $error');
+         debugPrintStack(stackTrace: stackTrace);
+       }
+     }
 
-    if (photoPath != null && photoPath.isNotEmpty) {
-      try {
-        imageUrl = await uploadPhoto(
-          observationId: reference.id,
-          localPath: photoPath,
-        );
-      } catch (error, stackTrace) {
-        debugPrint('Upload photo observation échoué: $error');
-        debugPrintStack(stackTrace: stackTrace);
-      }
-    }
+     final observation = Observation(
+       id: reference.id,
+       userId: user.uid,
+       zoneId: zoneId,
+       hazardType: hazardType,
+       latitude: latitude,
+       longitude: longitude,
+       type: type,
+       imageUrl: imageUrl,
+       description: description.trim(),
+       createdAt: DateTime.now().toUtc(),
+     );
 
-    final observation = Observation(
-      id: reference.id,
-      userId: user.uid,
-      zoneId: zoneId,
-      hazardType: hazardType,
-      latitude: latitude,
-      longitude: longitude,
-      type: type,
-      imageUrl: imageUrl,
-      description: description.trim(),
-      createdAt: DateTime.now().toUtc(),
-    );
+     await reference.set(observation.toJson());
+     return reference.id;
+   }
 
-    await reference.set(observation.toJson());
-    return reference.id;
-  }
+
 
   Future<void> approve({
     required String id,

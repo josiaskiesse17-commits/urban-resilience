@@ -357,9 +357,11 @@ setState(() {
                           const SizedBox(height: 12),
                           _buildAdviceCard(context, riskResult),
                           const SizedBox(height: 12),
-                          _buildObservationsCard(context, riskResult),
-                          const SizedBox(height: 12),
-                          _buildRefreshCard(context, riskResult),
+                           _buildObservationsCard(context, riskResult),
+                           const SizedBox(height: 12),
+                           _buildAlertsCard(context, riskResult),
+                           const SizedBox(height: 12),
+                           _buildRefreshCard(context, riskResult),
                           const SizedBox(height: 12),
                           _buildWhatIfCard(context, riskResult),
                           const SizedBox(height: 16),
@@ -463,6 +465,23 @@ setState(() {
         onTap: () {
           context.push(
             '/observations?zone=${Uri.encodeComponent(HazardRiskId.zoneIdOf(widget.riskId))}'
+            '&hazard=${Uri.encodeComponent(_selectedHazard.id)}',
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildAlertsCard(BuildContext context, RiskResult riskResult) {
+    return Card(
+      child: ListTile(
+        leading: const Icon(Icons.warning_amber_outlined),
+        title: const Text('Alertes'),
+        subtitle: const Text('Consulter les alertes actives pour ce risque'),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () {
+          context.push(
+            '/alerts?zone=${Uri.encodeComponent(HazardRiskId.zoneIdOf(widget.riskId))}'
             '&hazard=${Uri.encodeComponent(_selectedHazard.id)}',
           );
         },

@@ -41,3 +41,7 @@ final myObservationsProvider = StreamProvider.autoDispose<List<Observation>>((
 
   return ref.watch(observationsRepositoryProvider).watchMine(user.id);
 });
+
+final allConfirmedObservationsProvider = StreamProvider.autoDispose<List<Observation>>(
+  (ref) => ref.watch(observationsRepositoryProvider).watchAllConfirmed(),
+);

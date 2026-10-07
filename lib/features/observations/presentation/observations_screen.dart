@@ -15,18 +15,18 @@ class ObservationsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final hasContext = zoneId != null && hazardType != null;
-    final hazardLabel = hasContext
-        ? HazardType.fromId(hazardType!)?.label ?? hazardType!
-        : null;
-    final observations = hasContext
-        ? ref.watch(
-            observationsForContextProvider((
-              zoneId: zoneId!,
-              hazardType: hazardLabel!,
-            )),
-          )
-        : const AsyncValue<List<Observation>>.data(<Observation>[]);
+   final hasContext = zoneId != null && hazardType != null;
+   final hazardLabel = hasContext
+       ? HazardType.fromId(hazardType!)?.label ?? hazardType!
+       : null;
+   final observations = hasContext
+       ? ref.watch(
+           observationsForContextProvider((
+             zoneId: zoneId!,
+             hazardType: hazardLabel!,
+           )),
+         )
+       : ref.watch(allConfirmedObservationsProvider);
     final mine = ref.watch(myObservationsProvider);
 
     return Scaffold(
@@ -111,39 +111,40 @@ class ObservationsScreen extends ConsumerWidget {
                           ),
                         ),
                         data: (items) {
-                          final own = items
-                              .where(
-                                (item) =>
-                                    item.zoneId == zoneId &&
-                                    item.hazardType == hazardLabel,
-                              )
+                           final own = items
+                               .where(
+                                 (item) =>
+                                     hasContext
+                                         ? (item.zoneId == zoneId &&
+                                             item.hazardType == hazardLabel)
+                                         : true,
+                               )
                               .toList()
                             ..sort(
                               (a, b) => b.createdAt.compareTo(a.createdAt),
                             );
 
-                          if (own.isEmpty) {
-                            return Text(
-                              'Vous n’avez encore rien signalé pour ce risque '
-                              'dans cette zone.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
-                              ),
-                            );
-                          }
-
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              for (var i = 0; i < own.length; i++) ...[
-                                if (i > 0) const Divider(height: 24),
-                                _MyObservationCard(observation: own[i]),
-                              ],
-                            ],
+                        if (own.isEmpty) {
+                          return Text(
+                            'Vous n’avez encore aucun signalement.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
                           );
+                        }
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            for (var i = 0; i < own.length; i++) ...[
+                              if (i > 0) const Divider(height: 24),
+                              _MyObservationCard(observation: own[i]),
+                            ],
+                          ],
+                        );
                         },
                       ),
                     ),
@@ -462,12 +463,12 @@ class _MyObservationCard extends StatelessWidget {
     final (label, color, icon) = switch (status) {
       ObservationStatus.pending => (
         'En attente de validation',
-        Colors.amber.shade800,
+        theme.colorScheme.tertiary,
         Icons.hourglass_top,
       ),
       ObservationStatus.confirmed => (
         '✓ Vérifié',
-        Colors.green.shade700,
+        theme.colorScheme.primary,
         Icons.check_circle_outline,
       ),
       ObservationStatus.rejected => (

@@ -21,6 +21,7 @@ class MapScreen extends ConsumerStatefulWidget {
 
 class _MapScreenState extends ConsumerState<MapScreen> {
   final MapController _mapController = MapController();
+  bool _isNavExpanded = true;
 
   @override
   void initState() {
@@ -29,6 +30,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     Future<void>.microtask(() {
       ref.read(mapControllerProvider.notifier).initialize();
     });
+  }
+
+  void _toggleNavExpanded() {
+    setState(() => _isNavExpanded = !_isNavExpanded);
   }
 
   void _moveTo(LatLng location) {
@@ -171,8 +176,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: const ReportNavigation(
+      bottomNavigationBar: ReportNavigation(
         selected: CitizenNavTab.carte,
+        isExpanded: _isNavExpanded,
+        onToggle: _toggleNavExpanded,
       ),
     );
   }

@@ -24,3 +24,7 @@ final alertsForContextProvider = StreamProvider.autoDispose
 final allAlertsProvider = StreamProvider.autoDispose<List<RiskAlert>>(
   (ref) => ref.watch(alertsRepositoryProvider).watchAll(),
 );
+
+final allActiveAlertsProvider = StreamProvider.autoDispose<List<RiskAlert>>(
+  (ref) => ref.watch(alertsRepositoryProvider).watchAllActive(),
+);

@@ -9,20 +9,20 @@ service cloud.firestore {
 
     function isActiveAdmin() {
       return isSignedIn()
-        && exists(
-          /databases/$(database)/documents/admins/$(request.auth.uid)
-        )
-        && get(
-          /databases/$(database)/documents/admins/$(request.auth.uid)
-        ).data.active == true;
+          && exists(
+            /databases/$(database)/documents/admins/$(request.auth.uid)
+          )
+          && get(
+            /databases/$(database)/documents/admins/$(request.auth.uid)
+          ).data.active == true;
     }
 
     match /admins/{uid} {
       allow read: if isSignedIn()
-        && (
-          request.auth.uid == uid
-          || isActiveAdmin()
-        );
+          && (
+            request.auth.uid == uid
+            || isActiveAdmin()
+          );
 
       allow write: if isActiveAdmin();
     }
@@ -36,49 +36,85 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create: if isActiveAdmin();
       allow update: if isSignedIn()
-        && request.resource.data.riskScore == resource.data.riskScore
-        && request.resource.data.riskLevel == resource.data.riskLevel
-        && request.resource.data.hazardType == resource.data.hazardType
-        && request.resource.data.locationName == resource.data.locationName
-        && request.resource.data.latitude == resource.data.latitude
-        && request.resource.data.longitude == resource.data.longitude
-        && request.resource.data.updatedAt == resource.data.updatedAt
-        && request.resource.data.factors == resource.data.factors
-        && request.resource.data.evidence == resource.data.evidence;
+          && request.resource.data.riskScore == resource.data.riskScore
+          && request.resource.data.riskLevel == resource.data.riskLevel
+          && request.resource.data.hazardType == resource.data.hazardType
+          && request.resource.data.locationName == resource.data.locationName
+          && request.resource.data.latitude == resource.data.latitude
+          && request.resource.data.longitude == resource.data.longitude
+          && request.resource.data.updatedAt == resource.data.updatedAt
+          && request.resource.data.factors == resource.data.factors
+          && request.resource.data.evidence == resource.data.evidence;
       allow delete: if isActiveAdmin();
     }
 
     match /observations/{observationId} {
       allow read: if isActiveAdmin()
-        || (
-          isSignedIn()
-          && resource.data.status == 'confirmed'
-        )
-        || (
-          isSignedIn()
-          && resource.data.userId == request.auth.uid
-        );
+          || (
+            isSignedIn()
+            && resource.data.status == 'confirmed'
+          )
+          || (
+            isSignedIn()
+            && resource.data.userId == request.auth.uid
+          );
 
       allow create: if isSignedIn()
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.status == 'pending';
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.status == 'pending';
 
       allow update: if isActiveAdmin()
-        && request.resource.data.status in ['confirmed', 'rejected'];
+          && request.resource.data.status in ['confirmed', 'rejected'];
 
       allow delete: if isActiveAdmin();
     }
 
     match /alerts/{alertId} {
       allow read: if isActiveAdmin()
-        || (
-          isSignedIn()
-          && resource.data.active == true
-        );
+          || (
+            isSignedIn()
+            && resource.data.active == true
+          );
 
       allow create: if isActiveAdmin();
 
       allow update, delete: if isActiveAdmin();
+    }
+
+    match /users/{userId}/fcm_tokens/{tokenId} {
+      allow create: if request.auth != null
+                  && request.auth.uid == userId
+                  && request.resource.data.keys() == ['token', 'platform', 'updatedAt']
+                  && request.resource.data.token is string
+                  && request.resource.data.platform is string
+                  && request.resource.data.updatedAt is timestamp;
+      allow update: if request.auth != null
+                  && request.auth.uid == userId
+                  && resource.data.keys() == ['token', 'platform', 'updatedAt']
+                  && request.resource.data.keys() == resource.data.keys()
+                  && (request.resource.data.token == null || request.resource.data.token is string)
+                  && (request.resource.data.platform == null || request.resource.data.platform is string)
+                  && (request.resource.data.updatedAt == null || request.resource.data.updatedAt is timestamp);
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /users/{userId}/notificationPreferences/{docId} {
+      allow create: if request.auth != null
+                  && request.auth.uid == userId
+                  && request.resource.data.keys() == ['nearbyAlertsEnabled', 'reportUpdatesEnabled', 'updatedAt']
+                  && request.resource.data.nearbyAlertsEnabled is bool
+                  && request.resource.data.reportUpdatesEnabled is bool
+                  && request.resource.data.updatedAt is timestamp;
+      allow update: if request.auth != null
+                  && request.auth.uid == userId
+                  && resource.data.keys() == ['nearbyAlertsEnabled', 'reportUpdatesEnabled', 'updatedAt']
+                  && request.resource.data.keys() == resource.data.keys()
+                  && (request.resource.data.nearbyAlertsEnabled == null || request.resource.data.nearbyAlertsEnabled is bool)
+                  && (request.resource.data.reportUpdatesEnabled == null || request.resource.data.reportUpdatesEnabled is bool)
+                  && (request.resource.data.updatedAt == null || request.resource.data.updatedAt is timestamp);
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
     }
 
     match /{document=**} {

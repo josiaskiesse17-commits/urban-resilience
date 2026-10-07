@@ -18,22 +18,22 @@ class Observation {
   final String? reviewedBy;
   final String? rejectionReason;
 
-  const Observation({
-    required this.id,
-    required this.userId,
-    this.zoneId,
-    this.hazardType,
-    required this.latitude,
-    required this.longitude,
-    required this.type,
-    this.status = ObservationStatus.pending,
-    this.imageUrl,
-    this.description,
-    required this.createdAt,
-    this.reviewedAt,
-    this.reviewedBy,
-    this.rejectionReason,
-  });
+    const Observation({
+      required this.id,
+      required this.userId,
+      this.zoneId,
+      this.hazardType,
+      required this.latitude,
+      required this.longitude,
+      required this.type,
+      this.status = ObservationStatus.pending,
+      this.imageUrl,
+      this.description,
+      required this.createdAt,
+      this.reviewedAt,
+      this.reviewedBy,
+      this.rejectionReason,
+    });
 
   Map<String, dynamic> toJson() {
     return {
@@ -54,26 +54,26 @@ class Observation {
     };
   }
 
-  factory Observation.fromJson(Map<String, dynamic> json) {
-    return Observation(
-      id: _requiredString(json['id'], 'id'),
-      userId: _requiredString(json['userId'], 'userId'),
-      zoneId: _optionalString(json['zoneId']),
-      hazardType: _optionalString(json['hazardType']),
-      latitude: _number(json['latitude'], 'latitude'),
-      longitude: _number(json['longitude'], 'longitude'),
-      type: _observationType(json['type']),
-      status: _observationStatus(json['status']),
-      imageUrl: _optionalString(json['imageUrl']),
-      description: _optionalString(json['description']),
-      createdAt:
-          _parseDateTime(json['createdAt']) ??
-          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-      reviewedAt: _parseDateTime(json['reviewedAt']),
-      reviewedBy: _optionalString(json['reviewedBy']),
-      rejectionReason: _optionalString(json['rejectionReason']),
-    );
-  }
+   factory Observation.fromJson(Map<String, dynamic> json) {
+     return Observation(
+       id: _requiredString(json['id'], 'id'),
+       userId: _requiredString(json['userId'], 'userId'),
+       zoneId: _optionalString(json['zoneId']),
+       hazardType: _optionalString(json['hazardType']),
+       latitude: _number(json['latitude'], 'latitude'),
+       longitude: _number(json['longitude'], 'longitude'),
+       type: _observationType(json['type']),
+       status: _observationStatus(json['status']),
+       imageUrl: _optionalString(json['imageUrl']),
+       description: _optionalString(json['description']),
+       createdAt:
+           _parseDateTime(json['createdAt']) ??
+           DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+       reviewedAt: _parseDateTime(json['reviewedAt']),
+       reviewedBy: _optionalString(json['reviewedBy']),
+       rejectionReason: _optionalString(json['rejectionReason']),
+     );
+   }
 
   static String _requiredString(Object? value, String fieldName) {
     if (value is String && value.trim().isNotEmpty) {
